@@ -12,11 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 #pragma once
-
 #include <list>
 #include <memory>
 #include <mutex>  // NOLINT
 #include <optional>
+#include <stdexcept>
 #include <unordered_map>
 
 #include "common/config.h"
@@ -25,6 +25,7 @@
 namespace bustub {
 
 enum class AccessType { Unknown = 0, Lookup, Scan, Index };
+// 原本0是默认值，因为你将unknown与0绑定，所以这里默认为unknown
 
 enum class ArcStatus { MRU, MFU, MRU_GHOST, MFU_GHOST };
 
@@ -59,6 +60,8 @@ class ArcReplacer {
   void SetEvictable(frame_id_t frame_id, bool set_evictable);
   void Remove(frame_id_t frame_id);
   auto Size() -> size_t;
+  void LFerase(std::list<frame_id_t> &list, frame_id_t frame_id);
+  void LPerase(std::list<page_id_t> &list, page_id_t page_id);
 
  private:
   // TODO(student): implement me! You can replace or remove these member variables as you like.

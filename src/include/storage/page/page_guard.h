@@ -36,7 +36,7 @@ class FrameHeader;
 class ReadPageGuard {
   /** @brief Only the buffer pool manager is allowed to construct a valid `ReadPageGuard.` */
   friend class BufferPoolManager;
-
+  // 友元类，让BufferPoolManager能调用私有/保护成员
  public:
   /**
    * @brief The default constructor for a `ReadPageGuard`.
@@ -49,6 +49,8 @@ class ReadPageGuard {
    *
    * In other words, the only way to get a valid `ReadPageGuard` is through the buffer pool manager.
    */
+  // 除了栈上创建未初始化的守卫对象，其他都只能由缓存池管理器来获取readpageguard
+
   ReadPageGuard() = default;
 
   ReadPageGuard(const ReadPageGuard &) = delete;
@@ -114,6 +116,8 @@ class ReadPageGuard {
    * If we did not maintain this flag, then the move constructor / move assignment operators could attempt to destruct
    * or `Drop()` invalid members, causing a segmentation fault.
    */
+  // 该页守卫是否有效的标识 ,上文提到了会创造无效守卫
+  // 这样能让其默认构造为false
   bool is_valid_{false};
 
   /**

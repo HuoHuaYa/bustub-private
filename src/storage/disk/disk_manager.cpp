@@ -60,7 +60,6 @@ DiskManager::DiskManager(const std::filesystem::path &db_file) : db_file_name_(d
   // Initialize the database file.
   std::filesystem::resize_file(db_file, (page_capacity_ + 1) * BUSTUB_PAGE_SIZE);
   assert(static_cast<size_t>(GetFileSize(db_file_name_)) >= page_capacity_ * BUSTUB_PAGE_SIZE);
-
   buffer_used = nullptr;
 }
 

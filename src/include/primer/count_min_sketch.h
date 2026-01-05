@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #pragma once
-
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <utility>
@@ -101,7 +101,7 @@ class CountMinSketch {
       return bustub::HashUtil::CombineHashes(h1, h2) % width_;
     };
   }
-
+  std::vector<std::vector<std::atomic<size_t>>> counts_;
   /** @todo (student) can add their data structures that support count-min sketch operations */
 };
 
