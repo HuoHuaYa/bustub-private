@@ -397,3 +397,9 @@ add_custom_target(submit-p4
 )
 
 add_dependencies(check-clang-tidy gtest bustub) # needs gtest headers, compile_commands.json
+# 编译你的Pin/Unpin测试
+add_executable(test_pin_count test/buffer/test_pin_count.cpp)
+target_link_libraries(test_pin_count bustub)
+# 自动关联所有头文件路径（包括include、third_party/fmt等）
+target_include_directories(test_pin_count PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(test_pin_count PRIVATE ${PROJECT_SOURCE_DIR}/third_party/fmt/include)

@@ -56,12 +56,15 @@ class ArcReplacer {
   ~ArcReplacer() = default;
 
   auto Evict() -> std::optional<frame_id_t>;
+  // 按照arc驱逐
   void RecordAccess(frame_id_t frame_id, page_id_t page_id, AccessType access_type = AccessType::Unknown);
+  // 新增
   void SetEvictable(frame_id_t frame_id, bool set_evictable);
+  // 维护curr
   void Remove(frame_id_t frame_id);
   auto Size() -> size_t;
-  void LFerase(std::list<frame_id_t> &list, frame_id_t frame_id);
-  void LPerase(std::list<page_id_t> &list, page_id_t page_id);
+  void LFerase(std::list<frame_id_t> &list, frame_id_t fid);
+  void LPerase(std::list<page_id_t> &list, page_id_t pid);
 
  private:
   // TODO(student): implement me! You can replace or remove these member variables as you like.
@@ -79,6 +82,8 @@ class ArcReplacer {
    * identifier in ghost lists */
   std::unordered_map<page_id_t, std::shared_ptr<FrameStatus>> ghost_map_;
 
+  std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> alive_map_iter_;
+  std::unordered_map<page_id_t, std::list<page_id_t>::iterator> ghost_map_iter_;
   /* alive, evictable entries count */
   [[maybe_unused]] size_t curr_size_{0};
   /* p as in original paper */

@@ -39,7 +39,7 @@ DiskScheduler::~DiskScheduler() {
     // 3. 后台业务线程完成后，join() 自动回收该后台业务线程的资源，析构线程解除阻塞
     // 4. 一个thread只能执行一次join()
   }
-  //diskmanager是指针不用析构，request_queue自己有request析构函数，optional会调用thread的析构函数所以也不用
+  // diskmanager是指针不用析构，request_queue自己有request析构函数，optional会调用thread的析构函数所以也不用
 }
 
 /**
@@ -50,8 +50,8 @@ DiskScheduler::~DiskScheduler() {
  * @param requests The requests to be scheduled.
  */
 void DiskScheduler::Schedule(std::vector<DiskRequest> &requests) {
-  for (auto const &request : requests) {
-    request_queue_.Put(std::move(request));
+  for (auto &request : requests) {
+    request_queue_.Put(std::make_optional(std::move(request)));
   }  // request包含promise不可拷贝，所以要移动
 }
 
@@ -78,7 +78,7 @@ void DiskScheduler::StartWorkerThread() {
       }
       request->callback_.set_value(true);
     } catch (...) {
-      request->callback_.set_expection(std::current_exception());
+      request->callback_.set_exception(std::current_exception());
     }
   }
 }

@@ -56,7 +56,7 @@ TEST(BufferPoolManagerTest, DISABLED_VeryBasicTest) {
     const auto guard = bpm->ReadPage(pid);
     EXPECT_STREQ(guard.GetData(), str.c_str());
   }
-
+  ASSERT_TRUE(bpm->GetPinCount(pid).value() == 0);
   ASSERT_TRUE(bpm->DeletePage(pid));
 }
 
@@ -71,51 +71,51 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinEasyTest) {
   const std::string str1 = "page1";
   const std::string str0updated = "page0updated";
   const std::string str1updated = "page1updated";
-
   {
     auto page0_write_opt = bpm->CheckedWritePage(pageid0);
     ASSERT_TRUE(page0_write_opt.has_value());
     auto page0_write = std::move(page0_write_opt.value());  // NOLINT
     CopyString(page0_write.GetDataMut(), str0);
-
+    
     auto page1_write_opt = bpm->CheckedWritePage(pageid1);
     ASSERT_TRUE(page1_write_opt.has_value());
     auto page1_write = std::move(page1_write_opt.value());  // NOLINT
     CopyString(page1_write.GetDataMut(), str1);
-
+    
     ASSERT_EQ(1, bpm->GetPinCount(pageid0));
     ASSERT_EQ(1, bpm->GetPinCount(pageid1));
-
+    
     const auto temp_page_id1 = bpm->NewPage();
     const auto temp_page1_opt = bpm->CheckedReadPage(temp_page_id1);
     ASSERT_FALSE(temp_page1_opt.has_value());
-
+    
     const auto temp_page_id2 = bpm->NewPage();
     const auto temp_page2_opt = bpm->CheckedWritePage(temp_page_id2);
     ASSERT_FALSE(temp_page2_opt.has_value());
-
+    
     ASSERT_EQ(1, bpm->GetPinCount(pageid0));
     page0_write.Drop();
     ASSERT_EQ(0, bpm->GetPinCount(pageid0));
-
+    
     ASSERT_EQ(1, bpm->GetPinCount(pageid1));
     page1_write.Drop();
     ASSERT_EQ(0, bpm->GetPinCount(pageid1));
   }
-
+  
   {
     const auto temp_page_id1 = bpm->NewPage();
     const auto temp_page1_opt = bpm->CheckedReadPage(temp_page_id1);
     ASSERT_TRUE(temp_page1_opt.has_value());
-
+    
     const auto temp_page_id2 = bpm->NewPage();
     const auto temp_page2_opt = bpm->CheckedWritePage(temp_page_id2);
     ASSERT_TRUE(temp_page2_opt.has_value());
-
+    
     ASSERT_FALSE(bpm->GetPinCount(pageid0).has_value());
     ASSERT_FALSE(bpm->GetPinCount(pageid1).has_value());
   }
-
+  
+  // std::cout<<1<<'\n';
   {
     auto page0_write_opt = bpm->CheckedWritePage(pageid0);
     ASSERT_TRUE(page0_write_opt.has_value());
@@ -284,7 +284,7 @@ TEST(BufferPoolManagerTest, DISABLED_ContentionTest) {
   const auto pid = bpm->NewPage();
 
   auto thread1 = std::thread([&]() {
-    for (size_t i = 0; i < rounds; i++) {
+    for (size_t i = 0; i < rounds; i++) {   
       auto guard = bpm->WritePage(pid);
       CopyString(guard.GetDataMut(), std::to_string(i));
     }

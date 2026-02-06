@@ -68,6 +68,9 @@ class ReadPageGuard {
   void Drop();
   ~ReadPageGuard();
 
+  // void Getlock();
+  // void Releaselock();
+
  private:
   /** @brief Only the buffer pool manager is allowed to construct a valid `ReadPageGuard.` */
   explicit ReadPageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame, std::shared_ptr<ArcReplacer> replacer,
@@ -119,7 +122,6 @@ class ReadPageGuard {
   // 该页守卫是否有效的标识 ,上文提到了会创造无效守卫
   // 这样能让其默认构造为false
   bool is_valid_{false};
-
   /**
    * TODO(P1): You may add any fields under here that you think are necessary.
    *
@@ -163,6 +165,8 @@ class WritePageGuard {
   auto operator=(WritePageGuard &&that) noexcept -> WritePageGuard &;
   auto GetPageId() const -> page_id_t;
   auto GetData() const -> const char *;
+  // void Getlock();
+  // void Releaselock();
   template <class T>
   auto As() const -> const T * {
     return reinterpret_cast<const T *>(GetData());
@@ -226,7 +230,7 @@ class WritePageGuard {
    * or `Drop()` invalid members, causing a segmentation fault.
    */
   bool is_valid_{false};
-
+  // bool is_lock_{false};
   /**
    * TODO(P1): You may add any fields under here that you think are necessary.
    *

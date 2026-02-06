@@ -97,3 +97,4 @@ add_dependencies(test-p3 sqllogictest)
 # Must build sqllogictest before checking tests
 add_dependencies(build-tests sqllogictest)
 add_dependencies(check-tests sqllogictest)
+
