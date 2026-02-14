@@ -31,7 +31,9 @@ static char *buffer_used;
  * Creates a new disk manager that writes to the specified database file.
  * @param db_file the file name of the database file to write to
  */
+// 修改
 DiskManager::DiskManager(const std::filesystem::path &db_file) : db_file_name_(db_file) {
+// DiskManager::DiskManager(const std::filesystem::path &db_file) : page_capacity_(100), db_file_name_(db_file) {
   log_file_name_ = db_file_name_.filename().stem().string() + ".log";
 
   log_io_.open(log_file_name_, std::ios::binary | std::ios::in | std::ios::app | std::ios::out);
@@ -60,7 +62,6 @@ DiskManager::DiskManager(const std::filesystem::path &db_file) : db_file_name_(d
   // Initialize the database file.
   std::filesystem::resize_file(db_file, (page_capacity_ + 1) * BUSTUB_PAGE_SIZE);
   assert(static_cast<size_t>(GetFileSize(db_file_name_)) >= page_capacity_ * BUSTUB_PAGE_SIZE);
-
   buffer_used = nullptr;
 }
 
@@ -266,7 +267,8 @@ auto DiskManager::AllocatePage() -> size_t {
   }
 
   // Increase the file size if necessary.
-  if (pages_.size() + 1 >= page_capacity_) {
+  // 修改
+  if (pages_.size() + 1>= page_capacity_) {
     page_capacity_ *= 2;
     std::filesystem::resize_file(db_file_name_, (page_capacity_ + 1) * BUSTUB_PAGE_SIZE);
   }

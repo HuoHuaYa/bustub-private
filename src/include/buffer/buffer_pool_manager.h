@@ -125,6 +125,9 @@ class BufferPoolManager {
   void FlushAllPagesUnsafe();
   void FlushAllPages();
   auto GetPinCount(page_id_t page_id) -> std::optional<size_t>;
+  // auto GetFrameid(page_id_t page_id);
+  // auto GetFreeFrame(page_id_t page_id, AccessType access_type) -> std::shared_ptr<FrameHeader>;
+  // void ScheduleAndWait(const std::shared_ptr<DiskScheduler> &disk_scheduler, DiskRequest req);
 
  private:
   /** @brief The number of frames in the buffer pool. */
@@ -142,7 +145,7 @@ class BufferPoolManager {
 
   /** @brief The frame headers of the frames that this buffer pool manages. */
   std::vector<std::shared_ptr<FrameHeader>> frames_;
-
+  // std::unordered_map<frame_id_t,bool> frames_latch_;
   /** @brief The page table that keeps track of the mapping between pages and buffer pool frames. */
   std::unordered_map<page_id_t, frame_id_t> page_table_;
 
@@ -166,10 +169,12 @@ class BufferPoolManager {
    * TODO(P1): You may add additional private members and helper functions if you find them necessary.
    *
    * There will likely be a lot of code duplication between the different modes of accessing a page.
-   *
+
    * We would recommend implementing a helper function that returns the ID of a frame that is free and has nothing
    * stored inside of it. Additionally, you may also want to implement a helper function that returns either a shared
    * pointer to a `FrameHeader` that already has a page's data stored inside of it, or an index to said `FrameHeader`.
    */
+  std::unordered_map<frame_id_t, page_id_t> frame_table_;
+  // DiskManager *disk_manager_;
 };
 }  // namespace bustub

@@ -80,11 +80,14 @@ class DiskScheduler {
 
  private:
   /** Pointer to the disk manager. */
-  DiskManager *disk_manager_ __attribute__((__unused__));
+  DiskManager *disk_manager_ __attribute__((__unused__));  // 执行磁盘操作的成员（指针）
+  //__attribute__((__unused__))表示抑制编译器对该变量可能未被使用的警告
   /** A shared queue to concurrently schedule and process requests. When the DiskScheduler's destructor is called,
    * `std::nullopt` is put into the queue to signal to the background thread to stop execution. */
   Channel<std::optional<DiskRequest>> request_queue_;
+  // 实现生产者 - 消费者模型，内部有可调用保证了线程安全的函数
   /** The background thread responsible for issuing scheduled requests to the disk manager. */
   std::optional<std::thread> background_thread_;
+  // optional包裹的thread，后台线程对象
 };
 }  // namespace bustub
