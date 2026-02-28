@@ -24,7 +24,7 @@ namespace bustub {
 
 using bustub::DiskManagerUnlimitedMemory;
 
-TEST(BPlusTreeTests, DISABLED_DeleteTestNoIterator) {
+TEST(BPlusTreeTests, DeleteTestNoIterator) {
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -34,10 +34,10 @@ TEST(BPlusTreeTests, DISABLED_DeleteTestNoIterator) {
   // allocate header_page
   page_id_t page_id = bpm->NewPage();
   // create b+ tree
-  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", page_id, bpm, comparator, 2, 3);
+  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree(
+      "foo_pk", page_id, bpm, comparator, 2, 3);
   GenericKey<8> index_key;
   RID rid;
-
   std::vector<int64_t> keys = {1, 2, 3, 4, 5};
   for (auto key : keys) {
     int64_t value = key & 0xFFFFFFFF;
@@ -56,23 +56,25 @@ TEST(BPlusTreeTests, DISABLED_DeleteTestNoIterator) {
     int64_t value = key & 0xFFFFFFFF;
     EXPECT_EQ(rids[0].GetSlotNum(), value);
   }
-
+  tree.Print(bpm);
+  // std::cerr<<"BEGIN!!!\n";
   std::vector<int64_t> remove_keys = {1, 5, 3, 4};
   for (auto key : remove_keys) {
     index_key.SetFromInteger(key);
     tree.Remove(index_key);
+    // std::cerr<<"BEGIN!!!\n\n\n";
   }
 
   int64_t size = 0;
   bool is_present;
-
   for (auto key : keys) {
     rids.clear();
     index_key.SetFromInteger(key);
     is_present = tree.GetValue(index_key, &rids);
-
+    // std::cerr<<key<<' '<<is_present<<'\n';
     if (!is_present) {
-      EXPECT_NE(std::find(remove_keys.begin(), remove_keys.end(), key), remove_keys.end());
+      EXPECT_NE(std::find(remove_keys.begin(), remove_keys.end(), key),
+                remove_keys.end());
     } else {
       EXPECT_EQ(rids.size(), 1);
       EXPECT_EQ(rids[0].GetPageId(), 0);
@@ -85,13 +87,14 @@ TEST(BPlusTreeTests, DISABLED_DeleteTestNoIterator) {
   // Remove the remaining key
   index_key.SetFromInteger(2);
   tree.Remove(index_key);
+  std::cerr << "not removed\n";
   auto root_page_id = tree.GetRootPageId();
   ASSERT_EQ(root_page_id, INVALID_PAGE_ID);
 
   delete bpm;
 }
 
-TEST(BPlusTreeTests, DISABLED_OptimisticDeleteTest) {
+TEST(BPlusTreeTests, OptimisticDeleteTest) {
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
 
@@ -100,7 +103,8 @@ TEST(BPlusTreeTests, DISABLED_OptimisticDeleteTest) {
   // allocate header_page
   page_id_t page_id = bpm->NewPage();
   // create b+ tree
-  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", page_id, bpm, comparator, 4, 3);
+  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree(
+      "foo_pk", page_id, bpm, comparator, 4, 3);
   GenericKey<8> index_key;
   RID rid;
 
@@ -113,7 +117,8 @@ TEST(BPlusTreeTests, DISABLED_OptimisticDeleteTest) {
   }
 
   size_t to_delete = num_keys + 1;
-  auto leaf = IndexLeaves<GenericKey<8>, RID, GenericComparator<8>>(tree.GetRootPageId(), bpm);
+  auto leaf = IndexLeaves<GenericKey<8>, RID, GenericComparator<8>>(
+      tree.GetRootPageId(), bpm);
   while (leaf.Valid()) {
     if ((*leaf)->GetSize() > (*leaf)->GetMinSize()) {
       to_delete = (*leaf)->KeyAt(0).GetAsInteger();
@@ -136,7 +141,7 @@ TEST(BPlusTreeTests, DISABLED_OptimisticDeleteTest) {
   delete bpm;
 }
 
-TEST(BPlusTreeTests, DISABLED_SequentialEdgeMixTest) {  // NOLINT
+TEST(BPlusTreeTests, SequentialEdgeMixTest) {  // NOLINT
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -149,7 +154,8 @@ TEST(BPlusTreeTests, DISABLED_SequentialEdgeMixTest) {  // NOLINT
     page_id_t page_id = bpm->NewPage();
 
     // create b+ tree
-    BPlusTree<GenericKey<8>, RID, GenericComparator<8>, 2> tree("foo_pk", page_id, bpm, comparator, leaf_max_size, 3);
+    BPlusTree<GenericKey<8>, RID, GenericComparator<8>, 2> tree(
+        "foo_pk", page_id, bpm, comparator, leaf_max_size, 3);
     GenericKey<8> index_key;
     RID rid;
 
@@ -162,7 +168,8 @@ TEST(BPlusTreeTests, DISABLED_SequentialEdgeMixTest) {  // NOLINT
       index_key.SetFromInteger(key);
       tree.Insert(index_key, rid);
       inserted.push_back(key);
-      auto res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(tree, inserted, deleted);
+      auto res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(
+          tree, inserted, deleted);
       ASSERT_TRUE(res);
     }
 
@@ -170,14 +177,16 @@ TEST(BPlusTreeTests, DISABLED_SequentialEdgeMixTest) {  // NOLINT
     tree.Remove(index_key);
     deleted.push_back(1);
     inserted.erase(std::find(inserted.begin(), inserted.end(), 1));
-    auto res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(tree, inserted, deleted);
+    auto res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(
+        tree, inserted, deleted);
     ASSERT_TRUE(res);
 
     index_key.SetFromInteger(3);
     rid.Set(3, 3);
     tree.Insert(index_key, rid);
     inserted.push_back(3);
-    res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(tree, inserted, deleted);
+    res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(
+        tree, inserted, deleted);
     ASSERT_TRUE(res);
 
     keys = {4, 14, 6, 2, 15, -2, -1, 3, 5, 25, 20};
@@ -186,7 +195,13 @@ TEST(BPlusTreeTests, DISABLED_SequentialEdgeMixTest) {  // NOLINT
       tree.Remove(index_key);
       deleted.push_back(key);
       inserted.erase(std::find(inserted.begin(), inserted.end(), key));
-      res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(tree, inserted, deleted);
+      res = TreeValuesMatch<GenericKey<8>, RID, GenericComparator<8>, 2>(
+          tree, inserted, deleted);
+      if (leaf_max_size == 3 && (key == 6 || key == 14)) {
+        tree.Print(bpm);
+        std::cout << "!!!!\n\n---------\n";
+      }
+      std::cout << leaf_max_size << " " << key << '\n';
       ASSERT_TRUE(res);
     }
   }

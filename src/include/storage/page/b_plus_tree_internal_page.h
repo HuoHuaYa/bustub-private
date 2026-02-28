@@ -43,6 +43,7 @@ namespace bustub {
  * | PAGE_ID(1) | PAGE_ID(2) | ... | PAGE_ID(n) |
  *  ---------------------------------------------
  */
+// 因为k(i) <= k < k(i+1) 所以第一个KEY是无效的，因为第一个人  < k(2) , 没有下界
 INDEX_TEMPLATE_ARGUMENTS
 class BPlusTreeInternalPage : public BPlusTreePage {
  public:
@@ -61,15 +62,27 @@ class BPlusTreeInternalPage : public BPlusTreePage {
    * @return The index that corresponds to the specified value
    */
   auto ValueIndex(const ValueType &value) const -> int;
+  // 值的索引
 
   auto ValueAt(int index) const -> ValueType;
-
+  // 值的类型
+  void SetValueAt(int index, const ValueType &value);
+  //
+  auto Lookup(const KeyType &key, const KeyComparator &comparator) const -> ValueType;
+  auto InsertNodeAfter(const ValueType &old_value, const KeyType &new_key, const ValueType &new_value) -> int;
+  void PopulateNewRoot(const ValueType &old_value, const KeyType &new_key, const ValueType &new_value);
+  void Split(B_PLUS_TREE_INTERNAL_PAGE_TYPE *recipient, KeyType *split_key);
+  void PushFront(const KeyType &key, const ValueType &value);
+  void PushBack(const KeyType &key, const ValueType &value);
+  void MoveAllTo(BPlusTreeInternalPage *recipient, const KeyType &middle_key);
+  void Remove(int index);
   /**
    * @brief For test only, return a string representing all keys in
    * this internal page, formatted as "(key1,key2,key3,...)"
    *
    * @return The string representation of all keys in the current internal page
    */
+  // 表示所有键的字符串
   auto ToString() const -> std::string {
     std::string kstr = "(";
     bool first = true;
@@ -92,6 +105,7 @@ class BPlusTreeInternalPage : public BPlusTreePage {
 
  private:
   // Array members for page data.
+  // key装的是路标， value装的是子节点对应的page页面
   KeyType key_array_[INTERNAL_PAGE_SLOT_CNT];
   ValueType page_id_array_[INTERNAL_PAGE_SLOT_CNT];
   // (Spring 2025) Feel free to add more fields and helper functions below if needed

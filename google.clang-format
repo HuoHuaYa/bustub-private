@@ -1,0 +1,15 @@
+# .clang-format
+BasedOnStyle: Google
+IndentWidth: 2
+UseTab: Never
+AllowShortFunctionsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterControlStatement: false
+  AfterFunction: true
+  AfterNamespace: true
+  AfterClass: true
+  AfterStruct: true

@@ -20,6 +20,11 @@
  * (3) The structure should shrink and grow dynamically
  * (4) Implement index iterator for range scan
  */
+// 内部页面用于搜索，叶子页面包含实际数据
+// 1.我们只提供唯一的键
+// 2.支持插入删除
+// 3.结构应该动态地收缩和增长
+// 4.实现范围扫描的索引迭代器
 #pragma once
 
 #include <algorithm>
@@ -51,22 +56,33 @@ struct PrintableBPlusTree;
  * Hint: This class is designed to help you keep track of the pages
  * that you're modifying or accessing.
  */
+// context帮助你追踪你正在修改或访问的页面
 class Context {
  public:
   // When you insert into / remove from the B+ tree, store the write guard of header page here.
   // Remember to drop the header page guard and set it to nullopt when you want to unlock all.
+  // 当你插入/删除b+树时，使用头部页面的write guard
+  // 记住在你想要解锁所有时，将头部页面的guard设置为nullopt
   std::optional<WritePageGuard> header_page_{std::nullopt};
 
   // Save the root page id here so that it's easier to know if the current page is the root page.
+  // 保存根页面id，这样更容易知道当前页面是否是根页面
   page_id_t root_page_id_{INVALID_PAGE_ID};
 
   // Store the write guards of the pages that you're modifying here.
+  // 使用正在修改的页面的write guards
   std::deque<WritePageGuard> write_set_;
 
   // You may want to use this when getting value, but not necessary.
+  // 当你获取值时，可能需要使用这个，但不是必要的
   std::deque<ReadPageGuard> read_set_;
 
   auto IsRootPage(page_id_t page_id) -> bool { return page_id == root_page_id_; }
+  void Clear() {
+    header_page_ = std::nullopt;
+    write_set_.clear();
+    read_set_.clear();
+  }
 };
 
 #define BPLUSTREE_TYPE BPlusTree<KeyType, ValueType, KeyComparator, NumTombs>
@@ -75,7 +91,9 @@ class Context {
 FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN
 class BPlusTree {
   using InternalPage = BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>;
-  using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>;
+  using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>;
+  // using InternalPage = BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>;
+  // using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>;
 
  public:
   explicit BPlusTree(std::string name, page_id_t header_page_id, BufferPoolManager *buffer_pool_manager,
@@ -121,6 +139,14 @@ class BPlusTree {
   // Do not change this type to a BufferPoolManager!
   std::shared_ptr<TracedBufferPoolManager> bpm_;
 
+  // 额外添加：
+  // 给你key，context，去把叶子节点给我找过来
+  auto FindLeafForRead(const KeyType &key, Context *context) const -> const LeafPage *;
+  auto GetRootPageIdForRead(Context *ctx) const -> page_id_t;
+  auto FindLeafForWrite(const KeyType &key, Context *ctx) -> WritePageGuard;
+  void InsertIntoParent(page_id_t old_page_id, const KeyType &key, page_id_t new_page_id, Context *ctx);
+  auto FindLeafForRemove(const KeyType &key, Context *ctx) -> WritePageGuard;
+
  private:
   void ToGraph(page_id_t page_id, const BPlusTreePage *page, std::ofstream &out);
 
@@ -141,6 +167,7 @@ class BPlusTree {
  * @brief for test only. PrintableBPlusTree is a printable B+ tree.
  * We first convert B+ tree into a printable B+ tree and the print it.
  */
+// 我们首先将b+树转换为可打印的b+树，然后打印它。
 struct PrintableBPlusTree {
   int size_;
   std::string keys_;

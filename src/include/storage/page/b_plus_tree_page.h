@@ -65,13 +65,17 @@ class BPlusTreePage {
   /*
    * TODO(P2): Remove __attribute__((__unused__)) if you intend to use the fields.
    */
+  // 如果要用下面的成员变量就把 attribute删了
  private:
   // Member variables, attributes that both internal and leaf page share
-  IndexPageType page_type_ __attribute__((__unused__));
+
+  IndexPageType page_type_;
   // Number of key & value pairs in a page
-  int size_ __attribute__((__unused__));
+  // 一个页面键值对的数量
+  int size_;
   // Max number of key & value pairs in a page
-  int max_size_ __attribute__((__unused__));
+  // 键值对的最大数量
+  int max_size_;
 };
 
 }  // namespace bustub

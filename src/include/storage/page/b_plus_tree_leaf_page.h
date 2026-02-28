@@ -74,6 +74,26 @@ class BPlusTreeLeafPage : public BPlusTreePage {
   void SetNextPageId(page_id_t next_page_id);
   auto KeyAt(int index) const -> KeyType;
 
+  // human adding
+  auto ValueAt(int index) const -> ValueType;
+  auto KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int;
+  auto IsTombstone(int index) const -> bool;
+  void Compact();
+  auto Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator) -> bool;
+  void Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient, const KeyType &key, const ValueType &value,
+             const KeyComparator &comparator);
+  auto RemoveAndDeleteRecord(const KeyType &key, const KeyComparator &comparator) -> bool;
+  auto RealRemove(const KeyType &key, const KeyComparator &comparator) -> bool;
+  void PushFront(const KeyType &key, const ValueType &value);
+  void PushBack(const KeyType &key, const ValueType &value);
+  void MoveAllTo(BPlusTreeLeafPage *recipient);
+  auto KeyRefAt(int index) const -> const KeyType & { return key_array_[index]; }
+  auto ValueRefAt(int index) const -> const ValueType & { return rid_array_[index]; }
+  auto GetTombstonesNum() -> int { return static_cast<int>(num_tombstones_); }
+
+  void MoveFirstToEndOf(BPlusTreeLeafPage *recipient);   // 从右兄弟借一个给左兄弟
+  void MoveLastToFrontOf(BPlusTreeLeafPage *recipient);  // 左给右
+  void RemoveOldestTombstone();
   /**
    * @brief for test only return a string representing all keys in
    * this leaf page formatted as "(tombkey1, tombkey2, ...|key1,key2,key3,...)"
@@ -105,7 +125,6 @@ class BPlusTreeLeafPage : public BPlusTreePage {
       kstr.append(std::to_string(key.ToString()));
     }
     kstr.append(")");
-
     return kstr;
   }
 
@@ -113,11 +132,13 @@ class BPlusTreeLeafPage : public BPlusTreePage {
   page_id_t next_page_id_;
   size_t num_tombstones_;
   // Fixed-size tombstone buffer (indexes into key_array_ / rid_array_).
+  // 固定大小的墓碑缓冲区,存索引
   size_t tombstones_[LEAF_PAGE_TOMB_CNT];
   // Array members for page data.
   KeyType key_array_[LEAF_PAGE_SLOT_CNT];
   ValueType rid_array_[LEAF_PAGE_SLOT_CNT];
-  // (Spring 2025) Feel free to add more fields and helper functions below if needed
+  // (Spring 2025) Feel free to add more fields and helper functions below if
+  // needed
 };
 
 }  // namespace bustub

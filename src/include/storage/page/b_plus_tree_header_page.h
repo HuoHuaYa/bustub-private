@@ -20,6 +20,7 @@ namespace bustub {
  * The header page is just used to retrieve the root page,
  * preventing potential race condition under concurrent environment.
  */
+//头页用于检索根页，阻止并发环境的竟态条件
 class BPlusTreeHeaderPage {
  public:
   // Delete all constructor / destructor to ensure memory safety
