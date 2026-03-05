@@ -11,12 +11,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "primer/orset.h"
-#include <algorithm>
-#include <string>
-#include <vector>
 #include "common/exception.h"
 #include "fmt/format.h"
 #include "fmt/ranges.h"
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace bustub {
 
@@ -26,8 +26,7 @@ namespace bustub {
  * @param elem the element to check
  * @return true if the element is in the set, and false otherwise.
  */
-template <typename T>
-auto ORSet<T>::Contains(const T &elem) const -> bool {
+template <typename T> auto ORSet<T>::Contains(const T &elem) const -> bool {
   // TODO(student): Implement this
   throw NotImplementedException("ORSet<T>::Contains is not implemented");
 }
@@ -38,8 +37,7 @@ auto ORSet<T>::Contains(const T &elem) const -> bool {
  * @param elem the element to add
  * @param uid unique token associated with the add operation.
  */
-template <typename T>
-void ORSet<T>::Add(const T &elem, uid_t uid) {
+template <typename T> void ORSet<T>::Add(const T &elem, uid_t uid) {
   // TODO(student): Implement this
   throw NotImplementedException("ORSet<T>::Add is not implemented");
 }
@@ -49,8 +47,7 @@ void ORSet<T>::Add(const T &elem, uid_t uid) {
  *
  * @param elem the element to remove.
  */
-template <typename T>
-void ORSet<T>::Remove(const T &elem) {
+template <typename T> void ORSet<T>::Remove(const T &elem) {
   // TODO(student): Implement this
   throw NotImplementedException("ORSet<T>::Remove is not implemented");
 }
@@ -60,8 +57,7 @@ void ORSet<T>::Remove(const T &elem) {
  *
  * @param other another ORSet
  */
-template <typename T>
-void ORSet<T>::Merge(const ORSet<T> &other) {
+template <typename T> void ORSet<T>::Merge(const ORSet<T> &other) {
   // TODO(student): Implement this
   throw NotImplementedException("ORSet<T>::Merge is not implemented");
 }
@@ -71,8 +67,7 @@ void ORSet<T>::Merge(const ORSet<T> &other) {
  *
  * @return all the elements in the set.
  */
-template <typename T>
-auto ORSet<T>::Elements() const -> std::vector<T> {
+template <typename T> auto ORSet<T>::Elements() const -> std::vector<T> {
   // TODO(student): Implement this
   throw NotImplementedException("ORSet<T>::Elements is not implemented");
 }
@@ -82,8 +77,7 @@ auto ORSet<T>::Elements() const -> std::vector<T> {
  *
  * @return a string representation of the set.
  */
-template <typename T>
-auto ORSet<T>::ToString() const -> std::string {
+template <typename T> auto ORSet<T>::ToString() const -> std::string {
   auto elements = Elements();
   std::sort(elements.begin(), elements.end());
   return fmt::format("{{{}}}", fmt::join(elements, ", "));
@@ -92,4 +86,4 @@ auto ORSet<T>::ToString() const -> std::string {
 template class ORSet<int>;
 template class ORSet<std::string>;
 
-}  // namespace bustub
+} // namespace bustub

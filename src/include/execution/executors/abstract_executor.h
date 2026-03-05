@@ -25,7 +25,7 @@ class ExecutorContext;
  * engine inherit, and defines the minimal interface that all executors support.
  */
 class AbstractExecutor {
- public:
+public:
   /**
    * Construct a new AbstractExecutor instance.
    * @param exec_ctx the executor context that the executor runs with
@@ -47,7 +47,8 @@ class AbstractExecutor {
    * @param[out] rid The next tuple RID produced by this executor
    * @return `true` if a tuple was produced, `false` if there are no more tuples
    */
-  virtual auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  virtual auto Next(std::vector<bustub::Tuple> *tuple_batch,
+                    std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool = 0;
 
   /** @return The schema of the tuples that this executor produces */
@@ -56,8 +57,8 @@ class AbstractExecutor {
   /** @return The executor context in which this executor runs */
   auto GetExecutorContext() -> ExecutorContext * { return exec_ctx_; }
 
- protected:
+protected:
   /** The executor context in which the executor runs */
   ExecutorContext *exec_ctx_;
 };
-}  // namespace bustub
+} // namespace bustub

@@ -12,9 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer/arc_replacer.h"
+#include "common/config.h"
 #include <algorithm>
 #include <optional>
-#include "common/config.h"
 
 namespace bustub {
 
@@ -22,8 +22,10 @@ namespace bustub {
  *
  * TODO(P1): Add implementation
  *
- * @brief a new ArcReplacer, with lists initialized to be empty and target size to 0
- * @param num_frames the maximum number of frames the ArcReplacer will be required to cache
+ * @brief a new ArcReplacer, with lists initialized to be empty and target size
+ * to 0
+ * @param num_frames the maximum number of frames the ArcReplacer will be
+ * required to cache
  */
 ArcReplacer::ArcReplacer(size_t num_frames) : replacer_size_(num_frames) {
   mru_.clear();
@@ -70,22 +72,26 @@ void ArcReplacer::LPerase(std::list<page_id_t> &List, page_id_t pid) {
  * 1. When the size of mru_ equals the target size, we don't check
  * the last access as the paper did when deciding which list to evict from.
  * This is fine since the original decision is stated to be arbitrary.
- * 2. Entries that are not evictable are skipped. If all entries from the desired side
- * (mru_ / mfu_) are pinned, we instead try victimize the other side (mfu_ / mru_),
- * and move it to its corresponding ghost list (mfu_ghost_ / mru_ghost_).
+ * 2. Entries that are not evictable are skipped. If all entries from the
+ * desired side (mru_ / mfu_) are pinned, we instead try victimize the other
+ * side (mfu_ / mru_), and move it to its corresponding ghost list (mfu_ghost_ /
+ * mru_ghost_).
  *
  * @return frame id of the evicted frame, or std::nullopt if cannot evict
  */
 /**
  * TODO(P1): 添加实现
  *
- * @brief 根据写入描述执行替换操作，该操作根据平衡策略从 mfu_ 或 mru_ 中淘汰页面到对应的幽灵列表。
+ * @brief 根据写入描述执行替换操作，该操作根据平衡策略从 mfu_ 或 mru_
+ * 中淘汰页面到对应的幽灵列表。
  *
  * 如果您参考原始ARC论文，请注意我们的实现中有两个改动：
- * 1. 当 mru_ 的大小等于目标大小时，我们不像论文中那样检查最后访问时间来决定从哪个列表淘汰。
+ * 1. 当 mru_
+ * 的大小等于目标大小时，我们不像论文中那样检查最后访问时间来决定从哪个列表淘汰。
  *    这没有问题，因为原论文中说明该决定是随意的。
- * 2. 不可淘汰的条目会被跳过。如果目标侧（mru_ / mfu_）的所有条目都被固定，我们则尝试从另一侧
- *    （mfu_ / mru_）中选择受害者，并将其移动到对应的幽灵列表（mfu_ghost_ / mru_ghost_）。
+ * 2. 不可淘汰的条目会被跳过。如果目标侧（mru_ /
+ * mfu_）的所有条目都被固定，我们则尝试从另一侧 （mfu_ /
+ * mru_）中选择受害者，并将其移动到对应的幽灵列表（mfu_ghost_ / mru_ghost_）。
  *
  * @return 淘汰的帧的帧ID，若无法淘汰则返回 std::nullopt
  */
@@ -158,8 +164,8 @@ auto ArcReplacer::Evict() -> std::optional<frame_id_t> {
  * TODO(P1): Add implementation
  *
  * @brief Record access to a frame, adjusting ARC bookkeeping accordingly
- * by bring the accessed page to the front of mfu_ if it exists in any of the lists
- * or the front of mru_ if it does not.
+ * by bring the accessed page to the front of mfu_ if it exists in any of the
+ * lists or the front of mru_ if it does not.
  *
  * Performs the operations EXCEPT REPLACE described in original paper, which is
  * handled by `Evict()`.
@@ -175,13 +181,13 @@ auto ArcReplacer::Evict() -> std::optional<frame_id_t> {
  * Note that frame_id is used as identifier for alive pages and
  * page_id is used as identifier for the ghost pages, since page_id is
  * the unique identifier to the page after it's dead.
- * Using page_id for alive pages should be the same since it's one to one mapping,
- * but using frame_id is slightly more intuitive.
+ * Using page_id for alive pages should be the same since it's one to one
+ * mapping, but using frame_id is slightly more intuitive.
  *
  * @param frame_id id of frame that received a new access.
  * @param page_id id of page that is mapped to the frame.
- * @param access_type type of access that was received. This parameter is only needed for
- * leaderboard tests.
+ * @param access_type type of access that was received. This parameter is only
+ * needed for leaderboard tests.
  */
 void ArcReplacer::RecordAccess(frame_id_t frame_id, page_id_t page_id, [[maybe_unused]] AccessType access_type) {
   std::lock_guard<std::mutex> lock(latch_);
@@ -264,16 +270,18 @@ void ArcReplacer::RecordAccess(frame_id_t frame_id, page_id_t page_id, [[maybe_u
 /**
  * TODO(P1): Add implementation
  *
- * @brief Toggle whether a frame is evictable or non-evictable. This function also
- * controls replacer's size. Note that size is equal to number of evictable entries.
+ * @brief Toggle whether a frame is evictable or non-evictable. This function
+ * also controls replacer's size. Note that size is equal to number of evictable
+ * entries.
  *
- * If a frame was previously evictable and is to be set to non-evictable, then size should
- * decrement. If a frame was previously non-evictable and is to be set to evictable,
- * then size should increment.
+ * If a frame was previously evictable and is to be set to non-evictable, then
+ * size should decrement. If a frame was previously non-evictable and is to be
+ * set to evictable, then size should increment.
  *
  * If frame id is invalid, throw an exception or abort the process.
  *
- * For other scenarios, this function should terminate without modifying anything.
+ * For other scenarios, this function should terminate without modifying
+ * anything.
  *
  * @param frame_id id of frame whose 'evictable' status will be modified
  * @param set_evictable whether the given frame is evictable or not
@@ -296,8 +304,8 @@ void ArcReplacer::SetEvictable(frame_id_t frame_id, bool set_evictable) {
  * @brief Remove an evictable frame from replacer.
  * This function should also decrement replacer's size if removal is successful.
  *
- * Note that this is different from evicting a frame, which always remove the frame
- * decided by the ARC algorithm.
+ * Note that this is different from evicting a frame, which always remove the
+ * frame decided by the ARC algorithm.
  *
  * If Remove is called on a non-evictable frame, throw an exception or abort the
  * process.

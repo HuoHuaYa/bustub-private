@@ -46,35 +46,33 @@ enum class WindowBoundary : uint8_t {
 #pragma once
 
 class BoundWindow : public BoundExpression {
- public:
-  explicit BoundWindow(std::string func_name, std::vector<std::unique_ptr<BoundExpression>> args,
-                       std::vector<std::unique_ptr<BoundExpression>> partition_by,
-                       std::vector<std::unique_ptr<BoundOrderBy>> order_bys,
-                       std::optional<std::unique_ptr<BoundExpression>> start_offset,
-                       std::optional<std::unique_ptr<BoundExpression>> end_offset)
+public:
+  explicit BoundWindow(
+      std::string func_name, std::vector<std::unique_ptr<BoundExpression>> args,
+      std::vector<std::unique_ptr<BoundExpression>> partition_by,
+      std::vector<std::unique_ptr<BoundOrderBy>> order_bys,
+      std::optional<std::unique_ptr<BoundExpression>> start_offset,
+      std::optional<std::unique_ptr<BoundExpression>> end_offset)
       : BoundExpression(ExpressionType::WINDOW),
-        func_name_(std::move(func_name)),
-        args_(std::move(args)),
+        func_name_(std::move(func_name)), args_(std::move(args)),
         partition_by_(std::move(partition_by)),
         order_bys_(std::move(order_bys)),
         start_offset_(std::move(start_offset)),
         end_offset_(std::move(end_offset)) {}
 
-  explicit BoundWindow(std::string func_name, std::vector<std::unique_ptr<BoundExpression>> args,
-                       std::vector<std::unique_ptr<BoundExpression>> partition_by,
-                       std::vector<std::unique_ptr<BoundOrderBy>> order_bys,
-                       std::optional<std::unique_ptr<BoundExpression>> start_offset,
-                       std::optional<std::unique_ptr<BoundExpression>> end_offset, WindowBoundary start,
-                       WindowBoundary end)
+  explicit BoundWindow(
+      std::string func_name, std::vector<std::unique_ptr<BoundExpression>> args,
+      std::vector<std::unique_ptr<BoundExpression>> partition_by,
+      std::vector<std::unique_ptr<BoundOrderBy>> order_bys,
+      std::optional<std::unique_ptr<BoundExpression>> start_offset,
+      std::optional<std::unique_ptr<BoundExpression>> end_offset,
+      WindowBoundary start, WindowBoundary end)
       : BoundExpression(ExpressionType::WINDOW),
-        func_name_(std::move(func_name)),
-        args_(std::move(args)),
+        func_name_(std::move(func_name)), args_(std::move(args)),
         partition_by_(std::move(partition_by)),
         order_bys_(std::move(order_bys)),
         start_offset_(std::move(start_offset)),
-        end_offset_(std::move(end_offset)),
-        start_(start),
-        end_(end) {}
+        end_offset_(std::move(end_offset)), start_(start), end_(end) {}
 
   auto ToString() const -> std::string override;
 
@@ -99,4 +97,4 @@ class BoundWindow : public BoundExpression {
   WindowBoundary start_ = WindowBoundary::INVALID;
   WindowBoundary end_ = WindowBoundary::INVALID;
 };
-}  // namespace bustub
+} // namespace bustub

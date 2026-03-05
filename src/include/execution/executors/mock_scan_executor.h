@@ -30,17 +30,20 @@ auto GetMockTableSchemaOf(const std::string &table) -> Schema;
  * The MockScanExecutor executor executes a sequential table scan for tests.
  */
 class MockScanExecutor : public AbstractExecutor {
- public:
+public:
   MockScanExecutor(ExecutorContext *exec_ctx, const MockScanPlanNode *plan);
 
   void Init() override;
-  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+            std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the sequential scan */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  }
 
- private:
+private:
   /** @return A dummy tuple according to the output schema */
   auto MakeDummyTuple() const -> Tuple;
 
@@ -68,4 +71,4 @@ class MockScanExecutor : public AbstractExecutor {
   std::vector<size_t> shuffled_idx_;
 };
 
-}  // namespace bustub
+} // namespace bustub

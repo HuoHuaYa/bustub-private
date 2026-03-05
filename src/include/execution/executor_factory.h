@@ -22,8 +22,9 @@ namespace bustub {
  * ExecutorFactory creates executors for arbitrary plan nodes.
  */
 class ExecutorFactory {
- public:
-  static auto CreateExecutor(ExecutorContext *exec_ctx, const AbstractPlanNodeRef &plan)
+public:
+  static auto CreateExecutor(ExecutorContext *exec_ctx,
+                             const AbstractPlanNodeRef &plan)
       -> std::unique_ptr<AbstractExecutor>;
 };
-}  // namespace bustub
+} // namespace bustub

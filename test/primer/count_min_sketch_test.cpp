@@ -10,16 +10,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <chrono>  // NOLINT
+#include <chrono> // NOLINT
 #include <cmath>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 #include <vector>
 
-#include "gtest/gtest.h"
 #include "primer/count_min_sketch.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -142,7 +142,8 @@ TEST(CountMinSketchTest, EdgeTest2) {
   ASSERT_EQ(cms_min_width.Count(2), 2);
   cms_min_width.Insert(3);
   cms_min_width.Insert(4);
-  // All items will show count of 4 because with width = 1, everything hashes to the same column
+  // All items will show count of 4 because with width = 1, everything hashes to
+  // the same column
   ASSERT_EQ(cms_min_width.Count(1), 4);
   ASSERT_EQ(cms_min_width.Count(2), 4);
   ASSERT_EQ(cms_min_width.Count(3), 4);
@@ -155,7 +156,8 @@ TEST(CountMinSketchTest, EdgeTest2) {
   cms_min_depth.Insert(15445 + 4);
   cms_min_depth.Insert(15445);
 
-  // Only one hash function, each bucket will have at least the count of the inserted items
+  // Only one hash function, each bucket will have at least the count of the
+  // inserted items
   ASSERT_GE(cms_min_depth.Count(15445), 2);
   ASSERT_GE(cms_min_depth.Count(15445 + 4), 1);
   ASSERT_GE(cms_min_depth.Count(15445 + 8), 0);
@@ -386,7 +388,8 @@ TEST(CountMinSketchTest, ParallelTest) {
       ASSERT_EQ(top[0].second, num_threads * iterations);
 
       ASSERT_EQ(top[1].first, "less_frequent");
-      int expected_less_count_iter = static_cast<int>(std::ceil(static_cast<double>(iterations) / 3));
+      int expected_less_count_iter =
+          static_cast<int>(std::ceil(static_cast<double>(iterations) / 3));
       int expected_less_frequent_count = num_threads * expected_less_count_iter;
       ASSERT_EQ(top[1].second, expected_less_frequent_count);
     }
@@ -464,7 +467,8 @@ TEST(CountMinSketchTest, ComplexParallelTest) {
     int expected_42_count_2 = (num_threads / 2) * (iterations / 2);
     ASSERT_EQ(cms2.Count(42), expected_42_count_2);
 
-    int expected_200_count_iter = static_cast<int>(std::ceil(static_cast<double>(iterations) / 2.0 / 3.0));
+    int expected_200_count_iter = static_cast<int>(
+        std::ceil(static_cast<double>(iterations) / 2.0 / 3.0));
     int expected_200_count = (num_threads / 2) * expected_200_count_iter;
     ASSERT_EQ(cms2.Count(200), expected_200_count);
 
@@ -508,11 +512,12 @@ TEST(CountMinSketchTest, TopKBasicTest) {
 TEST(CountMinSketchTest, TopKDynamicTest) {
   // Test dynamic updates to top-k
   const std::vector<std::vector<int>> test_cases = {
-      {1, 2, 3, 4}, {7, 5, 3, 1}, {2, 2, 5, 7}, {6, 6, 2, 2}, {1, 3, 6, 6}, {400, 200, 300, 100},
+      {1, 2, 3, 4}, {7, 5, 3, 1}, {2, 2, 5, 7},
+      {6, 6, 2, 2}, {1, 3, 6, 6}, {400, 200, 300, 100},
   };
 
-  const std::vector<std::vector<int>> expected_orders = {{4, 3, 2}, {1, 2, 3}, {4, 3, 1},
-                                                         {1, 2, 4}, {4, 3, 2}, {1, 3, 2}};
+  const std::vector<std::vector<int>> expected_orders = {
+      {4, 3, 2}, {1, 2, 3}, {4, 3, 1}, {1, 2, 4}, {4, 3, 2}, {1, 3, 2}};
 
   auto cms = CountMinSketch<int>(200, 15);
 
@@ -543,28 +548,31 @@ TEST(CountMinSketchTest, TopKComprehensiveTest) {
   auto cms3 = CountMinSketch<std::string>(width, depth);
   auto cms4 = CountMinSketch<std::string>(width, depth);
 
-  const std::vector<std::string> songs1 = {"C.R.E.A.M.",
-                                           "Protect Ya Neck",
-                                           "Method Man",
-                                           "Bring da Ruckus",
-                                           "Da Mystery of Chessboxin'",
-                                           "Can It Be All So Simple",
-                                           "Wu-Tang Clan Ain't Nuthing ta F' Wit"};
+  const std::vector<std::string> songs1 = {
+      "C.R.E.A.M.",
+      "Protect Ya Neck",
+      "Method Man",
+      "Bring da Ruckus",
+      "Da Mystery of Chessboxin'",
+      "Can It Be All So Simple",
+      "Wu-Tang Clan Ain't Nuthing ta F' Wit"};
 
-  const std::vector<std::string> songs2 = {"Triumph",   "Gravel Pit",      "Tearz",     "C.R.E.A.M.",
-                                           "Ice Cream", "Protect Ya Neck", "Method Man"};
+  const std::vector<std::string> songs2 = {
+      "Triumph",   "Gravel Pit",      "Tearz",     "C.R.E.A.M.",
+      "Ice Cream", "Protect Ya Neck", "Method Man"};
 
-  const std::vector<std::string> all_songs = {"C.R.E.A.M.",
-                                              "Protect Ya Neck",
-                                              "Method Man",
-                                              "Bring da Ruckus",
-                                              "Da Mystery of Chessboxin'",
-                                              "Can It Be All So Simple",
-                                              "Wu-Tang Clan Ain't Nuthing ta F' Wit",
-                                              "Triumph",
-                                              "Gravel Pit",
-                                              "Ice Cream",
-                                              "Tearz"};
+  const std::vector<std::string> all_songs = {
+      "C.R.E.A.M.",
+      "Protect Ya Neck",
+      "Method Man",
+      "Bring da Ruckus",
+      "Da Mystery of Chessboxin'",
+      "Can It Be All So Simple",
+      "Wu-Tang Clan Ain't Nuthing ta F' Wit",
+      "Triumph",
+      "Gravel Pit",
+      "Ice Cream",
+      "Tearz"};
 
   std::vector<std::thread> threads1;
   std::vector<std::thread> threads2;
@@ -579,30 +587,30 @@ TEST(CountMinSketchTest, TopKComprehensiveTest) {
     threads1.emplace_back([&cms1, &cms2, &cms3, &cms4, &songs1, &songs2]() {
       for (int j = 0; j < iterations; j++) {
         // Insert into cms1
-        cms1.Insert(songs1[0]);  // 1000 * 12 = 12000 "C.R.E.A.M."
+        cms1.Insert(songs1[0]); // 1000 * 12 = 12000 "C.R.E.A.M."
         if (j % 2 == 0) {
-          cms1.Insert(songs1[1]);  // 500 * 12 = 6000 "Protect Ya Neck"
+          cms1.Insert(songs1[1]); // 500 * 12 = 6000 "Protect Ya Neck"
         }
 
         // Insert into cms3
         if (j % 3 == 0) {
-          cms3.Insert(songs1[2]);  // 334 * 12 = 4008 "Method Man"
+          cms3.Insert(songs1[2]); // 334 * 12 = 4008 "Method Man"
         }
         if (j % 4 == 0) {
-          cms3.Insert(songs1[3]);  // 250 * 12 = 3000 "Bring da Ruckus"
+          cms3.Insert(songs1[3]); // 250 * 12 = 3000 "Bring da Ruckus"
         }
 
         // Insert into cms2
         if (j % 6 == 0) {
-          cms2.Insert(songs2[4]);  // 167 * 12 = 2004 "Ice Cream"
+          cms2.Insert(songs2[4]); // 167 * 12 = 2004 "Ice Cream"
         }
         if (j % 12 == 0) {
-          cms2.Insert(songs2[5]);  // 84 * 12 = 1008 "Protect Ya Neck"
+          cms2.Insert(songs2[5]); // 84 * 12 = 1008 "Protect Ya Neck"
         }
 
         // Insert into cms4
         if (j % 15 == 0) {
-          cms4.Insert(songs2[6]);  // 67 * 12 = 804 "Method Man"
+          cms4.Insert(songs2[6]); // 67 * 12 = 804 "Method Man"
         }
       }
     });
@@ -613,26 +621,27 @@ TEST(CountMinSketchTest, TopKComprehensiveTest) {
     threads2.emplace_back([&cms2, &songs2, &cms1, &songs1]() {
       for (int j = 0; j < iterations; j++) {
         // Insert into csm1
-        cms2.Insert(songs2[0]);  // 1000 * 8 = 8000 "Triumph"
+        cms2.Insert(songs2[0]); // 1000 * 8 = 8000 "Triumph"
         if (j % 2 == 0) {
-          cms2.Insert(songs2[1]);  // 500 * 8 = 4000 "Gravel Pit"
+          cms2.Insert(songs2[1]); // 500 * 8 = 4000 "Gravel Pit"
         }
         if (j % 4 == 0) {
-          cms2.Insert(songs2[2]);  // 250 * 8 = 2000 "Tearz"
+          cms2.Insert(songs2[2]); // 250 * 8 = 2000 "Tearz"
         }
         if (j % 5 == 0) {
-          cms2.Insert(songs2[3]);  // 200 * 8 = 1600 "C.R.E.A.M."
+          cms2.Insert(songs2[3]); // 200 * 8 = 1600 "C.R.E.A.M."
         }
 
         // Insert into ***cms1***
         if (j % 5 == 0) {
-          cms1.Insert(songs1[4]);  // 200 * 8 = 1600 "Da Mystery of Chessboxin'"
+          cms1.Insert(songs1[4]); // 200 * 8 = 1600 "Da Mystery of Chessboxin'"
         }
         if (j % 10 == 0) {
-          cms1.Insert(songs1[5]);  // 100 * 8 = 800 "Can It Be All So Simple"
+          cms1.Insert(songs1[5]); // 100 * 8 = 800 "Can It Be All So Simple"
         }
         if (j % 20 == 0) {
-          cms1.Insert(songs1[6]);  // 50 * 8 = 400 "Wu-Tang Clan Ain't Nuthing ta F' Wit"
+          cms1.Insert(
+              songs1[6]); // 50 * 8 = 400 "Wu-Tang Clan Ain't Nuthing ta F' Wit"
         }
       }
     });
@@ -702,17 +711,22 @@ TEST(CountMinSketchTest, TopKComprehensiveTest) {
   ASSERT_EQ(top_merged[4].first, "Gravel Pit");
 
   // Verify merged counts combine correctly
-  ASSERT_EQ(top_merged[0].second, (num_threads1 * iterations) + (num_threads2 * (iterations / 5)));
+  ASSERT_EQ(top_merged[0].second,
+            (num_threads1 * iterations) + (num_threads2 * (iterations / 5)));
   ASSERT_EQ(top_merged[1].second, (num_threads2 * iterations));
-  ASSERT_EQ(top_merged[2].second, (num_threads1 * (iterations / 2)) + (num_threads1 * (iterations / 12 + 1)));
-  ASSERT_EQ(top_merged[3].second, (num_threads1 * (iterations / 3 + 1)) + (num_threads1 * (iterations / 15 + 1)));
+  ASSERT_EQ(top_merged[2].second, (num_threads1 * (iterations / 2)) +
+                                      (num_threads1 * (iterations / 12 + 1)));
+  ASSERT_EQ(top_merged[3].second, (num_threads1 * (iterations / 3 + 1)) +
+                                      (num_threads1 * (iterations / 15 + 1)));
   ASSERT_EQ(top_merged[4].second, (num_threads2 * (iterations / 2)));
 }
 
 TEST(CountMinSketchTest, ContentionRatioTest) {
-  std::cout << "This test will see how your CMS insertion performance differs to one that is completely sequential."
+  std::cout << "This test will see how your CMS insertion performance differs "
+               "to one that is completely sequential."
             << std::endl;
-  std::cout << "If your submission timeout, segfault, or you didn't implement the lock-free version, we will manually "
+  std::cout << "If your submission timeout, segfault, or you didn't implement "
+               "the lock-free version, we will manually "
                "deduct all "
                "concurrent test points."
             << std::endl;
@@ -752,7 +766,9 @@ TEST(CountMinSketchTest, ContentionRatioTest) {
       thread.join();
     }
     auto end_time = std::chrono::system_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+    auto time = std::chrono::duration_cast<std::chrono::microseconds>(
+                    end_time - start_time)
+                    .count();
     if (enable_mutex) {
       time_ms_with_mutex.push_back(time);
     } else {
@@ -788,4 +804,4 @@ TEST(CountMinSketchTest, ContentionRatioTest) {
   ASSERT_TRUE(speedup > 1.2);
 }
 
-}  // namespace bustub
+} // namespace bustub

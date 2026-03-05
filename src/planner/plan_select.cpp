@@ -44,7 +44,8 @@
 
 namespace bustub {
 
-auto Planner::PlanSelect(const SelectStatement &statement) -> AbstractPlanNodeRef {
+auto Planner::PlanSelect(const SelectStatement &statement)
+    -> AbstractPlanNodeRef {
   auto ctx_guard = NewContext();
   if (!statement.ctes_.empty()) {
     ctx_.cte_list_ = &statement.ctes_;
@@ -53,25 +54,28 @@ auto Planner::PlanSelect(const SelectStatement &statement) -> AbstractPlanNodeRe
   AbstractPlanNodeRef plan = nullptr;
 
   switch (statement.table_->type_) {
-    case TableReferenceType::EMPTY:
-      plan = std::make_shared<ValuesPlanNode>(
-          std::make_shared<Schema>(std::vector<Column>{}),
-          std::vector<std::vector<AbstractExpressionRef>>{std::vector<AbstractExpressionRef>{}});
-      break;
-    default:
-      plan = PlanTableRef(*statement.table_);
-      break;
+  case TableReferenceType::EMPTY:
+    plan = std::make_shared<ValuesPlanNode>(
+        std::make_shared<Schema>(std::vector<Column>{}),
+        std::vector<std::vector<AbstractExpressionRef>>{
+            std::vector<AbstractExpressionRef>{}});
+    break;
+  default:
+    plan = PlanTableRef(*statement.table_);
+    break;
   }
 
   if (!statement.where_->IsInvalid()) {
     auto schema = plan->OutputSchema();
     auto [_, expr] = PlanExpression(*statement.where_, {plan});
-    plan = std::make_shared<FilterPlanNode>(std::make_shared<Schema>(schema), std::move(expr), std::move(plan));
+    plan = std::make_shared<FilterPlanNode>(std::make_shared<Schema>(schema),
+                                            std::move(expr), std::move(plan));
   }
 
   bool has_agg = false;
   bool has_window_agg = false;
-  // Binder already checked that normal aggregations and window aggregations cannot coexist.
+  // Binder already checked that normal aggregations and window aggregations
+  // cannot coexist.
   for (const auto &item : statement.select_list_) {
     if (item->HasAggregation()) {
       has_agg = true;
@@ -91,7 +95,8 @@ auto Planner::PlanSelect(const SelectStatement &statement) -> AbstractPlanNodeRe
       throw Exception("Group by is not allowed to use with window function.");
     }
     plan = PlanSelectWindow(statement, std::move(plan));
-  } else if (!statement.having_->IsInvalid() || !statement.group_by_.empty() || has_agg) {
+  } else if (!statement.having_->IsInvalid() || !statement.group_by_.empty() ||
+             has_agg) {
     // Plan aggregation
     plan = PlanSelectAgg(statement, std::move(plan));
   } else {
@@ -107,9 +112,10 @@ auto Planner::PlanSelect(const SelectStatement &statement) -> AbstractPlanNodeRe
       exprs.emplace_back(std::move(expr));
       column_names.emplace_back(std::move(name));
     }
-    plan = std::make_shared<ProjectionPlanNode>(std::make_shared<Schema>(ProjectionPlanNode::RenameSchema(
-                                                    ProjectionPlanNode::InferProjectionSchema(exprs), column_names)),
-                                                std::move(exprs), std::move(plan));
+    plan = std::make_shared<ProjectionPlanNode>(
+        std::make_shared<Schema>(ProjectionPlanNode::RenameSchema(
+            ProjectionPlanNode::InferProjectionSchema(exprs), column_names)),
+        std::move(exprs), std::move(plan));
   }
 
   // Plan DISTINCT as group agg
@@ -119,12 +125,14 @@ auto Planner::PlanSelect(const SelectStatement &statement) -> AbstractPlanNodeRe
     std::vector<AbstractExpressionRef> distinct_exprs;
     size_t col_idx = 0;
     for (const auto &col : child->OutputSchema().GetColumns()) {
-      distinct_exprs.emplace_back(std::make_shared<ColumnValueExpression>(0, col_idx++, col));
+      distinct_exprs.emplace_back(
+          std::make_shared<ColumnValueExpression>(0, col_idx++, col));
     }
 
-    plan = std::make_shared<AggregationPlanNode>(std::make_shared<Schema>(child->OutputSchema()), child,
-                                                 std::move(distinct_exprs), std::vector<AbstractExpressionRef>{},
-                                                 std::vector<AggregationType>{});
+    plan = std::make_shared<AggregationPlanNode>(
+        std::make_shared<Schema>(child->OutputSchema()), child,
+        std::move(distinct_exprs), std::vector<AbstractExpressionRef>{},
+        std::vector<AggregationType>{});
   }
 
   // Plan ORDER BY
@@ -133,41 +141,51 @@ auto Planner::PlanSelect(const SelectStatement &statement) -> AbstractPlanNodeRe
     for (const auto &order_by : statement.sort_) {
       auto [_, expr] = PlanExpression(*order_by->expr_, {plan});
       auto abstract_expr = std::move(expr);
-      order_bys.emplace_back(order_by->type_, order_by->null_order_, abstract_expr);
+      order_bys.emplace_back(order_by->type_, order_by->null_order_,
+                             abstract_expr);
     }
-    plan = std::make_shared<SortPlanNode>(std::make_shared<Schema>(plan->OutputSchema()), plan, std::move(order_bys));
+    plan = std::make_shared<SortPlanNode>(
+        std::make_shared<Schema>(plan->OutputSchema()), plan,
+        std::move(order_bys));
   }
 
   // Plan LIMIT
-  if (!statement.limit_count_->IsInvalid() || !statement.limit_offset_->IsInvalid()) {
+  if (!statement.limit_count_->IsInvalid() ||
+      !statement.limit_offset_->IsInvalid()) {
     std::optional<size_t> offset = std::nullopt;
     std::optional<size_t> limit = std::nullopt;
 
     if (!statement.limit_count_->IsInvalid()) {
       if (statement.limit_count_->type_ == ExpressionType::CONSTANT) {
-        const auto &constant_expr = dynamic_cast<BoundConstant &>(*statement.limit_count_);
+        const auto &constant_expr =
+            dynamic_cast<BoundConstant &>(*statement.limit_count_);
         const auto val = constant_expr.val_.CastAs(TypeId::INTEGER);
         if (constant_expr.val_.GetTypeId() == TypeId::INTEGER) {
           limit = std::make_optional(constant_expr.val_.GetAs<int32_t>());
         } else {
-          throw NotImplementedException("LIMIT clause must be an integer constant.");
+          throw NotImplementedException(
+              "LIMIT clause must be an integer constant.");
         }
       } else {
-        throw NotImplementedException("LIMIT clause must be an integer constant.");
+        throw NotImplementedException(
+            "LIMIT clause must be an integer constant.");
       }
     }
 
     if (!statement.limit_offset_->IsInvalid()) {
       if (statement.limit_offset_->type_ == ExpressionType::CONSTANT) {
-        const auto &constant_expr = dynamic_cast<BoundConstant &>(*statement.limit_offset_);
+        const auto &constant_expr =
+            dynamic_cast<BoundConstant &>(*statement.limit_offset_);
         const auto val = constant_expr.val_.CastAs(TypeId::INTEGER);
         if (constant_expr.val_.GetTypeId() == TypeId::INTEGER) {
           offset = std::make_optional(constant_expr.val_.GetAs<int32_t>());
         } else {
-          throw NotImplementedException("OFFSET clause must be an integer constant.");
+          throw NotImplementedException(
+              "OFFSET clause must be an integer constant.");
         }
       } else {
-        throw NotImplementedException("OFFSET clause must be an integer constant.");
+        throw NotImplementedException(
+            "OFFSET clause must be an integer constant.");
       }
     }
 
@@ -175,11 +193,12 @@ auto Planner::PlanSelect(const SelectStatement &statement) -> AbstractPlanNodeRe
       throw NotImplementedException("OFFSET clause is not supported yet.");
     }
     if (limit.has_value()) {
-      plan = std::make_shared<LimitPlanNode>(std::make_shared<Schema>(plan->OutputSchema()), plan, *limit);
+      plan = std::make_shared<LimitPlanNode>(
+          std::make_shared<Schema>(plan->OutputSchema()), plan, *limit);
     }
   }
 
   return plan;
 }
 
-}  // namespace bustub
+} // namespace bustub

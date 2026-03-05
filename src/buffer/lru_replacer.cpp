@@ -16,7 +16,8 @@ namespace bustub {
 
 /**
  * Create a new LRUReplacer.
- * @param num_pages the maximum number of pages the LRUReplacer will be required to store
+ * @param num_pages the maximum number of pages the LRUReplacer will be required
+ * to store
  */
 LRUReplacer::LRUReplacer(size_t num_pages) {}
 
@@ -33,4 +34,4 @@ void LRUReplacer::Unpin(frame_id_t frame_id) {}
 
 auto LRUReplacer::Size() -> size_t { return 0; }
 
-}  // namespace bustub
+} // namespace bustub

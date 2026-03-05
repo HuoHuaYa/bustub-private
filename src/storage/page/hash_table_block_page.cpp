@@ -33,7 +33,8 @@ auto HASH_TABLE_BLOCK_TYPE::KeyAt(slot_offset_t bucket_ind) const -> KeyType {
  * @return value at index bucket_ind of the block
  */
 template <typename KeyType, typename ValueType, typename KeyComparator>
-auto HASH_TABLE_BLOCK_TYPE::ValueAt(slot_offset_t bucket_ind) const -> ValueType {
+auto HASH_TABLE_BLOCK_TYPE::ValueAt(slot_offset_t bucket_ind) const
+    -> ValueType {
   return {};
 }
 
@@ -51,7 +52,8 @@ auto HASH_TABLE_BLOCK_TYPE::ValueAt(slot_offset_t bucket_ind) const -> ValueType
  * Insert returns false.
  */
 template <typename KeyType, typename ValueType, typename KeyComparator>
-auto HASH_TABLE_BLOCK_TYPE::Insert(slot_offset_t bucket_ind, const KeyType &key, const ValueType &value) -> bool {
+auto HASH_TABLE_BLOCK_TYPE::Insert(slot_offset_t bucket_ind, const KeyType &key,
+                                   const ValueType &value) -> bool {
   return false;
 }
 
@@ -93,4 +95,4 @@ template class HashTableBlockPage<GenericKey<16>, RID, GenericComparator<16>>;
 template class HashTableBlockPage<GenericKey<32>, RID, GenericComparator<32>>;
 template class HashTableBlockPage<GenericKey<64>, RID, GenericComparator<64>>;
 
-}  // namespace bustub
+} // namespace bustub

@@ -14,7 +14,7 @@
 
 #include <exception>
 #include <memory>
-#include <mutex>  // NOLINT
+#include <mutex> // NOLINT
 #include <optional>
 #include <shared_mutex>
 #include <unordered_map>
@@ -41,8 +41,9 @@ namespace bustub {
  * @brief Update an undo link that links table heap tuple to the first undo log.
  * Before updating, `check` function will be called to ensure validity.
  */
-auto TransactionManager::UpdateUndoLink(RID rid, std::optional<UndoLink> prev_link,
-                                        std::function<bool(std::optional<UndoLink>)> &&check) -> bool {
+auto TransactionManager::UpdateUndoLink(
+    RID rid, std::optional<UndoLink> prev_link,
+    std::function<bool(std::optional<UndoLink>)> &&check) -> bool {
   std::unique_lock<std::shared_mutex> lck(version_info_mutex_);
   std::shared_ptr<PageVersionInfo> pg_ver_info = nullptr;
   auto iter = version_info_.find(rid.GetPageId());
@@ -89,9 +90,11 @@ auto TransactionManager::GetUndoLink(RID rid) -> std::optional<UndoLink> {
   return std::make_optional(iter2->second);
 }
 
-/** @brief Access the transaction undo log buffer and get the undo log. Return nullopt if the txn does not exist. Will
- * still throw an exception if the index is out of range. */
-auto TransactionManager::GetUndoLogOptional(UndoLink link) -> std::optional<UndoLog> {
+/** @brief Access the transaction undo log buffer and get the undo log. Return
+ * nullopt if the txn does not exist. Will still throw an exception if the index
+ * is out of range. */
+auto TransactionManager::GetUndoLogOptional(UndoLink link)
+    -> std::optional<UndoLog> {
   std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
   auto iter = txn_map_.find(link.prev_txn_);
   if (iter == txn_map_.end()) {
@@ -102,9 +105,10 @@ auto TransactionManager::GetUndoLogOptional(UndoLink link) -> std::optional<Undo
   return txn->GetUndoLog(link.prev_log_idx_);
 }
 
-/** @brief Access the transaction undo log buffer and get the undo log. Except when accessing the current txn buffer,
- * you should always call this function to get the undo log instead of manually retrieve the txn shared_ptr and access
- * the buffer. */
+/** @brief Access the transaction undo log buffer and get the undo log. Except
+ * when accessing the current txn buffer, you should always call this function
+ * to get the undo log instead of manually retrieve the txn shared_ptr and
+ * access the buffer. */
 auto TransactionManager::GetUndoLog(UndoLink link) -> UndoLog {
   auto undo_log = GetUndoLogOptional(link);
   if (undo_log.has_value()) {
@@ -127,9 +131,11 @@ void Transaction::SetTainted() {
  * @brief Update the tuple and its undo link in the table heap atomically.
  */
 auto UpdateTupleAndUndoLink(
-    TransactionManager *txn_mgr, RID rid, std::optional<UndoLink> undo_link, TableHeap *table_heap, Transaction *txn,
-    const TupleMeta &meta, const Tuple &tuple,
-    std::function<bool(const TupleMeta &meta, const Tuple &tuple, RID rid, std::optional<UndoLink>)> &&check) -> bool {
+    TransactionManager *txn_mgr, RID rid, std::optional<UndoLink> undo_link,
+    TableHeap *table_heap, Transaction *txn, const TupleMeta &meta,
+    const Tuple &tuple,
+    std::function<bool(const TupleMeta &meta, const Tuple &tuple, RID rid,
+                       std::optional<UndoLink>)> &&check) -> bool {
   auto page_write_guard = table_heap->AcquireTablePageWriteLock(rid);
   auto page = page_write_guard.AsMut<TablePage>();
 
@@ -151,7 +157,8 @@ auto UpdateTupleAndUndoLink(
 /**
  * @brief Get the tuple and its undo link in the table heap atomically.
  */
-auto GetTupleAndUndoLink(TransactionManager *txn_mgr, TableHeap *table_heap, RID rid)
+auto GetTupleAndUndoLink(TransactionManager *txn_mgr, TableHeap *table_heap,
+                         RID rid)
     -> std::tuple<TupleMeta, Tuple, std::optional<UndoLink>> {
   auto page_read_guard = table_heap->AcquireTablePageReadLock(rid);
   auto page = page_read_guard.As<TablePage>();
@@ -161,4 +168,4 @@ auto GetTupleAndUndoLink(TransactionManager *txn_mgr, TableHeap *table_heap, RID
   return std::make_tuple(meta, tuple, undo_link);
 }
 
-}  // namespace bustub
+} // namespace bustub

@@ -10,19 +10,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <fmt/format.h>
 #include <atomic>
+#include <fmt/format.h>
 #include <functional>
 #include <memory>
 #include <numeric>
 #include <optional>
 #include <random>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 
 #include "common/exception.h"
-#include "gtest/gtest.h"
 #include "primer/trie.h"
 #include "primer/trie_store.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -35,7 +35,7 @@ TEST(TrieStoreTest, BasicTest) {
   {
     auto guard = store.Get<uint32_t>("233");
     ASSERT_TRUE(guard.has_value());
-    ASSERT_EQ(**guard, 2333);  // NOLINT
+    ASSERT_EQ(**guard, 2333); // NOLINT
   }
   store.Remove("233");
   {
@@ -51,7 +51,7 @@ TEST(TrieStoreTest, GuardTest) {
   store.Put<std::string>("233", "2333");
   auto guard = store.Get<std::string>("233");
   ASSERT_TRUE(guard.has_value());
-  ASSERT_EQ(**guard, "2333");  // NOLINT
+  ASSERT_EQ(**guard, "2333"); // NOLINT
 
   store.Remove("233");
   {
@@ -60,7 +60,7 @@ TEST(TrieStoreTest, GuardTest) {
   }
 
   ASSERT_TRUE(guard.has_value());
-  ASSERT_EQ(**guard, "2333");  // NOLINT
+  ASSERT_EQ(**guard, "2333"); // NOLINT
 }
 
 TEST(TrieStoreTest, MixedTest) {
@@ -89,12 +89,12 @@ TEST(TrieStoreTest, MixedTest) {
       std::string value = fmt::format("new-value-{:#08}", i);
       auto guard = store.Get<std::string>(key);
       ASSERT_TRUE(guard.has_value());
-      ASSERT_EQ(**guard, value);  // NOLINT
+      ASSERT_EQ(**guard, value); // NOLINT
     } else {
       std::string value = fmt::format("value-{:#08}", i);
       auto guard = store.Get<std::string>(key);
       ASSERT_TRUE(guard.has_value());
-      ASSERT_EQ(**guard, value);  // NOLINT
+      ASSERT_EQ(**guard, value); // NOLINT
     }
   }
 }
@@ -127,7 +127,8 @@ TEST(TrieStoreTest, MixedConcurrentTest) {
   }
 
   std::vector<std::thread> read_threads;
-  std::shared_ptr<std::atomic_bool> stop = std::make_shared<std::atomic_bool>(false);
+  std::shared_ptr<std::atomic_bool> stop =
+      std::make_shared<std::atomic_bool>(false);
 
   for (int tid = 0; tid < 4; tid++) {
     std::thread t([&store, tid, stop] {
@@ -157,8 +158,8 @@ TEST(TrieStoreTest, MixedConcurrentTest) {
     std::string value = fmt::format("new-value-{:#08}", i);
     auto guard = store.Get<std::string>(key);
     ASSERT_TRUE(guard.has_value());
-    ASSERT_EQ(**guard, value);  // NOLINT
+    ASSERT_EQ(**guard, value); // NOLINT
   }
 }
 
-}  // namespace bustub
+} // namespace bustub

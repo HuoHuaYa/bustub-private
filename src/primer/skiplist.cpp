@@ -11,24 +11,26 @@
 //===----------------------------------------------------------------------===//
 
 #include "primer/skiplist.h"
+#include "common/macros.h"
+#include "fmt/core.h"
 #include <cassert>
 #include <cstddef>
 #include <functional>
 #include <memory>
 #include <string>
 #include <vector>
-#include "common/macros.h"
-#include "fmt/core.h"
 
 namespace bustub {
 
 /** @brief Checks whether the container is empty. */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Empty() -> bool {
+SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Empty()
+    -> bool {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
 /** @brief Returns the number of elements in the skip list. */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Size() -> size_t {
+SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Size()
+    -> size_t {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
@@ -37,8 +39,8 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Size() -
  *
  * We do this to avoid stack overflow when the skip list is large.
  *
- * If we let the compiler handle the deallocation, it will recursively call the destructor of each node,
- * which could block up the stack.
+ * If we let the compiler handle the deallocation, it will recursively call the
+ * destructor of each node, which could block up the stack.
  */
 SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::Drop() {
   for (size_t i = 0; i < MaxHeight; i++) {
@@ -56,7 +58,8 @@ SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::Drop() {
  *
  * Note: You might want to use the provided `Drop` helper function.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::Clear() {
+SKIPLIST_TEMPLATE_ARGUMENTS void
+SkipList<K, Compare, MaxHeight, Seed>::Clear() {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
@@ -68,7 +71,8 @@ SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::Clear() 
  * @param key key to insert.
  * @return true if the insertion is successful, false if the key already exists.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Insert(const K &key) -> bool {
+SKIPLIST_TEMPLATE_ARGUMENTS auto
+SkipList<K, Compare, MaxHeight, Seed>::Insert(const K &key) -> bool {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
@@ -78,7 +82,8 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Insert(c
  * @param key key to erase.
  * @return bool true if the element got erased, false otherwise.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Erase(const K &key) -> bool {
+SKIPLIST_TEMPLATE_ARGUMENTS auto
+SkipList<K, Compare, MaxHeight, Seed>::Erase(const K &key) -> bool {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
@@ -88,9 +93,11 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Erase(co
  * @param key key to look up.
  * @return bool true if the element exists, false otherwise.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Contains(const K &key) -> bool {
-  // Following the standard library: Key `a` and `b` are considered equivalent if neither compares less
-  // than the other: `!compare_(a, b) && !compare_(b, a)`.
+SKIPLIST_TEMPLATE_ARGUMENTS auto
+SkipList<K, Compare, MaxHeight, Seed>::Contains(const K &key) -> bool {
+  // Following the standard library: Key `a` and `b` are considered equivalent
+  // if neither compares less than the other: `!compare_(a, b) && !compare_(b,
+  // a)`.
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
@@ -99,7 +106,8 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Contains
  *
  * Note: You may modify the functions in any way and the output is not tested.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::Print() {
+SKIPLIST_TEMPLATE_ARGUMENTS void
+SkipList<K, Compare, MaxHeight, Seed>::Print() {
   auto node = header_->Next(LOWEST_LEVEL);
   while (node != nullptr) {
     fmt::println("Node {{ key: {}, height: {} }}", node->Key(), node->Height());
@@ -109,9 +117,11 @@ SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::Print() 
 
 /**
  * @brief Generate a random height. The height should be capped at `MaxHeight`.
- * Note: we implement/simulate the geometric process to ensure platform independence.
+ * Note: we implement/simulate the geometric process to ensure platform
+ * independence.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::RandomHeight() -> size_t {
+SKIPLIST_TEMPLATE_ARGUMENTS auto
+SkipList<K, Compare, MaxHeight, Seed>::RandomHeight() -> size_t {
   // Branching factor (1 in 4 chance), see Pugh's paper.
   static constexpr unsigned int branching_factor = 4;
   // Start with the minimum height
@@ -125,7 +135,8 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::RandomHe
 /**
  * @brief Gets the current node height.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::SkipNode::Height() const -> size_t {
+SKIPLIST_TEMPLATE_ARGUMENTS auto
+SkipList<K, Compare, MaxHeight, Seed>::SkipNode::Height() const -> size_t {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
@@ -133,9 +144,11 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::SkipNode
  * @brief Gets the next node by following the link at `level`.
  *
  * @param level index to the link.
- * @return std::shared_ptr<SkipNode> the next node, or `nullptr` if such node does not exist.
+ * @return std::shared_ptr<SkipNode> the next node, or `nullptr` if such node
+ * does not exist.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::SkipNode::Next(size_t level) const
+SKIPLIST_TEMPLATE_ARGUMENTS auto
+SkipList<K, Compare, MaxHeight, Seed>::SkipNode::Next(size_t level) const
     -> std::shared_ptr<SkipNode> {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
@@ -145,13 +158,15 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::SkipNode
  *
  * @param level index to the link.
  */
-SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::SkipNode::SetNext(
+SKIPLIST_TEMPLATE_ARGUMENTS void
+SkipList<K, Compare, MaxHeight, Seed>::SkipNode::SetNext(
     size_t level, const std::shared_ptr<SkipNode> &node) {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
 /** @brief Returns a reference to the key stored in the node. */
-SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::SkipNode::Key() const -> const K & {
+SKIPLIST_TEMPLATE_ARGUMENTS auto
+SkipList<K, Compare, MaxHeight, Seed>::SkipNode::Key() const -> const K & {
   UNIMPLEMENTED("TODO(P0): Add implementation.");
 }
 
@@ -161,4 +176,4 @@ template class SkipList<std::string>;
 template class SkipList<int, std::greater<>>;
 template class SkipList<int, std::less<>, 8>;
 
-}  // namespace bustub
+} // namespace bustub

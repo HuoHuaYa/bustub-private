@@ -30,7 +30,8 @@
 
 //   // get a directory page from the BufferPoolManager
 //   page_id_t directory_page_id = INVALID_PAGE_ID;
-//   auto directory_page = reinterpret_cast<HashTableDirectoryPage *>(bpm->NewPage(&directory_page_id)->GetData());
+//   auto directory_page = reinterpret_cast<HashTableDirectoryPage
+//   *>(bpm->NewPage(&directory_page_id)->GetData());
 
 //   EXPECT_EQ(0, directory_page->GetGlobalDepth());
 //   directory_page->SetPageId(10);
@@ -66,7 +67,8 @@
 //   page_id_t bucket_page_id = INVALID_PAGE_ID;
 
 //   auto bucket_page =
-//       reinterpret_cast<HashTableBucketPage<int, int, IntComparator> *>(bpm->NewPage(&bucket_page_id)->GetData());
+//       reinterpret_cast<HashTableBucketPage<int, int, IntComparator>
+//       *>(bpm->NewPage(&bucket_page_id)->GetData());
 
 //   // insert a few (key, value) pairs
 //   for (unsigned i = 0; i < 10; i++) {

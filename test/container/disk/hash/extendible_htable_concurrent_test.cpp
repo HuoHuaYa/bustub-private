@@ -4,22 +4,23 @@
 //
 // extendible_htable_concurrent_test.cpp
 //
-// Identification: test/container/disk/hash/extendible_htable_concurrent_test.cpp
+// Identification:
+// test/container/disk/hash/extendible_htable_concurrent_test.cpp
 //
 // Copyright (c) 2015-2025, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
 
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 #include <vector>
 
 #include "buffer/buffer_pool_manager.h"
 #include "common/logger.h"
 #include "container/disk/hash/disk_extendible_hash_table.h"
-#include "gtest/gtest.h"
 #include "murmur3/MurmurHash3.h"
 #include "storage/disk/disk_manager_memory.h"
-#include "test_util.h"  // NOLINT
+#include "test_util.h" // NOLINT
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -43,8 +44,10 @@ void LaunchParallelTest(uint64_t num_threads, Args &&...args) {
 }
 
 // helper function to insert
-void InsertHelper(DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
-                  const std::vector<int64_t> &keys, __attribute__((unused)) uint64_t thread_itr = 0) {
+void InsertHelper(
+    DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
+    const std::vector<int64_t> &keys,
+    __attribute__((unused)) uint64_t thread_itr = 0) {
   GenericKey<8> index_key;
   RID rid;
   for (auto key : keys) {
@@ -56,9 +59,10 @@ void InsertHelper(DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<
 }
 
 // helper function to separate insert
-void InsertHelperSplit(DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
-                       const std::vector<int64_t> &keys, int total_threads,
-                       __attribute__((unused)) uint64_t thread_itr) {
+void InsertHelperSplit(
+    DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
+    const std::vector<int64_t> &keys, int total_threads,
+    __attribute__((unused)) uint64_t thread_itr) {
   GenericKey<8> index_key;
   RID rid;
   for (auto key : keys) {
@@ -72,8 +76,10 @@ void InsertHelperSplit(DiskExtendibleHashTable<GenericKey<8>, RID, GenericCompar
 }
 
 // helper function to delete
-void DeleteHelper(DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
-                  const std::vector<int64_t> &remove_keys, __attribute__((unused)) uint64_t thread_itr = 0) {
+void DeleteHelper(
+    DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
+    const std::vector<int64_t> &remove_keys,
+    __attribute__((unused)) uint64_t thread_itr = 0) {
   GenericKey<8> index_key;
   for (auto key : remove_keys) {
     index_key.SetFromInteger(key);
@@ -82,9 +88,10 @@ void DeleteHelper(DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<
 }
 
 // helper function to separate delete
-void DeleteHelperSplit(DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
-                       const std::vector<int64_t> &remove_keys, int total_threads,
-                       __attribute__((unused)) uint64_t thread_itr) {
+void DeleteHelperSplit(
+    DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
+    const std::vector<int64_t> &remove_keys, int total_threads,
+    __attribute__((unused)) uint64_t thread_itr) {
   GenericKey<8> index_key;
   for (auto key : remove_keys) {
     if (static_cast<uint64_t>(key) % total_threads == thread_itr) {
@@ -94,8 +101,10 @@ void DeleteHelperSplit(DiskExtendibleHashTable<GenericKey<8>, RID, GenericCompar
   }
 }
 
-void LookupHelper(DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
-                  const std::vector<int64_t> &keys, uint64_t tid, __attribute__((unused)) uint64_t thread_itr = 0) {
+void LookupHelper(
+    DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> *ht,
+    const std::vector<int64_t> &keys, uint64_t tid,
+    __attribute__((unused)) uint64_t thread_itr = 0) {
   GenericKey<8> index_key;
   RID rid;
   for (auto key : keys) {
@@ -122,8 +131,8 @@ TEST(ExtendibleHTableConcurrentTest, DISABLED_InsertTest1) {
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   // create hash table
-  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht("blah", bpm.get(), comparator,
-                                                                       HashFunction<GenericKey<8>>());
+  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht(
+      "blah", bpm.get(), comparator, HashFunction<GenericKey<8>>());
 
   // keys to Insert
   std::vector<int64_t> keys;
@@ -155,8 +164,8 @@ TEST(ExtendibleHTableConcurrentTest, DISABLED_InsertTest2) {
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   // create hash table
-  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht("blah", bpm.get(), comparator,
-                                                                       HashFunction<GenericKey<8>>());
+  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht(
+      "blah", bpm.get(), comparator, HashFunction<GenericKey<8>>());
 
   // keys to Insert
   std::vector<int64_t> keys;
@@ -189,8 +198,8 @@ TEST(ExtendibleHTableConcurrentTest, DISABLED_DeleteTest1) {
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   // create hash table
-  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht("blah", bpm.get(), comparator,
-                                                                       HashFunction<GenericKey<8>>());
+  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht(
+      "blah", bpm.get(), comparator, HashFunction<GenericKey<8>>());
   // sequential insert
   std::vector<int64_t> keys = {1, 2, 3, 4, 5};
   InsertHelper(&ht, keys);
@@ -225,8 +234,8 @@ TEST(ExtendibleHTableConcurrentTest, DISABLED_DeleteTest2) {
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   // create hash table
-  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht("blah", bpm.get(), comparator,
-                                                                       HashFunction<GenericKey<8>>());
+  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht(
+      "blah", bpm.get(), comparator, HashFunction<GenericKey<8>>());
 
   // sequential insert
   std::vector<int64_t> keys = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -261,8 +270,8 @@ TEST(ExtendibleHTableConcurrentTest, DISABLED_MixTest1) {
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   // create hash table
-  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht("blah", bpm.get(), comparator,
-                                                                       HashFunction<GenericKey<8>>());
+  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht(
+      "blah", bpm.get(), comparator, HashFunction<GenericKey<8>>());
 
   // first, populate index
   std::vector<int64_t> keys = {1, 2, 3, 4, 5};
@@ -308,8 +317,8 @@ TEST(ExtendibleHTableConcurrentTest, DISABLED_MixTest2) {
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   // create hash table
-  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht("blah", bpm.get(), comparator,
-                                                                       HashFunction<GenericKey<8>>());
+  DiskExtendibleHashTable<GenericKey<8>, RID, GenericComparator<8>> ht(
+      "blah", bpm.get(), comparator, HashFunction<GenericKey<8>>());
 
   // Add preserved_keys
   std::vector<int64_t> preserved_keys;
@@ -356,4 +365,4 @@ TEST(ExtendibleHTableConcurrentTest, DISABLED_MixTest2) {
   }
 }
 
-}  // namespace bustub
+} // namespace bustub

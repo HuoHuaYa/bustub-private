@@ -17,7 +17,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 
 #include "common/exception.h"
 #include "common/logger.h"
@@ -39,8 +39,9 @@ DiskManagerMemory::DiskManagerMemory(size_t capacity) {
  * @param page_data raw page data
  */
 void DiskManagerMemory::WritePage(page_id_t page_id, const char *page_data) {
-  BUSTUB_ASSERT(static_cast<size_t>(page_id) < page_capacity_,
-                "Ran out of disk space for limited memory disk manager implementation");
+  BUSTUB_ASSERT(
+      static_cast<size_t>(page_id) < page_capacity_,
+      "Ran out of disk space for limited memory disk manager implementation");
   size_t offset = static_cast<size_t>(page_id) * BUSTUB_PAGE_SIZE;
   // set write cursor to offset
   num_writes_ += 1;
@@ -70,7 +71,8 @@ DiskManagerUnlimitedMemory::DiskManagerUnlimitedMemory() {
  * @param page_id id of the page
  * @param page_data raw page data
  */
-void DiskManagerUnlimitedMemory::WritePage(page_id_t page_id, const char *page_data) {
+void DiskManagerUnlimitedMemory::WritePage(page_id_t page_id,
+                                           const char *page_data) {
   if (page_id < 0) {
     fmt::println(stderr, "read invalid page {}", page_id);
     std::terminate();
@@ -144,16 +146,16 @@ void DiskManagerUnlimitedMemory::DeletePage(page_id_t page_id) {
 }
 
 void DiskManagerUnlimitedMemory::ProcessLatency(page_id_t page_id) {
-  uint64_t sleep_micro_sec = 1000;  // for random access, 1ms latency
+  uint64_t sleep_micro_sec = 1000; // for random access, 1ms latency
   if (latency_simulator_enabled_) {
     std::unique_lock<std::mutex> lck(latency_processor_mutex_);
     for (auto &recent_page_id : recent_access_) {
       if ((recent_page_id & (~0x3)) == (page_id & (~0x3))) {
-        sleep_micro_sec = 100;  // for access in the same "block", 0.1ms latency
+        sleep_micro_sec = 100; // for access in the same "block", 0.1ms latency
         break;
       }
       if (page_id >= recent_page_id && page_id <= recent_page_id + 3) {
-        sleep_micro_sec = 100;  // for sequential access, 0.1ms latency
+        sleep_micro_sec = 100; // for sequential access, 0.1ms latency
         break;
       }
     }
@@ -170,11 +172,12 @@ void DiskManagerUnlimitedMemory::PostProcessLatency(page_id_t page_id) {
   }
 }
 
-auto DiskManagerUnlimitedMemory::GetLastReadThreadAndClear() -> std::optional<std::thread::id> {
+auto DiskManagerUnlimitedMemory::GetLastReadThreadAndClear()
+    -> std::optional<std::thread::id> {
   std::unique_lock<std::mutex> lck(mutex_);
   auto t = thread_id_;
   thread_id_ = std::nullopt;
   return t;
 }
 
-}  // namespace bustub
+} // namespace bustub

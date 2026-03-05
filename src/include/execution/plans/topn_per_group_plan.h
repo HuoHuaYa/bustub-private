@@ -25,11 +25,11 @@
 namespace bustub {
 
 /**
- * The TopNPerGroupPlanNode represents a top-n operation. It will gather the n extreme rows based on
- * limit and order expressions.
+ * The TopNPerGroupPlanNode represents a top-n operation. It will gather the n
+ * extreme rows based on limit and order expressions.
  */
 class TopNPerGroupPlanNode : public AbstractPlanNode {
- public:
+public:
   /**
    * Construct a new TopNPerGroupPlanNode instance.
    * @param output The output schema of this TopNPerGroup plan node
@@ -37,12 +37,12 @@ class TopNPerGroupPlanNode : public AbstractPlanNode {
    * @param order_bys The sort expressions and their order by types.
    * @param n Retain n elements.
    */
-  TopNPerGroupPlanNode(SchemaRef output, AbstractPlanNodeRef child, std::vector<AbstractExpressionRef> group_bys,
+  TopNPerGroupPlanNode(SchemaRef output, AbstractPlanNodeRef child,
+                       std::vector<AbstractExpressionRef> group_bys,
                        std::vector<OrderBy> order_bys, std::size_t n)
       : AbstractPlanNode(std::move(output), {std::move(child)}),
         order_bys_(std::move(order_bys)),
-        group_bys_(std::move(group_bys)),
-        n_{n} {}
+        group_bys_(std::move(group_bys)), n_{n} {}
 
   /** @return The type of the plan node */
   auto GetType() const -> PlanType override { return PlanType::TopNPerGroup; }
@@ -54,11 +54,14 @@ class TopNPerGroupPlanNode : public AbstractPlanNode {
   auto GetOrderBy() const -> const std::vector<OrderBy> & { return order_bys_; }
 
   /** @return Get group by expressions */
-  auto GetGroupBy() const -> const std::vector<AbstractExpressionRef> & { return group_bys_; }
+  auto GetGroupBy() const -> const std::vector<AbstractExpressionRef> & {
+    return group_bys_;
+  }
 
   /** @return The child plan node */
   auto GetChildPlan() const -> AbstractPlanNodeRef {
-    BUSTUB_ASSERT(GetChildren().size() == 1, "TopNPerGroup should have exactly one child plan.");
+    BUSTUB_ASSERT(GetChildren().size() == 1,
+                  "TopNPerGroup should have exactly one child plan.");
     return GetChildAt(0);
   }
 
@@ -68,8 +71,10 @@ class TopNPerGroupPlanNode : public AbstractPlanNode {
   std::vector<AbstractExpressionRef> group_bys_;
   std::size_t n_;
 
- protected:
-  auto PlanNodeToString() const -> std::string override { return "TopNPerGroupPlan PlanNodeToString Not Implemented"; };
+protected:
+  auto PlanNodeToString() const -> std::string override {
+    return "TopNPerGroupPlan PlanNodeToString Not Implemented";
+  };
 };
 
-}  // namespace bustub
+} // namespace bustub

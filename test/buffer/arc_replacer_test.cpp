@@ -45,7 +45,8 @@ TEST(ArcReplacerTest, DISABLED_SampleTest) {
   arc_replacer.SetEvictable(5, true);
   arc_replacer.SetEvictable(6, false);
 
-  // The size of the replacer is the number of frames that can be evicted, _not_ the total number of frames entered.
+  // The size of the replacer is the number of frames that can be evicted, _not_
+  // the total number of frames entered.
   ASSERT_EQ(5, arc_replacer.Size());
   // Record an access for frame 1. Now frame 1 goes into mfu list
   arc_replacer.RecordAccess(1, 1);
@@ -216,4 +217,4 @@ TEST(ArcReplacerTest, DISABLED_SampleTest2) {
 
 // Feel free to write more tests!
 
-}  // namespace bustub
+} // namespace bustub

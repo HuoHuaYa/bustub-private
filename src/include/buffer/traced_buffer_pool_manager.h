@@ -1,25 +1,28 @@
 #pragma once
 
-#include <atomic>
 #include "./buffer_pool_manager.h"
+#include <atomic>
 
 namespace bustub {
 
 class TracedBufferPoolManager {
- private:
+private:
   std::atomic<size_t> reads_ = 0;
   std::atomic<size_t> writes_ = 0;
   BufferPoolManager *bpm_;
 
- public:
+public:
   explicit TracedBufferPoolManager(BufferPoolManager *bpm) : bpm_{bpm} {}
 
-  auto WritePage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> WritePageGuard {
+  auto WritePage(page_id_t page_id,
+                 AccessType access_type = AccessType::Unknown)
+      -> WritePageGuard {
     writes_++;
     return bpm_->WritePage(page_id, access_type);
   }
 
-  auto ReadPage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> ReadPageGuard {
+  auto ReadPage(page_id_t page_id, AccessType access_type = AccessType::Unknown)
+      -> ReadPageGuard {
     reads_++;
     return bpm_->ReadPage(page_id, access_type);
   }
@@ -31,4 +34,4 @@ class TracedBufferPoolManager {
   auto GetWrites() -> size_t { return writes_; }
 };
 
-};  // namespace bustub
+}; // namespace bustub

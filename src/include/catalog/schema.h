@@ -27,10 +27,11 @@ class Schema;
 using SchemaRef = std::shared_ptr<const Schema>;
 
 class Schema {
- public:
+public:
   explicit Schema(const std::vector<Column> &columns);
 
-  static auto CopySchema(const Schema *from, const std::vector<uint32_t> &attrs) -> Schema {
+  static auto CopySchema(const Schema *from, const std::vector<uint32_t> &attrs)
+      -> Schema {
     std::vector<Column> cols;
     cols.reserve(attrs.size());
     for (const auto i : attrs) {
@@ -47,13 +48,17 @@ class Schema {
    * @param col_idx index of requested column
    * @return requested column
    */
-  auto GetColumn(const uint32_t col_idx) const -> const Column & { return columns_[col_idx]; }
+  auto GetColumn(const uint32_t col_idx) const -> const Column & {
+    return columns_[col_idx];
+  }
 
   /**
-   * Looks up and returns the index of the first column in the schema with the specified name.
-   * If multiple columns have the same name, the first such index is returned.
+   * Looks up and returns the index of the first column in the schema with the
+   * specified name. If multiple columns have the same name, the first such
+   * index is returned.
    * @param col_name name of column to look for
-   * @return the index of a column with the given name, throws an exception if it does not exist
+   * @return the index of a column with the given name, throws an exception if
+   * it does not exist
    */
   auto GetColIdx(const std::string &col_name) const -> uint32_t {
     if (auto col_idx = TryGetColIdx(col_name)) {
@@ -63,12 +68,15 @@ class Schema {
   }
 
   /**
-   * Looks up and returns the index of the first column in the schema with the specified name.
-   * If multiple columns have the same name, the first such index is returned.
+   * Looks up and returns the index of the first column in the schema with the
+   * specified name. If multiple columns have the same name, the first such
+   * index is returned.
    * @param col_name name of column to look for
-   * @return the index of a column with the given name, `std::nullopt` if it does not exist
+   * @return the index of a column with the given name, `std::nullopt` if it
+   * does not exist
    */
-  auto TryGetColIdx(const std::string &col_name) const -> std::optional<uint32_t> {
+  auto TryGetColIdx(const std::string &col_name) const
+      -> std::optional<uint32_t> {
     for (uint32_t i = 0; i < columns_.size(); ++i) {
       if (columns_[i].GetName() == col_name) {
         return std::optional{i};
@@ -78,13 +86,19 @@ class Schema {
   }
 
   /** @return the indices of non-inlined columns */
-  auto GetUnlinedColumns() const -> const std::vector<uint32_t> & { return uninlined_columns_; }
+  auto GetUnlinedColumns() const -> const std::vector<uint32_t> & {
+    return uninlined_columns_;
+  }
 
   /** @return the number of columns in the schema for the tuple */
-  auto GetColumnCount() const -> uint32_t { return static_cast<uint32_t>(columns_.size()); }
+  auto GetColumnCount() const -> uint32_t {
+    return static_cast<uint32_t>(columns_.size());
+  }
 
   /** @return the number of non-inlined columns */
-  auto GetUnlinedColumnCount() const -> uint32_t { return static_cast<uint32_t>(uninlined_columns_.size()); }
+  auto GetUnlinedColumnCount() const -> uint32_t {
+    return static_cast<uint32_t>(uninlined_columns_.size());
+  }
 
   /** @return the number of bytes used by one tuple */
   inline auto GetInlinedStorageSize() const -> uint32_t { return length_; }
@@ -94,7 +108,7 @@ class Schema {
 
   auto ToString(bool simplified = true) const -> std::string;
 
- private:
+private:
   /** Fixed-length column size, i.e. the number of bytes used by one tuple. */
   uint32_t length_;
 
@@ -108,10 +122,11 @@ class Schema {
   std::vector<uint32_t> uninlined_columns_;
 };
 
-}  // namespace bustub
+} // namespace bustub
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<std::is_base_of<bustub::Schema, T>::value, char>>
+struct fmt::formatter<
+    T, std::enable_if_t<std::is_base_of<bustub::Schema, T>::value, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const bustub::Schema &x, FormatCtx &ctx) const {
@@ -120,7 +135,9 @@ struct fmt::formatter<T, std::enable_if_t<std::is_base_of<bustub::Schema, T>::va
 };
 
 template <typename T>
-struct fmt::formatter<std::shared_ptr<T>, std::enable_if_t<std::is_base_of<bustub::Schema, T>::value, char>>
+struct fmt::formatter<
+    std::shared_ptr<T>,
+    std::enable_if_t<std::is_base_of<bustub::Schema, T>::value, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::shared_ptr<T> &x, FormatCtx &ctx) const {
@@ -132,7 +149,9 @@ struct fmt::formatter<std::shared_ptr<T>, std::enable_if_t<std::is_base_of<bustu
 };
 
 template <typename T>
-struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<bustub::Schema, T>::value, char>>
+struct fmt::formatter<
+    std::unique_ptr<T>,
+    std::enable_if_t<std::is_base_of<bustub::Schema, T>::value, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::unique_ptr<T> &x, FormatCtx &ctx) const {

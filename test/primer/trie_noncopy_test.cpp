@@ -16,11 +16,11 @@
 #include <numeric>
 #include <optional>
 #include <random>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 
 #include "common/exception.h"
-#include "gtest/gtest.h"
 #include "primer/trie.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -42,4 +42,4 @@ TEST(TrieTest, NonCopyableTest) {
   ASSERT_EQ(trie.Get<Integer>("test"), nullptr);
 }
 
-}  // namespace bustub
+} // namespace bustub

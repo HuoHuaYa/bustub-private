@@ -10,15 +10,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 #include <vector>
 
 #include "buffer/buffer_pool_manager.h"
 #include "common/logger.h"
 #include "container/disk/hash/disk_extendible_hash_table.h"
-#include "gtest/gtest.h"
 #include "murmur3/MurmurHash3.h"
 #include "storage/disk/disk_manager_memory.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -27,7 +27,8 @@ TEST(ExtendibleHTableTest, DISABLED_InsertTest1) {
   auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
-  DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 0, 2, 2);
+  DiskExtendibleHashTable<int, int, IntComparator> ht(
+      "blah", bpm.get(), IntComparator(), HashFunction<int>(), 0, 2, 2);
 
   int num_keys = 8;
 
@@ -52,7 +53,8 @@ TEST(ExtendibleHTableTest, DISABLED_InsertTest2) {
   auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
-  DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 2, 3, 2);
+  DiskExtendibleHashTable<int, int, IntComparator> ht(
+      "blah", bpm.get(), IntComparator(), HashFunction<int>(), 2, 3, 2);
 
   int num_keys = 5;
 
@@ -95,7 +97,8 @@ TEST(ExtendibleHTableTest, DISABLED_RemoveTest1) {
   auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
-  DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 2, 3, 2);
+  DiskExtendibleHashTable<int, int, IntComparator> ht(
+      "blah", bpm.get(), IntComparator(), HashFunction<int>(), 2, 3, 2);
 
   int num_keys = 5;
 
@@ -156,4 +159,4 @@ TEST(ExtendibleHTableTest, DISABLED_RemoveTest1) {
   ht.VerifyIntegrity();
 }
 
-}  // namespace bustub
+} // namespace bustub

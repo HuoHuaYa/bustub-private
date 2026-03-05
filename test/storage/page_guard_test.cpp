@@ -40,7 +40,7 @@ TEST(PageGuardTest, DISABLED_DropTest) {
     // Another drop should have no effect.
     page0.Drop();
     ASSERT_EQ(0, bpm->GetPinCount(pid0));
-  }  // Destructor should be called. Useless but should not cause issues.
+  } // Destructor should be called. Useless but should not cause issues.
 
   const auto pid1 = bpm->NewPage();
   const auto pid2 = bpm->NewPage();
@@ -63,9 +63,10 @@ TEST(PageGuardTest, DISABLED_DropTest) {
     write_guarded_page.Drop();
     ASSERT_EQ(0, bpm->GetPinCount(pid1));
     ASSERT_EQ(0, bpm->GetPinCount(pid2));
-  }  // Destructor should be called. Useless but should not cause issues.
+  } // Destructor should be called. Useless but should not cause issues.
 
-  // This will hang if the latches were not unlocked correctly in the destructors.
+  // This will hang if the latches were not unlocked correctly in the
+  // destructors.
   {
     const auto write_test1 = bpm->WritePage(pid1);
     const auto write_test2 = bpm->WritePage(pid2);
@@ -81,7 +82,7 @@ TEST(PageGuardTest, DISABLED_DropTest) {
       ASSERT_EQ(1, bpm->GetPinCount(new_pid));
       page_ids.push_back(new_pid);
     }
-  }  // This drops all of the guards.
+  } // This drops all of the guards.
 
   for (size_t i = 0; i < FRAMES; i++) {
     ASSERT_EQ(0, bpm->GetPinCount(page_ids[i]));
@@ -90,7 +91,7 @@ TEST(PageGuardTest, DISABLED_DropTest) {
   // Get a new write page and edit it. We will retrieve it later
   const auto mutable_page_id = bpm->NewPage();
   auto mutable_guard = bpm->WritePage(mutable_page_id);
-  strcpy(mutable_guard.GetDataMut(), "data");  // NOLINT
+  strcpy(mutable_guard.GetDataMut(), "data"); // NOLINT
   mutable_guard.Drop();
 
   {
@@ -211,4 +212,4 @@ TEST(PageGuardTest, DISABLED_MoveTest) {
   disk_manager->ShutDown();
 }
 
-}  // namespace bustub
+} // namespace bustub

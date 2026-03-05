@@ -11,8 +11,8 @@
 //===----------------------------------------------------------------------===//
 
 #pragma once
-#include <string>
 #include "type/value.h"
+#include <string>
 
 namespace bustub {
 /* A varlen value is an abstract class representing all objects that have
@@ -21,7 +21,7 @@ namespace bustub {
  * means we store actual data along with its size rather than a pointer
  */
 class VarlenType : public Type {
- public:
+public:
   explicit VarlenType(TypeId type);
   ~VarlenType() override;
 
@@ -30,12 +30,18 @@ class VarlenType : public Type {
   auto GetStorageSize(const Value &val) const -> uint32_t override;
 
   // Comparison functions
-  auto CompareEquals(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareNotEquals(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareLessThan(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareLessThanEquals(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareGreaterThan(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareGreaterThanEquals(const Value &left, const Value &right) const -> CmpBool override;
+  auto CompareEquals(const Value &left, const Value &right) const
+      -> CmpBool override;
+  auto CompareNotEquals(const Value &left, const Value &right) const
+      -> CmpBool override;
+  auto CompareLessThan(const Value &left, const Value &right) const
+      -> CmpBool override;
+  auto CompareLessThanEquals(const Value &left, const Value &right) const
+      -> CmpBool override;
+  auto CompareGreaterThan(const Value &left, const Value &right) const
+      -> CmpBool override;
+  auto CompareGreaterThanEquals(const Value &left, const Value &right) const
+      -> CmpBool override;
 
   // Other mathematical functions
   auto Min(const Value &left, const Value &right) const -> Value override;
@@ -54,4 +60,4 @@ class VarlenType : public Type {
 
   auto Copy(const Value &val) const -> Value override;
 };
-}  // namespace bustub
+} // namespace bustub

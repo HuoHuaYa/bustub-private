@@ -39,7 +39,12 @@ using table_oid_t = uint32_t;
 using column_oid_t = uint32_t;
 using index_oid_t = uint32_t;
 
-enum class IndexType { BPlusTreeIndex, HashTableIndex, STLOrderedIndex, STLUnorderedIndex };
+enum class IndexType {
+  BPlusTreeIndex,
+  HashTableIndex,
+  STLOrderedIndex,
+  STLUnorderedIndex
+};
 
 /**
  * The TableInfo class maintains metadata about a table.
@@ -52,8 +57,10 @@ struct TableInfo {
    * @param table An owning pointer to the table heap
    * @param oid The unique OID for the table
    */
-  TableInfo(Schema schema, std::string name, std::unique_ptr<TableHeap> &&table, table_oid_t oid)
-      : schema_{std::move(schema)}, name_{std::move(name)}, table_{std::move(table)}, oid_{oid} {}
+  TableInfo(Schema schema, std::string name, std::unique_ptr<TableHeap> &&table,
+            table_oid_t oid)
+      : schema_{std::move(schema)}, name_{std::move(name)},
+        table_{std::move(table)}, oid_{oid} {}
   /** The table schema */
   Schema schema_;
   /** The table name */
@@ -77,16 +84,13 @@ struct IndexInfo {
    * @param table_name The name of the table on which the index is created
    * @param key_size The size of the index key, in bytes
    */
-  IndexInfo(Schema key_schema, std::string name, std::unique_ptr<Index> &&index, index_oid_t index_oid,
-            std::string table_name, size_t key_size, bool is_primary_key, IndexType index_type)
-      : key_schema_{std::move(key_schema)},
-        name_{std::move(name)},
-        index_{std::move(index)},
-        index_oid_{index_oid},
-        table_name_{std::move(table_name)},
-        key_size_{key_size},
-        is_primary_key_{is_primary_key},
-        index_type_(index_type) {}
+  IndexInfo(Schema key_schema, std::string name, std::unique_ptr<Index> &&index,
+            index_oid_t index_oid, std::string table_name, size_t key_size,
+            bool is_primary_key, IndexType index_type)
+      : key_schema_{std::move(key_schema)}, name_{std::move(name)},
+        index_{std::move(index)}, index_oid_{index_oid},
+        table_name_{std::move(table_name)}, key_size_{key_size},
+        is_primary_key_{is_primary_key}, index_type_(index_type) {}
   /** The schema for the index key */
   Schema key_schema_;
   /** The name of the index */
@@ -111,11 +115,13 @@ struct IndexInfo {
  * table creation, table lookup, index creation, and index lookup.
  */
 class Catalog {
- public:
-  /** Indicates that an operation returning a `std::shared_ptr<TableInfo>` failed */
+public:
+  /** Indicates that an operation returning a `std::shared_ptr<TableInfo>`
+   * failed */
   static inline const std::shared_ptr<TableInfo> NULL_TABLE_INFO{nullptr};
 
-  /** Indicates that an operation returning a `std::shared_ptr<IndexInfo>` failed */
+  /** Indicates that an operation returning a `std::shared_ptr<IndexInfo>`
+   * failed */
   // const std::shared_ptr<IndexInfo> NULL_INDEX_INFO{nullptr};
   static inline const std::shared_ptr<IndexInfo> NULL_INDEX_INFO{nullptr};
 
@@ -125,18 +131,21 @@ class Catalog {
    * @param lock_manager The lock manager in use by the system
    * @param log_manager The log manager in use by the system
    */
-  Catalog(BufferPoolManager *bpm, LockManager *lock_manager, LogManager *log_manager)
+  Catalog(BufferPoolManager *bpm, LockManager *lock_manager,
+          LogManager *log_manager)
       : bpm_{bpm}, lock_manager_{lock_manager}, log_manager_{log_manager} {}
 
   /**
    * Create a new table and return its metadata.
    * @param txn The transaction in which the table is being created
-   * @param table_name The name of the new table, note that all tables beginning with `__` are reserved for the system.
+   * @param table_name The name of the new table, note that all tables beginning
+   * with `__` are reserved for the system.
    * @param schema The schema of the new table
    * @param create_table_heap whether to create a table heap for the new table
    * @return A shared pointer to the metadata for the table
    */
-  auto CreateTable(Transaction *txn, const std::string &table_name, const Schema &schema, bool create_table_heap = true)
+  auto CreateTable(Transaction *txn, const std::string &table_name,
+                   const Schema &schema, bool create_table_heap = true)
       -> std::shared_ptr<TableInfo> {
     if (table_names_.count(table_name) != 0) {
       return NULL_TABLE_INFO;
@@ -145,8 +154,9 @@ class Catalog {
     // Construct the table heap
     std::unique_ptr<TableHeap> table = nullptr;
 
-    // When create_table_heap == false, it means that we're running binder tests (where no txn will be provided) or
-    // we are running shell without buffer pool. We don't need to create TableHeap in this case.
+    // When create_table_heap == false, it means that we're running binder tests
+    // (where no txn will be provided) or we are running shell without buffer
+    // pool. We don't need to create TableHeap in this case.
     if (create_table_heap) {
       table = std::make_unique<TableHeap>(bpm_);
     } else {
@@ -158,12 +168,14 @@ class Catalog {
     const auto table_oid = next_table_oid_.fetch_add(1);
 
     // Construct the table information
-    auto meta = std::make_shared<TableInfo>(schema, table_name, std::move(table), table_oid);
+    auto meta = std::make_shared<TableInfo>(schema, table_name,
+                                            std::move(table), table_oid);
 
     // Update the internal tracking mechanisms
     tables_.emplace(table_oid, meta);
     table_names_.emplace(table_name, table_oid);
-    index_names_.emplace(table_name, std::unordered_map<std::string, index_oid_t>{});
+    index_names_.emplace(table_name,
+                         std::unordered_map<std::string, index_oid_t>{});
 
     return meta;
   }
@@ -173,7 +185,8 @@ class Catalog {
    * @param table_name The name of the table
    * @return A (non-owning) pointer to the metadata for the table
    */
-  auto GetTable(const std::string &table_name) const -> std::shared_ptr<TableInfo> {
+  auto GetTable(const std::string &table_name) const
+      -> std::shared_ptr<TableInfo> {
     auto table_oid = table_names_.find(table_name);
     if (table_oid == table_names_.end()) {
       // Table not found
@@ -201,7 +214,8 @@ class Catalog {
   }
 
   /**
-   * Create a new index, populate existing data of the table and return its metadata.
+   * Create a new index, populate existing data of the table and return its
+   * metadata.
    * @param txn The transaction in which the table is being created
    * @param index_name The name of the new index
    * @param table_name The name of the table
@@ -213,17 +227,23 @@ class Catalog {
    * @return A shared pointer to the metadata of the new table
    */
   template <class KeyType, class ValueType, class KeyComparator>
-  auto CreateIndex(Transaction *txn, const std::string &index_name, const std::string &table_name, const Schema &schema,
-                   const Schema &key_schema, const std::vector<uint32_t> &key_attrs, std::size_t keysize,
-                   HashFunction<KeyType> hash_function, bool is_primary_key = false,
-                   IndexType index_type = IndexType::BPlusTreeIndex) -> std::shared_ptr<IndexInfo> {
+  auto CreateIndex(Transaction *txn, const std::string &index_name,
+                   const std::string &table_name, const Schema &schema,
+                   const Schema &key_schema,
+                   const std::vector<uint32_t> &key_attrs, std::size_t keysize,
+                   HashFunction<KeyType> hash_function,
+                   bool is_primary_key = false,
+                   IndexType index_type = IndexType::BPlusTreeIndex)
+      -> std::shared_ptr<IndexInfo> {
     // Reject the creation request for nonexistent table
     if (table_names_.find(table_name) == table_names_.end()) {
       return NULL_INDEX_INFO;
     }
 
-    // If the table exists, an entry for the table should already be present in index_names_
-    BUSTUB_ASSERT((index_names_.find(table_name) != index_names_.end()), "Broken Invariant");
+    // If the table exists, an entry for the table should already be present in
+    // index_names_
+    BUSTUB_ASSERT((index_names_.find(table_name) != index_names_.end()),
+                  "Broken Invariant");
 
     // Determine if the requested index already exists for this table
     auto &table_indexes = index_names_.find(table_name)->second;
@@ -233,7 +253,8 @@ class Catalog {
     }
 
     // Construct index metadata
-    auto meta = std::make_unique<IndexMetadata>(index_name, table_name, &schema, key_attrs, is_primary_key);
+    auto meta = std::make_unique<IndexMetadata>(index_name, table_name, &schema,
+                                                key_attrs, is_primary_key);
 
     // Construct the index, take ownership of metadata
     // TODO(Kyle): We should update the API for CreateIndex
@@ -243,33 +264,43 @@ class Catalog {
     // TODO(chi): support both hash index and btree index
     std::unique_ptr<Index> index;
     if (index_type == IndexType::HashTableIndex) {
-      index = std::make_unique<ExtendibleHashTableIndex<KeyType, ValueType, KeyComparator>>(std::move(meta), bpm_,
-                                                                                            hash_function);
+      index = std::make_unique<
+          ExtendibleHashTableIndex<KeyType, ValueType, KeyComparator>>(
+          std::move(meta), bpm_, hash_function);
     } else if (index_type == IndexType::BPlusTreeIndex) {
-      index = std::make_unique<BPlusTreeIndex<KeyType, ValueType, KeyComparator>>(std::move(meta), bpm_);
-    } else if (index_type == IndexType::STLOrderedIndex) {
-      index = std::make_unique<STLOrderedIndex<KeyType, ValueType, KeyComparator>>(std::move(meta), bpm_);
-    } else if (index_type == IndexType::STLUnorderedIndex) {
       index =
-          std::make_unique<STLUnorderedIndex<KeyType, ValueType, KeyComparator>>(std::move(meta), bpm_, hash_function);
+          std::make_unique<BPlusTreeIndex<KeyType, ValueType, KeyComparator>>(
+              std::move(meta), bpm_);
+    } else if (index_type == IndexType::STLOrderedIndex) {
+      index =
+          std::make_unique<STLOrderedIndex<KeyType, ValueType, KeyComparator>>(
+              std::move(meta), bpm_);
+    } else if (index_type == IndexType::STLUnorderedIndex) {
+      index = std::make_unique<
+          STLUnorderedIndex<KeyType, ValueType, KeyComparator>>(
+          std::move(meta), bpm_, hash_function);
     } else {
       UNIMPLEMENTED("Unsupported Index Type");
     }
 
     // Populate the index with all tuples in table heap
     auto table_meta = GetTable(table_name);
-    for (auto iter = table_meta->table_->MakeIterator(); !iter.IsEnd(); ++iter) {
+    for (auto iter = table_meta->table_->MakeIterator(); !iter.IsEnd();
+         ++iter) {
       auto [meta, tuple] = iter.GetTuple();
       // we have to silently ignore the error here for a lot of reasons...
-      index->InsertEntry(tuple.KeyFromTuple(schema, key_schema, key_attrs), tuple.GetRid(), txn);
+      index->InsertEntry(tuple.KeyFromTuple(schema, key_schema, key_attrs),
+                         tuple.GetRid(), txn);
     }
 
     // Get the next OID for the new index
     const auto index_oid = next_index_oid_.fetch_add(1);
 
-    // Construct index information; IndexInfo takes ownership of the Index itself
-    auto index_info = std::make_shared<IndexInfo>(key_schema, index_name, std::move(index), index_oid, table_name,
-                                                  keysize, is_primary_key, index_type);
+    // Construct index information; IndexInfo takes ownership of the Index
+    // itself
+    auto index_info = std::make_shared<IndexInfo>(
+        key_schema, index_name, std::move(index), index_oid, table_name,
+        keysize, is_primary_key, index_type);
     // Update internal tracking
     indexes_.emplace(index_oid, index_info);
     table_indexes.emplace(index_name, index_oid);
@@ -282,10 +313,12 @@ class Catalog {
    * @param table_name The name of the table on which to perform query
    * @return A (non-owning) pointer to the metadata for the index
    */
-  auto GetIndex(const std::string &index_name, const std::string &table_name) -> std::shared_ptr<IndexInfo> {
+  auto GetIndex(const std::string &index_name, const std::string &table_name)
+      -> std::shared_ptr<IndexInfo> {
     auto table = index_names_.find(table_name);
     if (table == index_names_.end()) {
-      BUSTUB_ASSERT((table_names_.find(table_name) == table_names_.end()), "Broken Invariant");
+      BUSTUB_ASSERT((table_names_.find(table_name) == table_names_.end()),
+                    "Broken Invariant");
       return NULL_INDEX_INFO;
     }
 
@@ -308,7 +341,8 @@ class Catalog {
    * @param table_oid The OID of the table on which to perform query
    * @return A (non-owning) pointer to the metadata for the index
    */
-  auto GetIndex(const std::string &index_name, const table_oid_t table_oid) -> std::shared_ptr<IndexInfo> {
+  auto GetIndex(const std::string &index_name, const table_oid_t table_oid)
+      -> std::shared_ptr<IndexInfo> {
     // Locate the table metadata for the specified table OID
     auto table_meta = tables_.find(table_oid);
     if (table_meta == tables_.end()) {
@@ -335,11 +369,14 @@ class Catalog {
 
   /**
    * Get all of the indexes for the table identified by `table_name`.
-   * @param table_name The name of the table for which indexes should be retrieved
-   * @return A vector of std::shared_ptr<IndexInfo> for each index on the given table, empty vector
-   * in the event that the table exists but no indexes have been created for it
+   * @param table_name The name of the table for which indexes should be
+   * retrieved
+   * @return A vector of std::shared_ptr<IndexInfo> for each index on the given
+   * table, empty vector in the event that the table exists but no indexes have
+   * been created for it
    */
-  auto GetTableIndexes(const std::string &table_name) const -> std::vector<std::shared_ptr<IndexInfo>> {
+  auto GetTableIndexes(const std::string &table_name) const
+      -> std::vector<std::shared_ptr<IndexInfo>> {
     // Ensure the table exists
     if (table_names_.find(table_name) == table_names_.end()) {
       return std::vector<std::shared_ptr<IndexInfo>>{};
@@ -368,7 +405,7 @@ class Catalog {
     return result;
   }
 
- private:
+private:
   [[maybe_unused]] BufferPoolManager *bpm_;
   [[maybe_unused]] LockManager *lock_manager_;
   [[maybe_unused]] LogManager *log_manager_;
@@ -386,35 +423,35 @@ class Catalog {
   std::unordered_map<index_oid_t, std::shared_ptr<IndexInfo>> indexes_;
 
   /** Map table name -> index names -> index identifiers. */
-  std::unordered_map<std::string, std::unordered_map<std::string, index_oid_t>> index_names_;
+  std::unordered_map<std::string, std::unordered_map<std::string, index_oid_t>>
+      index_names_;
 
   /** The next index identifier to be used. */
   std::atomic<index_oid_t> next_index_oid_{0};
 };
 
-}  // namespace bustub
+} // namespace bustub
 
-template <>
-struct fmt::formatter<bustub::IndexType> : formatter<string_view> {
+template <> struct fmt::formatter<bustub::IndexType> : formatter<string_view> {
   template <typename FormatContext>
   auto format(bustub::IndexType c, FormatContext &ctx) const {
     string_view name;
     switch (c) {
-      case bustub::IndexType::BPlusTreeIndex:
-        name = "BPlusTree";
-        break;
-      case bustub::IndexType::HashTableIndex:
-        name = "Hash";
-        break;
-      case bustub::IndexType::STLOrderedIndex:
-        name = "STLOrdered";
-        break;
-      case bustub::IndexType::STLUnorderedIndex:
-        name = "STLUnordered";
-        break;
-      default:
-        name = "Unknown";
-        break;
+    case bustub::IndexType::BPlusTreeIndex:
+      name = "BPlusTree";
+      break;
+    case bustub::IndexType::HashTableIndex:
+      name = "Hash";
+      break;
+    case bustub::IndexType::STLOrderedIndex:
+      name = "STLOrdered";
+      break;
+    case bustub::IndexType::STLUnorderedIndex:
+      name = "STLUnordered";
+      break;
+    default:
+      name = "Unknown";
+      break;
     }
     return formatter<string_view>::format(name, ctx);
   }

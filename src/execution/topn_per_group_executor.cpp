@@ -19,23 +19,29 @@ namespace bustub {
  * @param exec_ctx The executor context
  * @param plan The TopNPerGroup plan to be executed
  */
-TopNPerGroupExecutor::TopNPerGroupExecutor(ExecutorContext *exec_ctx, const TopNPerGroupPlanNode *plan,
-                                           std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
+TopNPerGroupExecutor::TopNPerGroupExecutor(
+    ExecutorContext *exec_ctx, const TopNPerGroupPlanNode *plan,
+    std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan),
+      child_executor_(std::move(child_executor)) {}
 
 /** Initialize the TopNPerGroup */
-void TopNPerGroupExecutor::Init() { throw NotImplementedException("TopNPerGroupExecutor is not implemented"); }
+void TopNPerGroupExecutor::Init() {
+  throw NotImplementedException("TopNPerGroupExecutor is not implemented");
+}
 
 /**
  * Yield the next tuple batch from the TopNPerGroup.
  * @param[out] tuple_batch The next tuple batch produced by the TopNPerGroup
  * @param[out] rid_batch The next tuple RID batch produced by the TopNPerGroup
- * @param batch_size The number of tuples to be included in the batch (default: BUSTUB_BATCH_SIZE)
+ * @param batch_size The number of tuples to be included in the batch (default:
+ * BUSTUB_BATCH_SIZE)
  * @return `true` if a tuple was produced, `false` if there are no more tuples
  */
-auto TopNPerGroupExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
+auto TopNPerGroupExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
+                                std::vector<bustub::RID> *rid_batch,
                                 size_t batch_size) -> bool {
   return false;
 }
 
-}  // namespace bustub
+} // namespace bustub

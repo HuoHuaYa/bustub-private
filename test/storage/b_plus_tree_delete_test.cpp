@@ -14,11 +14,11 @@
 #include <cstdio>
 
 #include "buffer/buffer_pool_manager.h"
-#include "gtest/gtest.h"
 #include "storage/b_plus_tree_utils.h"
 #include "storage/disk/disk_manager_memory.h"
 #include "storage/index/b_plus_tree.h"
-#include "test_util.h"  // NOLINT
+#include "test_util.h" // NOLINT
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -141,7 +141,7 @@ TEST(BPlusTreeTests, OptimisticDeleteTest) {
   delete bpm;
 }
 
-TEST(BPlusTreeTests, SequentialEdgeMixTest) {  // NOLINT
+TEST(BPlusTreeTests, SequentialEdgeMixTest) { // NOLINT
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -208,4 +208,4 @@ TEST(BPlusTreeTests, SequentialEdgeMixTest) {  // NOLINT
 
   delete bpm;
 }
-}  // namespace bustub
+} // namespace bustub

@@ -25,7 +25,8 @@
 
 namespace bustub {
 // NOLINTNEXTLINE - weird error on clang-tidy.
-auto Planner::GetAggCallFromFactory(const std::string &func_name, std::vector<AbstractExpressionRef> args)
+auto Planner::GetAggCallFromFactory(const std::string &func_name,
+                                    std::vector<AbstractExpressionRef> args)
     -> std::tuple<AggregationType, std::vector<AbstractExpressionRef>> {
   if (args.empty()) {
     if (func_name == "count_star") {
@@ -47,11 +48,13 @@ auto Planner::GetAggCallFromFactory(const std::string &func_name, std::vector<Ab
       return {AggregationType::CountAggregate, {std::move(expr)}};
     }
   }
-  throw Exception(fmt::format("unsupported agg_call {} with {} args", func_name, args.size()));
+  throw Exception(fmt::format("unsupported agg_call {} with {} args", func_name,
+                              args.size()));
 }
 
 // NOLINTNEXTLINE - weird error on clang-tidy.
-auto Planner::GetWindowAggCallFromFactory(const std::string &func_name, std::vector<AbstractExpressionRef> args)
+auto Planner::GetWindowAggCallFromFactory(
+    const std::string &func_name, std::vector<AbstractExpressionRef> args)
     -> std::tuple<WindowFunctionType, std::vector<AbstractExpressionRef>> {
   if (args.empty()) {
     if (func_name == "count_star") {
@@ -76,47 +79,61 @@ auto Planner::GetWindowAggCallFromFactory(const std::string &func_name, std::vec
       return {WindowFunctionType::CountAggregate, {std::move(expr)}};
     }
   }
-  throw Exception(fmt::format("unsupported window_call {} with {} args", func_name, args.size()));
+  throw Exception(fmt::format("unsupported window_call {} with {} args",
+                              func_name, args.size()));
 }
 
-auto Planner::GetBinaryExpressionFromFactory(const std::string &op_name, AbstractExpressionRef left,
-                                             AbstractExpressionRef right) -> AbstractExpressionRef {
+auto Planner::GetBinaryExpressionFromFactory(const std::string &op_name,
+                                             AbstractExpressionRef left,
+                                             AbstractExpressionRef right)
+    -> AbstractExpressionRef {
   if (op_name == "=" || op_name == "==") {
-    return std::make_shared<ComparisonExpression>(std::move(left), std::move(right), ComparisonType::Equal);
+    return std::make_shared<ComparisonExpression>(
+        std::move(left), std::move(right), ComparisonType::Equal);
   }
   if (op_name == "!=" || op_name == "<>") {
-    return std::make_shared<ComparisonExpression>(std::move(left), std::move(right), ComparisonType::NotEqual);
+    return std::make_shared<ComparisonExpression>(
+        std::move(left), std::move(right), ComparisonType::NotEqual);
   }
   if (op_name == "<") {
-    return std::make_shared<ComparisonExpression>(std::move(left), std::move(right), ComparisonType::LessThan);
+    return std::make_shared<ComparisonExpression>(
+        std::move(left), std::move(right), ComparisonType::LessThan);
   }
   if (op_name == "<=") {
-    return std::make_shared<ComparisonExpression>(std::move(left), std::move(right), ComparisonType::LessThanOrEqual);
+    return std::make_shared<ComparisonExpression>(
+        std::move(left), std::move(right), ComparisonType::LessThanOrEqual);
   }
   if (op_name == ">") {
-    return std::make_shared<ComparisonExpression>(std::move(left), std::move(right), ComparisonType::GreaterThan);
+    return std::make_shared<ComparisonExpression>(
+        std::move(left), std::move(right), ComparisonType::GreaterThan);
   }
   if (op_name == ">=") {
-    return std::make_shared<ComparisonExpression>(std::move(left), std::move(right),
-                                                  ComparisonType::GreaterThanOrEqual);
+    return std::make_shared<ComparisonExpression>(
+        std::move(left), std::move(right), ComparisonType::GreaterThanOrEqual);
   }
   if (op_name == "+") {
-    return std::make_shared<ArithmeticExpression>(std::move(left), std::move(right), ArithmeticType::Plus);
+    return std::make_shared<ArithmeticExpression>(
+        std::move(left), std::move(right), ArithmeticType::Plus);
   }
   if (op_name == "-") {
-    return std::make_shared<ArithmeticExpression>(std::move(left), std::move(right), ArithmeticType::Minus);
+    return std::make_shared<ArithmeticExpression>(
+        std::move(left), std::move(right), ArithmeticType::Minus);
   }
   if (op_name == "and") {
-    return std::make_shared<LogicExpression>(std::move(left), std::move(right), LogicType::And);
+    return std::make_shared<LogicExpression>(std::move(left), std::move(right),
+                                             LogicType::And);
   }
   if (op_name == "or") {
-    return std::make_shared<LogicExpression>(std::move(left), std::move(right), LogicType::Or);
+    return std::make_shared<LogicExpression>(std::move(left), std::move(right),
+                                             LogicType::Or);
   }
 
-  throw Exception(fmt::format("binary op {} not supported in planner yet", op_name));
+  throw Exception(
+      fmt::format("binary op {} not supported in planner yet", op_name));
 }
 
-auto Planner::PlanFuncCall(const BoundFuncCall &expr, const std::vector<AbstractPlanNodeRef> &children)
+auto Planner::PlanFuncCall(const BoundFuncCall &expr,
+                           const std::vector<AbstractPlanNodeRef> &children)
     -> AbstractExpressionRef {
   std::vector<AbstractExpressionRef> args;
   for (const auto &arg : expr.args_) {
@@ -129,4 +146,4 @@ auto Planner::PlanFuncCall(const BoundFuncCall &expr, const std::vector<Abstract
   return GetFuncCallFromFactory(expr.func_name_, std::move(args));
 }
 
-}  // namespace bustub
+} // namespace bustub

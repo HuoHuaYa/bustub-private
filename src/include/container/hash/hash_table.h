@@ -20,9 +20,8 @@
 
 namespace bustub {
 
-template <typename K, typename V>
-class HashTable {
- public:
+template <typename K, typename V> class HashTable {
+public:
   HashTable() = default;
   virtual ~HashTable() = default;
   // lookup and modifier
@@ -31,4 +30,4 @@ class HashTable {
   virtual void Insert(const K &key, const V &value) = 0;
 };
 
-}  // namespace bustub
+} // namespace bustub

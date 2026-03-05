@@ -13,13 +13,13 @@
 #include <limits>
 #include <memory>
 #include <string>
-#include <thread>  //NOLINT
+#include <thread> //NOLINT
 #include <vector>
 
 #include "common/exception.h"
-#include "gtest/gtest.h"
 #include "primer/hyperloglog.h"
 #include "primer/hyperloglog_presto.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -132,7 +132,8 @@ TEST(HyperLogLogTest, DISABLED_BasicParallelTest) {
 
   std::vector<std::thread> threads1;
   for (uint16_t i = 0; i < 10; i++) {
-    threads1.emplace_back([&]() { obj.AddElem("Welcome to CMU DB (15-445/645)"); });
+    threads1.emplace_back(
+        [&]() { obj.AddElem("Welcome to CMU DB (15-445/645)"); });
   }
 
   // Wait for all threads to finish execution
@@ -170,7 +171,8 @@ TEST(HyperLogLogTest, DISABLED_ParallelTest1) {
 
   std::vector<std::thread> threads1;
   for (uint16_t i = 0; i < 10; i++) {
-    threads1.emplace_back([&]() { obj.AddElem("Welcome to CMU DB (15-445/645)"); });
+    threads1.emplace_back(
+        [&]() { obj.AddElem("Welcome to CMU DB (15-445/645)"); });
   }
 
   // Wait for all threads to finish execution
@@ -317,4 +319,4 @@ TEST(HyperLogLogTest, DISABLED_PrestoEdgeCase) {
   ASSERT_EQ(ans, 0);
 }
 
-}  // namespace bustub
+} // namespace bustub

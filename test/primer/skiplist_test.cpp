@@ -11,30 +11,32 @@
 //===----------------------------------------------------------------------===//
 
 #include "primer/skiplist.h"
+#include "gtest/gtest.h"
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <memory>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 #include <vector>
-#include "gtest/gtest.h"
 
 namespace bustub {
 
 /**
  * @brief A instrumented skip list for checking the integrity of the skip list.
  *
- * `InstrumentedSkipList` does not modify the behavior of the `SkipList` based class, but it provides a `CheckIntegrity`
- * function to check if the skip list is correctly constructed.
+ * `InstrumentedSkipList` does not modify the behavior of the `SkipList` based
+ * class, but it provides a `CheckIntegrity` function to check if the skip list
+ * is correctly constructed.
  *
  * @tparam K the type of key.
  * @tparam Compare the comparison function for the key.
  * @tparam MaxHeight the maximum height of the skip list.
  * @tparam Seed the seed for the random number generator.
  */
-template <typename K, typename Compare = std::less<K>, size_t MaxHeight = 14, uint32_t Seed = 15445>
+template <typename K, typename Compare = std::less<K>, size_t MaxHeight = 14,
+          uint32_t Seed = 15445>
 class InstrumentedSkipList : public SkipList<int, Compare, MaxHeight, Seed> {
- public:
+public:
   using Parent = SkipList<int, Compare, MaxHeight, Seed>;
 
   /**
@@ -45,7 +47,8 @@ class InstrumentedSkipList : public SkipList<int, Compare, MaxHeight, Seed> {
    * @param keys expected keys to be in the skip list, in order.
    * @param heights expected heights of the nodes.
    */
-  void CheckIntegrity(const std::vector<int> &keys, const std::vector<uint32_t> &heights) {
+  void CheckIntegrity(const std::vector<int> &keys,
+                      const std::vector<uint32_t> &heights) {
     // Check the skip list has the expected number of elements.
     ASSERT_EQ(Parent::Size(), keys.size());
 
@@ -81,11 +84,14 @@ TEST(SkipListTest, IntegrityCheckTest) {
   InstrumentedSkipList<int> list;
 
   // All the keys we will insert into the skip list (1 to 20).
-  std::vector<int> keys = {12, 16, 2, 6, 15, 8, 13, 1, 11, 14, 0, 4, 19, 10, 9, 5, 7, 3, 17, 18};
+  std::vector<int> keys = {12, 16, 2,  6,  15, 8, 13, 1, 11, 14,
+                           0,  4,  19, 10, 9,  5, 7,  3, 17, 18};
 
   // Heights of the nodes in the skip list.
-  // These will not change since we fixed the seed of the random number generator.
-  std::vector<uint32_t> heights = {2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 2, 1, 3, 1, 1, 2, 1, 1, 2, 3};
+  // These will not change since we fixed the seed of the random number
+  // generator.
+  std::vector<uint32_t> heights = {2, 1, 1, 1, 2, 1, 1, 1, 2, 1,
+                                   2, 1, 3, 1, 1, 2, 1, 1, 2, 3};
 
   // Insert the keys
   for (auto key : keys) {
@@ -118,7 +124,7 @@ TEST(SkipListTest, InsertContainsTest1) {
   }
 
   for (int i = 0; i < 10; ++i) {
-    ASSERT_FALSE(list.Insert(i));  // Duplicate inserts should fail
+    ASSERT_FALSE(list.Insert(i)); // Duplicate inserts should fail
   }
 
   ASSERT_EQ(list.Size(), 10);
@@ -172,7 +178,7 @@ TEST(SkipListTest, InsertAndEraseTest) {
   for (int i = 0; i < 5; ++i) {
     ASSERT_TRUE(list.Contains(i));
     ASSERT_TRUE(list.Erase(i));
-    ASSERT_EQ(list.Size(), 5 - i - 1);  // Size should decrease after each erase
+    ASSERT_EQ(list.Size(), 5 - i - 1); // Size should decrease after each erase
   }
 
   // After all elements are erased, the list should be empty
@@ -188,8 +194,8 @@ TEST(SkipListTest, EraseNonExistingElement) {
   }
 
   // Try erasing a non-existing element
-  ASSERT_FALSE(list.Erase(10));  // Should return false as element doesn't exist
-  ASSERT_EQ(list.Size(), 5);     // Size should remain the same
+  ASSERT_FALSE(list.Erase(10)); // Should return false as element doesn't exist
+  ASSERT_EQ(list.Size(), 5);    // Size should remain the same
 }
 
 TEST(SkipListTest, ConcurrentInsertTest) {
@@ -218,7 +224,8 @@ TEST(SkipListTest, ConcurrentInsertTest) {
   }
 
   // Check that the correct number of successful insertions occurred
-  ASSERT_EQ(successful_insertions.load(), num_threads * num_insertions_per_thread);
+  ASSERT_EQ(successful_insertions.load(),
+            num_threads * num_insertions_per_thread);
 
   // Verify that all inserted keys are present in the skip list
   for (int i = 0; i < num_threads * num_insertions_per_thread; ++i) {
@@ -312,8 +319,10 @@ TEST(SkipListTest, ConcurrentInsertAndEraseTest) {
   }
 
   // Check that the correct number of insertions and erasures occurred
-  ASSERT_EQ(successful_insertions.load(), num_threads * num_operations_per_thread);
-  ASSERT_EQ(successful_erasures.load(), num_threads * num_operations_per_thread);
+  ASSERT_EQ(successful_insertions.load(),
+            num_threads * num_operations_per_thread);
+  ASSERT_EQ(successful_erasures.load(),
+            num_threads * num_operations_per_thread);
 
   // Verify that elements that were inserted are in the list
   for (int i = 100; i < 100 + num_threads * num_operations_per_thread; ++i) {
@@ -349,7 +358,8 @@ TEST(SkipListTest, ConcurrentReadTest) {
   };
 
   // Launch threads to perform concurrent reads
-  // Note: You will see a timeout if your reads cannot share access to the skip list
+  // Note: You will see a timeout if your reads cannot share access to the skip
+  // list
   for (int i = 0; i < num_threads; ++i) {
     threads.emplace_back(read_task, 0, total_num_elements);
   }
@@ -360,4 +370,4 @@ TEST(SkipListTest, ConcurrentReadTest) {
   }
 }
 
-}  // namespace bustub
+} // namespace bustub

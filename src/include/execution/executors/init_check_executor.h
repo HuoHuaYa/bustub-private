@@ -26,16 +26,19 @@ namespace bustub {
  * InitCheckExecutor counts the number of times the child operator calls init.
  */
 class InitCheckExecutor : public AbstractExecutor {
- public:
+public:
   InitCheckExecutor(ExecutorContext *exec_ctx, AbstractPlanNodeRef plan,
                     std::unique_ptr<AbstractExecutor> &&child_executor);
 
   void Init() override;
-  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+            std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the child executor */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  };
 
   /** @return The number of inits */
   auto GetInitCount() const -> std::size_t { return n_init_; };
@@ -43,7 +46,7 @@ class InitCheckExecutor : public AbstractExecutor {
   /** @return The number of nexts */
   auto GetNextCount() const -> std::size_t { return n_next_; };
 
- private:
+private:
   /** InitCheckExecutor returns `true` when it should be polled again */
   constexpr static const bool EXECUTOR_ACTIVE{true};
 
@@ -61,4 +64,4 @@ class InitCheckExecutor : public AbstractExecutor {
   std::size_t n_next_{0};
 };
 
-}  // namespace bustub
+} // namespace bustub

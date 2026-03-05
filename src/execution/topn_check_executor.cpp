@@ -21,11 +21,12 @@ namespace bustub {
  * @param plan The TopN plan to be executed
  * @param child_executor The TopN child executor
  */
-TopNCheckExecutor::TopNCheckExecutor(ExecutorContext *exec_ctx, const TopNPlanNode *plan,
-                                     std::unique_ptr<AbstractExecutor> &&child_executor, TopNExecutor *topn_executor)
+TopNCheckExecutor::TopNCheckExecutor(
+    ExecutorContext *exec_ctx, const TopNPlanNode *plan,
+    std::unique_ptr<AbstractExecutor> &&child_executor,
+    TopNExecutor *topn_executor)
     : AbstractExecutor{exec_ctx},
-      plan_(plan),
-      child_executor_{std::move(child_executor)},
+      plan_(plan), child_executor_{std::move(child_executor)},
       topn_executor_(topn_executor) {}
 
 /** Initialize the TopNCheck */
@@ -42,10 +43,13 @@ void TopNCheckExecutor::Init() {
  * Yield the next tuple batch from the child executor.
  * @param[out] tuple_batch The next tuple batch produced by the child executor
  * @param[out] rid_batch The next tuple RID batch produced by the child executor
- * @param batch_size The number of tuples to be included in the batch (default: BUSTUB_BATCH_SIZE)
+ * @param batch_size The number of tuples to be included in the batch (default:
+ * BUSTUB_BATCH_SIZE)
  * @return `true` if a tuple was produced, `false` if there are no more tuples
  */
-auto TopNCheckExecutor::Next(std::vector<Tuple> *tuple_batch, std::vector<RID> *rid_batch, size_t batch_size) -> bool {
+auto TopNCheckExecutor::Next(std::vector<Tuple> *tuple_batch,
+                             std::vector<RID> *rid_batch, size_t batch_size)
+    -> bool {
   tuple_batch->clear();
   rid_batch->clear();
 
@@ -53,13 +57,15 @@ auto TopNCheckExecutor::Next(std::vector<Tuple> *tuple_batch, std::vector<RID> *
     return EXECUTOR_EXHAUSTED;
   }
 
-  BUSTUB_ASSERT(topn_executor_->GetNumInHeap() <= plan_->GetN(), "Cannot store more than N elements");
+  BUSTUB_ASSERT(topn_executor_->GetNumInHeap() <= plan_->GetN(),
+                "Cannot store more than N elements");
   if (prev_ > 0 && prev_ < plan_->GetN()) {
-    BUSTUB_ASSERT(topn_executor_->GetNumInHeap() - prev_ == 1, "Did you implement GetNumInHeap() properly?");
+    BUSTUB_ASSERT(topn_executor_->GetNumInHeap() - prev_ == 1,
+                  "Did you implement GetNumInHeap() properly?");
   }
   prev_ = topn_executor_->GetNumInHeap();
   // Emit the next tuple
   return child_executor_->Next(tuple_batch, rid_batch, batch_size);
 }
 
-}  // namespace bustub
+} // namespace bustub

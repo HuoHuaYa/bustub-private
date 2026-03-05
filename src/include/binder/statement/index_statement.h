@@ -25,10 +25,13 @@
 namespace bustub {
 
 class IndexStatement : public BoundStatement {
- public:
-  explicit IndexStatement(std::string index_name, std::unique_ptr<BoundBaseTableRef> table,
-                          std::vector<std::unique_ptr<BoundColumnRef>> cols, std::string index_type,
-                          std::vector<std::string> col_options, std::vector<std::pair<std::string, int>> options);
+public:
+  explicit IndexStatement(std::string index_name,
+                          std::unique_ptr<BoundBaseTableRef> table,
+                          std::vector<std::unique_ptr<BoundColumnRef>> cols,
+                          std::string index_type,
+                          std::vector<std::string> col_options,
+                          std::vector<std::pair<std::string, int>> options);
 
   /** Name of the index */
   std::string index_name_;
@@ -48,4 +51,4 @@ class IndexStatement : public BoundStatement {
   auto ToString() const -> std::string override;
 };
 
-}  // namespace bustub
+} // namespace bustub

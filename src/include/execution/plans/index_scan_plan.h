@@ -23,10 +23,11 @@
 
 namespace bustub {
 /**
- * IndexScanPlanNode identifies a table that should be scanned with an optional predicate.
+ * IndexScanPlanNode identifies a table that should be scanned with an optional
+ * predicate.
  */
 class IndexScanPlanNode : public AbstractPlanNode {
- public:
+public:
   /**
    * Creates a new index scan plan node with filter predicate.
    * @param output The output format of this scan plan node
@@ -34,12 +35,12 @@ class IndexScanPlanNode : public AbstractPlanNode {
    * @param filter_predicate The predicate pushed down to index scan.
    * @param pred_key The key for point lookup
    */
-  IndexScanPlanNode(SchemaRef output, table_oid_t table_oid, index_oid_t index_oid,
-                    AbstractExpressionRef filter_predicate = nullptr, std::vector<AbstractExpressionRef> pred_keys = {})
-      : AbstractPlanNode(std::move(output), {}),
-        table_oid_(table_oid),
-        index_oid_(index_oid),
-        filter_predicate_(std::move(filter_predicate)),
+  IndexScanPlanNode(SchemaRef output, table_oid_t table_oid,
+                    index_oid_t index_oid,
+                    AbstractExpressionRef filter_predicate = nullptr,
+                    std::vector<AbstractExpressionRef> pred_keys = {})
+      : AbstractPlanNode(std::move(output), {}), table_oid_(table_oid),
+        index_oid_(index_oid), filter_predicate_(std::move(filter_predicate)),
         pred_keys_(std::move(pred_keys)) {}
 
   auto GetType() const -> PlanType override { return PlanType::IndexScan; }
@@ -63,19 +64,21 @@ class IndexScanPlanNode : public AbstractPlanNode {
 
   /**
    * The constant value keys to lookup.
-   * For example when dealing "WHERE v = 1" we could store the constant value 1 here
+   * For example when dealing "WHERE v = 1" we could store the constant value 1
+   * here
    */
   std::vector<AbstractExpressionRef> pred_keys_;
 
   // Add anything you want here for index lookup
 
- protected:
+protected:
   auto PlanNodeToString() const -> std::string override {
     if (filter_predicate_) {
-      return fmt::format("IndexScan {{ index_oid={}, filter={} }}", index_oid_, filter_predicate_);
+      return fmt::format("IndexScan {{ index_oid={}, filter={} }}", index_oid_,
+                         filter_predicate_);
     }
     return fmt::format("IndexScan {{ index_oid={} }}", index_oid_);
   }
 };
 
-}  // namespace bustub
+} // namespace bustub

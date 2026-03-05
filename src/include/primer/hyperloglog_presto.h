@@ -14,7 +14,7 @@
 
 #include <bitset>
 #include <memory>
-#include <mutex>  // NOLINT
+#include <mutex> // NOLINT
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -29,29 +29,31 @@ static constexpr int DENSE_BUCKET_SIZE = 4;
 static constexpr int OVERFLOW_BUCKET_SIZE = 3;
 
 /** @brief Total bucket size. */
-static constexpr int TOTAL_BUCKET_SIZE = (DENSE_BUCKET_SIZE + OVERFLOW_BUCKET_SIZE);
+static constexpr int TOTAL_BUCKET_SIZE =
+    (DENSE_BUCKET_SIZE + OVERFLOW_BUCKET_SIZE);
 
 namespace bustub {
 
-template <typename KeyType>
-class HyperLogLogPresto {
+template <typename KeyType> class HyperLogLogPresto {
   /**
-   * INSTRUCTIONS: Testing framework will use the GetDenseBucket and GetOverflow function,
-   * hence SHOULD NOT be deleted. It's essential to use the dense_bucket_
-   * data structure.
+   * INSTRUCTIONS: Testing framework will use the GetDenseBucket and GetOverflow
+   * function, hence SHOULD NOT be deleted. It's essential to use the
+   * dense_bucket_ data structure.
    */
 
   /** @brief Constant for HLL. */
   static constexpr double CONSTANT = 0.79402;
 
- public:
+public:
   /** @brief Disabling default constructor. */
   HyperLogLogPresto() = delete;
 
   explicit HyperLogLogPresto(int16_t n_leading_bits);
 
   /** @brief Returns the dense_bucket_ data structure. */
-  auto GetDenseBucket() const -> std::vector<std::bitset<DENSE_BUCKET_SIZE>> { return dense_bucket_; }
+  auto GetDenseBucket() const -> std::vector<std::bitset<DENSE_BUCKET_SIZE>> {
+    return dense_bucket_;
+  }
 
   /** @brief Returns overflow bucket of a specific given index. */
   auto GetOverflowBucketofIndex(uint16_t idx) { return overflow_bucket_[idx]; }
@@ -63,7 +65,7 @@ class HyperLogLogPresto {
 
   auto ComputeCardinality() -> void;
 
- private:
+private:
   /** @brief Calculate Hash.
    *
    * @param[in] val
@@ -86,7 +88,8 @@ class HyperLogLogPresto {
   std::vector<std::bitset<DENSE_BUCKET_SIZE>> dense_bucket_;
 
   /** @brief Structure holding overflow buckets. */
-  std::unordered_map<uint16_t, std::bitset<OVERFLOW_BUCKET_SIZE>> overflow_bucket_;
+  std::unordered_map<uint16_t, std::bitset<OVERFLOW_BUCKET_SIZE>>
+      overflow_bucket_;
 
   /** @brief Storing cardinality value */
   uint64_t cardinality_;
@@ -94,4 +97,4 @@ class HyperLogLogPresto {
   // TODO(student) - can add more data structures as required
 };
 
-}  // namespace bustub
+} // namespace bustub

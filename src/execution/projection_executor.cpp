@@ -20,9 +20,11 @@ namespace bustub {
  * @param exec_ctx The executor context
  * @param plan The projection plan to be executed
  */
-ProjectionExecutor::ProjectionExecutor(ExecutorContext *exec_ctx, const ProjectionPlanNode *plan,
-                                       std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
+ProjectionExecutor::ProjectionExecutor(
+    ExecutorContext *exec_ctx, const ProjectionPlanNode *plan,
+    std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan),
+      child_executor_(std::move(child_executor)) {}
 
 /** Initialize the projection */
 void ProjectionExecutor::Init() {
@@ -34,10 +36,13 @@ void ProjectionExecutor::Init() {
  * Yield the next tuple batch from the projection.
  * @param[out] tuple_batch The next tuple batch produced by the projection
  * @param[out] rid_batch The next tuple RID batch produced by the projection
- * @param batch_size The number of tuples to be included in the batch (default: BUSTUB_BATCH_SIZE)
+ * @param batch_size The number of tuples to be included in the batch (default:
+ * BUSTUB_BATCH_SIZE)
  * @return `true` if a tuple was produced, `false` if there are no more tuples
  */
-auto ProjectionExecutor::Next(std::vector<Tuple> *tuple_batch, std::vector<RID> *rid_batch, size_t batch_size) -> bool {
+auto ProjectionExecutor::Next(std::vector<Tuple> *tuple_batch,
+                              std::vector<RID> *rid_batch, size_t batch_size)
+    -> bool {
   tuple_batch->clear();
   rid_batch->clear();
 
@@ -50,7 +55,8 @@ auto ProjectionExecutor::Next(std::vector<Tuple> *tuple_batch, std::vector<RID> 
       std::vector<Value> values{};
       values.reserve(GetOutputSchema().GetColumnCount());
       for (const auto &expr : plan_->GetExpressions()) {
-        values.push_back(expr->Evaluate(&child_tuple, child_executor_->GetOutputSchema()));
+        values.push_back(
+            expr->Evaluate(&child_tuple, child_executor_->GetOutputSchema()));
       }
 
       tuple_batch->push_back(Tuple{values, &GetOutputSchema()});
@@ -60,7 +66,8 @@ auto ProjectionExecutor::Next(std::vector<Tuple> *tuple_batch, std::vector<RID> 
 
   child_offset_ = 0;
 
-  const auto status = child_executor_->Next(&child_tuples_, &child_rids_, batch_size);
+  const auto status =
+      child_executor_->Next(&child_tuples_, &child_rids_, batch_size);
 
   // If no more tuples and output batch is empty, return false
   if (!status && tuple_batch->empty()) {
@@ -80,15 +87,16 @@ auto ProjectionExecutor::Next(std::vector<Tuple> *tuple_batch, std::vector<RID> 
     std::vector<Value> values{};
     values.reserve(GetOutputSchema().GetColumnCount());
     for (const auto &expr : plan_->GetExpressions()) {
-      values.push_back(expr->Evaluate(&child_tuple, child_executor_->GetOutputSchema()));
+      values.push_back(
+          expr->Evaluate(&child_tuple, child_executor_->GetOutputSchema()));
     }
 
     tuple_batch->push_back(Tuple{values, &GetOutputSchema()});
     rid_batch->push_back(child_rid);
 
     if (tuple_batch->size() >= batch_size) {
-      // If we have filled the output batch but not yet reached the end of the current child batch, update the offset
-      // and return
+      // If we have filled the output batch but not yet reached the end of the
+      // current child batch, update the offset and return
       if (i + 1 < child_tuples_.size()) {
         child_offset_ = i + 1;
       } else {
@@ -101,4 +109,4 @@ auto ProjectionExecutor::Next(std::vector<Tuple> *tuple_batch, std::vector<RID> 
 
   return !tuple_batch->empty();
 }
-}  // namespace bustub
+} // namespace bustub

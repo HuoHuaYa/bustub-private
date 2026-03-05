@@ -10,17 +10,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <fmt/format.h>
 #include <bitset>
+#include <fmt/format.h>
 #include <functional>
 #include <numeric>
 #include <optional>
 #include <random>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 
 #include "common/exception.h"
-#include "gtest/gtest.h"
 #include "primer/trie.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -45,9 +45,22 @@ TEST(TrieTest, TrieStructureCheck) {
   ASSERT_EQ(root->children_.size(), 1);
   ASSERT_EQ(root->children_.at('t')->children_.size(), 1);
   ASSERT_EQ(root->children_.at('t')->children_.at('e')->children_.size(), 1);
-  ASSERT_EQ(root->children_.at('t')->children_.at('e')->children_.at('s')->children_.size(), 1);
-  ASSERT_EQ(root->children_.at('t')->children_.at('e')->children_.at('s')->children_.at('t')->children_.size(), 0);
-  ASSERT_TRUE(root->children_.at('t')->children_.at('e')->children_.at('s')->children_.at('t')->is_value_node_);
+  ASSERT_EQ(root->children_.at('t')
+                ->children_.at('e')
+                ->children_.at('s')
+                ->children_.size(),
+            1);
+  ASSERT_EQ(root->children_.at('t')
+                ->children_.at('e')
+                ->children_.at('s')
+                ->children_.at('t')
+                ->children_.size(),
+            0);
+  ASSERT_TRUE(root->children_.at('t')
+                  ->children_.at('e')
+                  ->children_.at('s')
+                  ->children_.at('t')
+                  ->is_value_node_);
 }
 
 TEST(TrieTest, BasicPutGetTest) {
@@ -128,7 +141,9 @@ TEST(TrieTest, RemoveFreeTest) {
   trie = trie.Put<uint32_t>("tes", 233);
   trie = trie.Remove("tes");
   trie = trie.Remove("test");
-  ASSERT_EQ(trie.GetRoot()->children_.at('t')->children_.at('e')->children_.size(), 0);
+  ASSERT_EQ(
+      trie.GetRoot()->children_.at('t')->children_.at('e')->children_.size(),
+      0);
   trie = trie.Remove("te");
   ASSERT_EQ(trie.GetRoot(), nullptr);
 }
@@ -291,7 +306,8 @@ TEST(TrieTest, PointerStability) {
   trie = trie.Put<uint32_t>("tes", 233);
   trie = trie.Put<uint32_t>("te", 23);
   auto *ptr_after = trie.Get<std::string>("test");
-  ASSERT_EQ(reinterpret_cast<uint64_t>(ptr_before), reinterpret_cast<uint64_t>(ptr_after));
+  ASSERT_EQ(reinterpret_cast<uint64_t>(ptr_before),
+            reinterpret_cast<uint64_t>(ptr_after));
 }
 
-}  // namespace bustub
+} // namespace bustub

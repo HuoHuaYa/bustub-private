@@ -11,12 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 #include <memory>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 #include <vector>
 
 #include "buffer/buffer_pool_manager.h"
 #include "common/logger.h"
-#include "gtest/gtest.h"
 #include "storage/disk/disk_manager_memory.h"
 #include "storage/index/generic_key.h"
 #include "storage/index/int_comparator.h"
@@ -24,7 +23,8 @@
 #include "storage/page/extendible_htable_directory_page.h"
 #include "storage/page/extendible_htable_header_page.h"
 #include "storage/page/page_guard.h"
-#include "test_util.h"  // NOLINT
+#include "test_util.h" // NOLINT
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -35,7 +35,8 @@ TEST(ExtendibleHTableTest, DISABLED_BucketPageSampleTest) {
 
   page_id_t bucket_page_id = bpm->NewPage();
   auto guard = bpm->WritePage(bucket_page_id);
-  auto bucket_page = guard.AsMut<ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
+  auto bucket_page = guard.AsMut<
+      ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
   bucket_page->Init(10);
 
   auto key_schema = ParseCreateStatement("a bigint");
@@ -119,22 +120,26 @@ TEST(ExtendibleHTableTest, DISABLED_HeaderDirectoryPageSampleTest) {
 
   page_id_t bucket_page_id_1 = bpm->NewPage();
   auto bucket_guard_1 = bpm->WritePage(bucket_page_id_1);
-  auto bucket_page_1 = bucket_guard_1.AsMut<ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
+  auto bucket_page_1 = bucket_guard_1.AsMut<
+      ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
   bucket_page_1->Init(10);
 
   page_id_t bucket_page_id_2 = bpm->NewPage();
   auto bucket_guard_2 = bpm->WritePage(bucket_page_id_2);
-  auto bucket_page_2 = bucket_guard_2.AsMut<ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
+  auto bucket_page_2 = bucket_guard_2.AsMut<
+      ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
   bucket_page_2->Init(10);
 
   page_id_t bucket_page_id_3 = bpm->NewPage();
   auto bucket_guard_3 = bpm->WritePage(bucket_page_id_3);
-  auto bucket_page_3 = bucket_guard_3.AsMut<ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
+  auto bucket_page_3 = bucket_guard_3.AsMut<
+      ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
   bucket_page_3->Init(10);
 
   page_id_t bucket_page_id_4 = bpm->NewPage();
   auto bucket_guard_4 = bpm->WritePage(bucket_page_id_4);
-  auto bucket_page_4 = bucket_guard_4.AsMut<ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
+  auto bucket_page_4 = bucket_guard_4.AsMut<
+      ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>>();
   bucket_page_4->Init(10);
 
   directory_page->SetBucketPageId(0, bucket_page_id_1);
@@ -274,4 +279,4 @@ TEST(ExtendibleHTableTest, DISABLED_HeaderDirectoryPageSampleTest) {
   // page guard dropped
 }
 
-}  // namespace bustub
+} // namespace bustub

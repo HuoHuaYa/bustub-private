@@ -33,27 +33,35 @@ namespace bustub {
  */
 template <typename KeyType, typename ValueType, typename KeyComparator>
 class LinearProbeHashTable {
- public:
-  explicit LinearProbeHashTable(const std::string &name, BufferPoolManager *buffer_pool_manager,
-                                const KeyComparator &comparator, size_t num_buckets, HashFunction<KeyType> hash_fn);
+public:
+  explicit LinearProbeHashTable(const std::string &name,
+                                BufferPoolManager *buffer_pool_manager,
+                                const KeyComparator &comparator,
+                                size_t num_buckets,
+                                HashFunction<KeyType> hash_fn);
 
-  auto Insert(Transaction *transaction, const KeyType &key, const ValueType &value) -> bool;
+  auto Insert(Transaction *transaction, const KeyType &key,
+              const ValueType &value) -> bool;
 
-  auto Remove(Transaction *transaction, const KeyType &key, const ValueType &value) -> bool;
+  auto Remove(Transaction *transaction, const KeyType &key,
+              const ValueType &value) -> bool;
 
-  auto GetValue(Transaction *transaction, const KeyType &key, std::vector<ValueType> *result) -> bool;
+  auto GetValue(Transaction *transaction, const KeyType &key,
+                std::vector<ValueType> *result) -> bool;
 
   void Resize(size_t initial_size);
 
   auto GetSize() -> size_t;
 
- private:
+private:
   auto GetHeaderPage() -> HashTableHeaderPage *;
   auto GetBlockPage(page_id_t block_page_id) -> HASH_TABLE_BLOCK_TYPE *;
-  void ResizeInsert(HashTableHeaderPage *header_page, const KeyType &key, const ValueType &value);
+  void ResizeInsert(HashTableHeaderPage *header_page, const KeyType &key,
+                    const ValueType &value);
   void DeleteBlockPages(HashTableHeaderPage *old_header_page);
   void CreateNewBlockPages(HashTableHeaderPage *header_page, size_t num_blocks);
-  auto GetValueLatchFree(Transaction *transaction, const KeyType &key, std::vector<ValueType> *result) -> bool;
+  auto GetValueLatchFree(Transaction *transaction, const KeyType &key,
+                         std::vector<ValueType> *result) -> bool;
 
   // member variable
   page_id_t header_page_id_;
@@ -67,4 +75,4 @@ class LinearProbeHashTable {
   HashFunction<KeyType> hash_fn_;
 };
 
-}  // namespace bustub
+} // namespace bustub

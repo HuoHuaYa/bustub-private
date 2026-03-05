@@ -12,9 +12,9 @@
 
 #include "catalog/column.h"
 
+#include "type/type_id.h"
 #include <sstream>
 #include <string>
-#include "type/type_id.h"
 
 namespace bustub {
 
@@ -34,11 +34,12 @@ auto Column::ToString(bool simplified) const -> std::string {
 
   std::ostringstream os;
 
-  os << "Column[" << column_name_ << ", " << Type::TypeIdToString(column_type_) << ", "
+  os << "Column[" << column_name_ << ", " << Type::TypeIdToString(column_type_)
+     << ", "
      << "Offset:" << column_offset_ << ", ";
   os << "Length:" << length_;
   os << "]";
   return (os.str());
 }
 
-}  // namespace bustub
+} // namespace bustub

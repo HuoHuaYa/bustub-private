@@ -27,7 +27,9 @@
 
 namespace bustub {
 
-auto BoundFuncCall::ToString() const -> std::string { return fmt::format("{}({})", func_name_, args_); }
+auto BoundFuncCall::ToString() const -> std::string {
+  return fmt::format("{}({})", func_name_, args_);
+}
 
 auto BoundAggCall::ToString() const -> std::string {
   if (is_distinct_) {
@@ -37,7 +39,8 @@ auto BoundAggCall::ToString() const -> std::string {
 }
 
 auto BoundExpressionListRef::ToString() const -> std::string {
-  return fmt::format("BoundExpressionListRef {{ identifier={}, values={} }}", identifier_, values_);
+  return fmt::format("BoundExpressionListRef {{ identifier={}, values={} }}",
+                     identifier_, values_);
 }
 
 auto BoundCTERef::ToString() const -> std::string {
@@ -50,8 +53,10 @@ auto BoundSubqueryRef::ToString() const -> std::string {
   for (const auto &name : select_list_name_) {
     columns.push_back(fmt::format("{}", fmt::join(name, ".")));
   }
-  return fmt::format("BoundSubqueryRef {{\n  alias={},\n  subquery={},\n  columns={},\n}}", alias_,
-                     StringUtil::IndentAllLines(subquery_->ToString(), 2, true), columns);
+  return fmt::format(
+      "BoundSubqueryRef {{\n  alias={},\n  subquery={},\n  columns={},\n}}",
+      alias_, StringUtil::IndentAllLines(subquery_->ToString(), 2, true),
+      columns);
 }
 
 auto BoundWindow::ToString() const -> std::string {
@@ -81,9 +86,12 @@ auto BoundWindow::ToString() const -> std::string {
   std::string end_mode = Binder::WindowBoundaryToString(end_);
 
   // TODO(avery): add frame
-  return fmt::format("{}({}) Over {{  partition_by={},  order_by={} }}", func_name_, args_,
-                     StringUtil::IndentAllLines(fmt::format("[{}]", fmt::join(partition_by, ", ")), 2, true),
-                     StringUtil::IndentAllLines(fmt::format("[{}]", fmt::join(order_bys, ", ")), 2, true));
+  return fmt::format(
+      "{}({}) Over {{  partition_by={},  order_by={} }}", func_name_, args_,
+      StringUtil::IndentAllLines(
+          fmt::format("[{}]", fmt::join(partition_by, ", ")), 2, true),
+      StringUtil::IndentAllLines(
+          fmt::format("[{}]", fmt::join(order_bys, ", ")), 2, true));
 }
 
-}  // namespace bustub
+} // namespace bustub

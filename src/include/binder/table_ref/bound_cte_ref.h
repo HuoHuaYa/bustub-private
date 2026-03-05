@@ -29,9 +29,10 @@ class SelectStatement;
  * A CTE. e.g., `WITH (select 1) x SELECT * FROM x`, where `x` is `BoundCTERef`.
  */
 class BoundCTERef : public BoundTableRef {
- public:
+public:
   explicit BoundCTERef(std::string cte_name, std::string alias)
-      : BoundTableRef(TableReferenceType::CTE), cte_name_(std::move(cte_name)), alias_(std::move(alias)) {}
+      : BoundTableRef(TableReferenceType::CTE), cte_name_(std::move(cte_name)),
+        alias_(std::move(alias)) {}
 
   auto ToString() const -> std::string override;
 
@@ -42,4 +43,4 @@ class BoundCTERef : public BoundTableRef {
   std::string alias_;
 };
 
-}  // namespace bustub
+} // namespace bustub

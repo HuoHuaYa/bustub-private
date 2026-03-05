@@ -31,16 +31,18 @@ namespace bustub {
  *
  *  Here '+' means concatenation.
  *  The above format omits the space required for the occupied_ and
- *  readable_ arrays. More information is in storage/page/hash_table_page_defs.h.
+ *  readable_ arrays. More information is in
+ * storage/page/hash_table_page_defs.h.
  *
  */
 template <typename KeyType, typename ValueType, typename KeyComparator>
 class HashTableBucketPage {
- public:
+public:
   // Delete all constructor / destructor to ensure memory safety
   HashTableBucketPage() = delete;
 
-  auto GetValue(KeyType key, KeyComparator cmp, std::vector<ValueType> *result) -> bool;
+  auto GetValue(KeyType key, KeyComparator cmp, std::vector<ValueType> *result)
+      -> bool;
 
   auto Insert(KeyType key, ValueType value, KeyComparator cmp) -> bool;
 
@@ -68,7 +70,7 @@ class HashTableBucketPage {
 
   void PrintBucket();
 
- private:
+private:
   //  For more on BUCKET_ARRAY_SIZE see storage/page/hash_table_page_defs.h
   char occupied_[(BUCKET_ARRAY_SIZE - 1) / 8 + 1];
   // 0 if tombstone/brand new (never occupied), 1 otherwise.
@@ -77,4 +79,4 @@ class HashTableBucketPage {
   MappingType array_[1];
 };
 
-}  // namespace bustub
+} // namespace bustub

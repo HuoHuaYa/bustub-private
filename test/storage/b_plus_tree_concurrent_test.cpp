@@ -10,18 +10,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <chrono>  // NOLINT
+#include <chrono> // NOLINT
 #include <cstdio>
 #include <filesystem>
 #include <functional>
-#include <future>  // NOLINT
-#include <thread>  // NOLINT
+#include <future> // NOLINT
+#include <thread> // NOLINT
 
 #include "buffer/buffer_pool_manager.h"
-#include "gtest/gtest.h"
 #include "storage/disk/disk_manager_memory.h"
 #include "storage/index/b_plus_tree.h"
-#include "test_util.h"  // NOLINT
+#include "test_util.h" // NOLINT
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -132,8 +132,7 @@ const size_t NUM_ITERS = 50;
 const size_t MIXTEST_NUM_ITERS = 20;
 static const size_t BPM_SIZE = 50;
 
-template <ssize_t Tombs>
-void InsertTest1Call() {
+template <ssize_t Tombs> void InsertTest1Call() {
   for (size_t iter = 0; iter < NUM_ITERS; iter++) {
     // create KeyComparator and index schema
     auto key_schema = ParseCreateStatement("a bigint");
@@ -205,8 +204,7 @@ void InsertTest1Call() {
   }
 }
 
-template <ssize_t Tombs>
-void InsertTest2Call() {
+template <ssize_t Tombs> void InsertTest2Call() {
   for (size_t iter = 0; iter < NUM_ITERS; iter++) {
     // create KeyComparator and index schema
     auto key_schema = ParseCreateStatement("a bigint");
@@ -262,8 +260,7 @@ void InsertTest2Call() {
   }
 }
 
-template <ssize_t Tombs>
-void DeleteTest1Call() {
+template <ssize_t Tombs> void DeleteTest1Call() {
   for (size_t iter = 0; iter < NUM_ITERS; iter++) {
     // create KeyComparator and index schema
     auto key_schema = ParseCreateStatement("a bigint");
@@ -294,9 +291,9 @@ void DeleteTest1Call() {
       const auto &pair = *iter;
       auto location = pair.second;
       ASSERT_EQ(location.GetPageId(), 0);
-      if(location.GetSlotNum() != current_key){
-        
-        std::cout<<num<<'\n';
+      if (location.GetSlotNum() != current_key) {
+
+        std::cout << num << '\n';
       }
       ASSERT_EQ(location.GetSlotNum(), current_key);
       current_key = current_key + 1;
@@ -312,8 +309,7 @@ void DeleteTest1Call() {
   }
 }
 
-template <ssize_t Tombs>
-void DeleteTest2Call() {
+template <ssize_t Tombs> void DeleteTest2Call() {
   for (size_t iter = 0; iter < NUM_ITERS; iter++) {
     // create KeyComparator and index schema
     auto key_schema = ParseCreateStatement("a bigint");
@@ -358,8 +354,7 @@ void DeleteTest2Call() {
   }
 }
 
-template <ssize_t Tombs>
-void MixTest1Call() {
+template <ssize_t Tombs> void MixTest1Call() {
   for (size_t iter = 0; iter < MIXTEST_NUM_ITERS; iter++) {
     // create KeyComparator and index schema
     auto key_schema = ParseCreateStatement("a bigint");
@@ -378,7 +373,7 @@ void MixTest1Call() {
     // first, populate index
     std::vector<int64_t> for_insert;
     std::vector<int64_t> for_delete;
-    int64_t sieve = 2;  // divide evenly
+    int64_t sieve = 2; // divide evenly
     int64_t total_keys = 1000;
     for (int64_t i = 1; i <= total_keys; i++) {
       if (i % sieve == 0) {
@@ -421,8 +416,7 @@ void MixTest1Call() {
   }
 }
 
-template <ssize_t Tombs>
-void MixTest2Call() {
+template <ssize_t Tombs> void MixTest2Call() {
   for (size_t iter = 0; iter < MIXTEST_NUM_ITERS; iter++) {
     // create KeyComparator and index schema
     auto key_schema = ParseCreateStatement("a bigint");
@@ -489,36 +483,38 @@ void MixTest2Call() {
   }
 }
 
-TEST(BPlusTreeConcurrentTest, InsertTest1) {  // NOLINT
+TEST(BPlusTreeConcurrentTest, InsertTest1) { // NOLINT
   InsertTest1Call<0>();
   // std::cout<<"call1\n";
   // std::cout<<"\n\n\n\n\n\n";
   InsertTest1Call<3>();
 }
 
-TEST(BPlusTreeConcurrentTest, InsertTest2) {  // NOLINT
+TEST(BPlusTreeConcurrentTest, InsertTest2) { // NOLINT
   InsertTest2Call<0>();
   InsertTest2Call<3>();
 }
 
-TEST(BPlusTreeConcurrentTest, DeleteTest1) {  // NOLINT
+TEST(BPlusTreeConcurrentTest, DeleteTest1) { // NOLINT
   DeleteTest1Call<0>();
-  std::cout<<"\n\n\n"<<"call"<<"\n\n\n";
+  std::cout << "\n\n\n"
+            << "call"
+            << "\n\n\n";
   DeleteTest1Call<3>();
 }
 
-TEST(BPlusTreeConcurrentTest, DeleteTest2) {  // NOLINT
+TEST(BPlusTreeConcurrentTest, DeleteTest2) { // NOLINT
   DeleteTest2Call<0>();
   DeleteTest2Call<3>();
 }
 
-TEST(BPlusTreeConcurrentTest, MixTest1) {  // NOLINT
+TEST(BPlusTreeConcurrentTest, MixTest1) { // NOLINT
   MixTest1Call<0>();
   MixTest1Call<3>();
 }
 
-TEST(BPlusTreeConcurrentTest, MixTest2) {  // NOLINT
+TEST(BPlusTreeConcurrentTest, MixTest2) { // NOLINT
   MixTest2Call<0>();
   MixTest2Call<3>();
 }
-}  // namespace bustub
+} // namespace bustub

@@ -109,7 +109,7 @@ bool TreeValuesMatch(
     index_key.SetFromInteger(key);
     tree.GetValue(index_key, &rids);
     if (rids.size() != 1) {
-      std::cout <<key<<' '<< "INSERT\n";
+      std::cout << key << ' ' << "INSERT\n";
       return false;
     }
   }
@@ -118,8 +118,8 @@ bool TreeValuesMatch(
     index_key.SetFromInteger(key);
     tree.GetValue(index_key, &rids);
     if (!rids.empty()) {
-      std::cout << key<<' '<<"DELETE\n";
-      
+      std::cout << key << ' ' << "DELETE\n";
+
       return false;
     }
   }
@@ -148,7 +148,7 @@ page_id_t GetLeftMostLeafPageId(page_id_t root_page_id,
 
 FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN
 class IndexLeaves {
- public:
+public:
   BufferPoolManager *buffer_pool_manager_;
   std::optional<ReadPageGuard> guard_;
 
@@ -200,4 +200,4 @@ auto GetNumLeaves(BPlusTree<KeyType, ValueType, KeyComparator, NumTombs> &tree,
   return count;
 }
 
-}  // namespace bustub
+} // namespace bustub

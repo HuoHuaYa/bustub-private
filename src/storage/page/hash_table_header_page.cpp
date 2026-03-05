@@ -20,7 +20,9 @@ namespace bustub {
  * @param index the index of the block
  * @return the page_id for the block.
  */
-auto HashTableHeaderPage::GetBlockPageId(size_t index) -> page_id_t { return 0; }
+auto HashTableHeaderPage::GetBlockPageId(size_t index) -> page_id_t {
+  return 0;
+}
 
 /**
  * @return the page ID of this page
@@ -70,4 +72,4 @@ void HashTableHeaderPage::SetSize(size_t size) {}
  */
 auto HashTableHeaderPage::GetSize() const -> size_t { return 0; }
 
-}  // namespace bustub
+} // namespace bustub

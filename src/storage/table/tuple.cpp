@@ -77,7 +77,8 @@ Tuple::Tuple(RID rid, const char *data, uint32_t size) {
  * Get the value of a specified column (const)
  * checks the schema to see how to return the Value.
  */
-auto Tuple::GetValue(const Schema *schema, const uint32_t column_idx) const -> Value {
+auto Tuple::GetValue(const Schema *schema, const uint32_t column_idx) const
+    -> Value {
   assert(schema);
   const TypeId column_type = schema->GetColumn(column_idx).GetType();
   const char *data_ptr = GetDataPtr(schema, column_idx);
@@ -88,7 +89,8 @@ auto Tuple::GetValue(const Schema *schema, const uint32_t column_idx) const -> V
 /**
  * Generates a key tuple given schemas and attributes
  */
-auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema, const std::vector<uint32_t> &key_attrs) const
+auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema,
+                         const std::vector<uint32_t> &key_attrs) const
     -> Tuple {
   std::vector<Value> values;
   values.reserve(key_attrs.size());
@@ -101,7 +103,8 @@ auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema, const s
 /**
  * Get the starting storage address of specific column
  */
-auto Tuple::GetDataPtr(const Schema *schema, const uint32_t column_idx) const -> const char * {
+auto Tuple::GetDataPtr(const Schema *schema, const uint32_t column_idx) const
+    -> const char * {
   assert(schema);
   const auto &col = schema->GetColumn(column_idx);
   bool is_inlined = col.IsInlined();
@@ -110,7 +113,8 @@ auto Tuple::GetDataPtr(const Schema *schema, const uint32_t column_idx) const ->
     return (data_.data() + col.GetOffset());
   }
   // We read the relative offset from the tuple data.
-  int32_t offset = *reinterpret_cast<const int32_t *>(data_.data() + col.GetOffset());
+  int32_t offset =
+      *reinterpret_cast<const int32_t *>(data_.data() + col.GetOffset());
   // And return the beginning address of the real data for the VARCHAR type.
   return (data_.data() + offset);
 }
@@ -157,4 +161,4 @@ void Tuple::DeserializeFrom(const char *storage) {
   memcpy(this->data_.data(), storage + sizeof(int32_t), size);
 }
 
-}  // namespace bustub
+} // namespace bustub

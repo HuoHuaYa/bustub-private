@@ -10,14 +10,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <chrono>  // NOLINT
+#include <chrono> // NOLINT
 #include <cstdio>
 #include <exception>
 #include <functional>
-#include <future>  // NOLINT
+#include <future> // NOLINT
 #include <memory>
 #include <stdexcept>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 
 #include "common/bustub_instance.h"
 #include "concurrency/transaction.h"
@@ -28,7 +28,7 @@
 
 namespace bustub {
 
-TEST(TxnTsTest, DISABLED_WatermarkPerformance) {  // NOLINT
+TEST(TxnTsTest, DISABLED_WatermarkPerformance) { // NOLINT
   const int txn_n = 1000000;
   {
     auto watermark = Watermark(0);
@@ -60,7 +60,7 @@ TEST(TxnTsTest, DISABLED_WatermarkPerformance) {  // NOLINT
   }
 }
 
-TEST(TxnTsTest, DISABLED_TimestampTracking) {  // NOLINT
+TEST(TxnTsTest, DISABLED_TimestampTracking) { // NOLINT
   auto bustub = std::make_unique<BusTubInstance>();
 
   auto txn0 = bustub->txn_manager_->Begin();
@@ -156,4 +156,4 @@ TEST(TxnTsTest, DISABLED_TimestampTracking) {  // NOLINT
 
 // NOLINTEND(bugprone-unchecked-optional-access))
 
-}  // namespace bustub
+} // namespace bustub

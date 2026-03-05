@@ -1,10 +1,10 @@
-#include <iostream>
-#include <memory>
-#include <mutex>
 #include "buffer/arc_replacer.h"
 #include "buffer/buffer_pool_manager.h"
 #include "storage/disk/disk_manager_memory.h"
 #include "storage/disk/disk_scheduler.h"
+#include <iostream>
+#include <memory>
+#include <mutex>
 
 // #include "gtest/gtest.h"
 using namespace bustub;
@@ -16,7 +16,7 @@ int main() {
   // Get a new write page and edit it. We will retrieve it later
   const auto mutable_page_id = bpm->NewPage();
   auto mutable_guard = bpm->WritePage(mutable_page_id);
-  strcpy(mutable_guard.GetDataMut(), "data");  // NOLINT
+  strcpy(mutable_guard.GetDataMut(), "data"); // NOLINT
   mutable_guard.Drop();
 
   {

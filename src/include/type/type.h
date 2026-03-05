@@ -24,7 +24,7 @@ class Value;
 enum class CmpBool { CmpFalse = 0, CmpTrue = 1, CmpNull = 2 };
 
 class Type {
- public:
+public:
   explicit Type(TypeId type_id) : type_id_(type_id) {}
 
   virtual ~Type() = default;
@@ -38,7 +38,9 @@ class Type {
   static auto GetMinValue(TypeId type_id) -> Value;
   static auto GetMaxValue(TypeId type_id) -> Value;
 
-  inline static auto GetInstance(TypeId type_id) -> Type * { return k_types[type_id]; }
+  inline static auto GetInstance(TypeId type_id) -> Type * {
+    return k_types[type_id];
+  }
 
   inline auto GetTypeId() const -> TypeId { return type_id_; }
 
@@ -60,12 +62,18 @@ class Type {
   //     and since Value is a core component of the execution engine, we want to
   //     make it as performant as possible.
   // (2) Keep the interface consistent by making all functions purely virtual.
-  virtual auto CompareEquals(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareNotEquals(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareLessThan(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareLessThanEquals(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareGreaterThan(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareGreaterThanEquals(const Value &left, const Value &right) const -> CmpBool;
+  virtual auto CompareEquals(const Value &left, const Value &right) const
+      -> CmpBool;
+  virtual auto CompareNotEquals(const Value &left, const Value &right) const
+      -> CmpBool;
+  virtual auto CompareLessThan(const Value &left, const Value &right) const
+      -> CmpBool;
+  virtual auto CompareLessThanEquals(const Value &left,
+                                     const Value &right) const -> CmpBool;
+  virtual auto CompareGreaterThan(const Value &left, const Value &right) const
+      -> CmpBool;
+  virtual auto CompareGreaterThanEquals(const Value &left,
+                                        const Value &right) const -> CmpBool;
 
   // Other mathematical functions
   virtual auto Add(const Value &left, const Value &right) const -> Value;
@@ -103,10 +111,10 @@ class Type {
   // Get the storage size of the value.
   virtual auto GetStorageSize(const Value &val) const -> uint32_t;
 
- protected:
+protected:
   // The actual type ID
   TypeId type_id_;
   // Singleton instances.
   static Type *k_types[10];
 };
-}  // namespace bustub
+} // namespace bustub

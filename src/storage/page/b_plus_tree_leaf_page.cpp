@@ -68,10 +68,14 @@ auto B_PLUS_TREE_LEAF_PAGE_TYPE::GetTombstones() const -> std::vector<KeyType> {
  * Helper methods to set/get next page id
  */
 FULL_INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_LEAF_PAGE_TYPE::GetNextPageId() const -> page_id_t { return next_page_id_; }
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::GetNextPageId() const -> page_id_t {
+  return next_page_id_;
+}
 
 FULL_INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::SetNextPageId(page_id_t next_page_id) { next_page_id_ = next_page_id; }
+void B_PLUS_TREE_LEAF_PAGE_TYPE::SetNextPageId(page_id_t next_page_id) {
+  next_page_id_ = next_page_id;
+}
 
 /*
  * Helper method to find and return the key associated with input "index" (a.k.a
@@ -85,12 +89,16 @@ auto B_PLUS_TREE_LEAF_PAGE_TYPE::KeyAt(int index) const -> KeyType {
 
 // add
 FULL_INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int {
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key,
+                                          const KeyComparator &comparator) const
+    -> int {
   auto start = key_array_;
   auto end = key_array_ + GetSize();
   // 都是类似一个个点，直接lower
-  auto target =
-      std::lower_bound(start, end, key, [&](const KeyType &k1, const KeyType &k2) { return comparator(k1, k2) < 0; });
+  auto target = std::lower_bound(start, end, key,
+                                 [&](const KeyType &k1, const KeyType &k2) {
+                                   return comparator(k1, k2) < 0;
+                                 });
   int index = std::distance(key_array_, target);
   return index;
 }
@@ -133,7 +141,9 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Compact() {
   num_tombstones_ = 0;
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator)
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key,
+                                        const ValueType &value,
+                                        const KeyComparator &comparator)
     -> bool {
   // 首先检查是否存在相同的key
   int index = KeyIndex(key, comparator);
@@ -187,8 +197,10 @@ auto B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &val
   return true;
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient, const KeyType &key,
-                                       const ValueType &value, const KeyComparator &comparator) {
+void B_PLUS_TREE_LEAF_PAGE_TYPE::Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient,
+                                       const KeyType &key,
+                                       const ValueType &value,
+                                       const KeyComparator &comparator) {
   // leaf insert 如果页面满载就会compact，保险起见这里再来一次
   Compact();
   // 先把所有条目统一存放在一起
@@ -225,7 +237,8 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient, co
   // std::cout << "]" << std::endl;
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_LEAF_PAGE_TYPE::RemoveAndDeleteRecord(const KeyType &key, const KeyComparator &comparator) -> bool {
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::RemoveAndDeleteRecord(
+    const KeyType &key, const KeyComparator &comparator) -> bool {
   int index = KeyIndex(key, comparator);
   if (index < 0 || index >= GetSize() || comparator(KeyAt(index), key) != 0) {
     return false;
@@ -256,7 +269,8 @@ auto B_PLUS_TREE_LEAF_PAGE_TYPE::RemoveAndDeleteRecord(const KeyType &key, const
   return true;
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::PushFront(const KeyType &key, const ValueType &value) {
+void B_PLUS_TREE_LEAF_PAGE_TYPE::PushFront(const KeyType &key,
+                                           const ValueType &value) {
   for (int i = GetSize(); i >= 1; i--) {
     key_array_[i] = key_array_[i - 1];
     rid_array_[i] = rid_array_[i - 1];
@@ -266,14 +280,16 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::PushFront(const KeyType &key, const ValueType &
   SetSize(GetSize() + 1);
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::PushBack(const KeyType &key, const ValueType &value) {
+void B_PLUS_TREE_LEAF_PAGE_TYPE::PushBack(const KeyType &key,
+                                          const ValueType &value) {
   key_array_[GetSize()] = key;
   rid_array_[GetSize()] = value;
   SetSize(GetSize() + 1);
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveAllTo(BPlusTreeLeafPage *recipient) {
-  while (LEAF_PAGE_TOMB_CNT > 0 && recipient->GetTombstonesNum() + num_tombstones_ > LEAF_PAGE_TOMB_CNT) {
+  while (LEAF_PAGE_TOMB_CNT > 0 &&
+         recipient->GetTombstonesNum() + num_tombstones_ > LEAF_PAGE_TOMB_CNT) {
     if (recipient->GetTombstonesNum() > 0) {
       // 优先踢掉左节点（recipient）里最老的墓碑
       recipient->RemoveOldestTombstone();
@@ -282,7 +298,7 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveAllTo(BPlusTreeLeafPage *recipient) {
     }
   }
 
-  int r_size = recipient->GetSize();  // 拿到的绝对是稳定且准确的 size
+  int r_size = recipient->GetSize(); // 拿到的绝对是稳定且准确的 size
   for (int i = 0; i < GetSize(); i++) {
     recipient->key_array_[i + r_size] = key_array_[i];
     recipient->rid_array_[i + r_size] = rid_array_[i];
@@ -292,7 +308,8 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveAllTo(BPlusTreeLeafPage *recipient) {
   // 搬运墓碑数据
   for (int i = 0; i < static_cast<int>(num_tombstones_); i++) {
     // 此时绝对有空位，且 r_size 绝对精准，不会有任何错位
-    recipient->tombstones_[recipient->GetTombstonesNum()] = tombstones_[i] + r_size;
+    recipient->tombstones_[recipient->GetTombstonesNum()] =
+        tombstones_[i] + r_size;
     recipient->num_tombstones_++;
   }
 
@@ -305,7 +322,8 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveAllTo(BPlusTreeLeafPage *recipient) {
   SetNextPageId(INVALID_PAGE_ID);
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeLeafPage *recipient) {
+void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(
+    BPlusTreeLeafPage *recipient) {
   // 右移左
   int first_index = 0;
   KeyType key = KeyAt(first_index);
@@ -331,7 +349,7 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeLeafPage *recipient) 
   int new_tomb_cnt = 0;
   for (size_t i = 0; i < num_tombstones_; i++) {
     if (tombstones_[i] == 0) {
-      continue;  // 这是被借走的那个，不要了
+      continue; // 这是被借走的那个，不要了
     }
     tombstones_[new_tomb_cnt] = tombstones_[i] - 1;
     new_tomb_cnt++;
@@ -341,7 +359,8 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeLeafPage *recipient) 
 }
 
 FULL_INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeLeafPage *recipient) {
+void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(
+    BPlusTreeLeafPage *recipient) {
   int last_index = GetSize() - 1;
   KeyType key = KeyAt(last_index);
   ValueType value = ValueAt(last_index);
@@ -360,7 +379,8 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeLeafPage *recipient)
   }
   if (is_tomb) {
     // 按照加入时间来算新旧,这算新的
-    recipient->tombstones_[recipient->num_tombstones_] = 0;  // 新墓碑放在墓碑数组的第一个
+    recipient->tombstones_[recipient->num_tombstones_] =
+        0; // 新墓碑放在墓碑数组的第一个
     recipient->num_tombstones_++;
   }
 
@@ -382,7 +402,9 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeLeafPage *recipient)
   SetSize(GetSize() - 1);
 }
 FULL_INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_LEAF_PAGE_TYPE::RealRemove(const KeyType &key, const KeyComparator &comparator) -> bool {
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::RealRemove(const KeyType &key,
+                                            const KeyComparator &comparator)
+    -> bool {
   int index = KeyIndex(key, comparator);
   if (index < 0 || index >= GetSize() || comparator(KeyAt(index), key) != 0) {
     return false;
@@ -439,4 +461,4 @@ template class BPlusTreeLeafPage<GenericKey<16>, RID, GenericComparator<16>>;
 template class BPlusTreeLeafPage<GenericKey<32>, RID, GenericComparator<32>>;
 
 template class BPlusTreeLeafPage<GenericKey<64>, RID, GenericComparator<64>>;
-}  // namespace bustub
+} // namespace bustub

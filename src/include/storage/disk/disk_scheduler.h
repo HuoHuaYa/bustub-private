@@ -12,9 +12,9 @@
 
 #pragma once
 
-#include <future>  // NOLINT
+#include <future> // NOLINT
 #include <optional>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 #include <vector>
 
 #include "common/channel.h"
@@ -39,19 +39,22 @@ struct DiskRequest {
   /** ID of the page being read from / written to disk. */
   page_id_t page_id_;
 
-  /** Callback used to signal to the request issuer when the request has been completed. */
+  /** Callback used to signal to the request issuer when the request has been
+   * completed. */
   std::promise<bool> callback_;
 };
 
 /**
  * @brief The DiskScheduler schedules disk read and write operations.
  *
- * A request is scheduled by calling DiskScheduler::Schedule() with an appropriate DiskRequest object. The scheduler
- * maintains a background worker thread that processes the scheduled requests using the disk manager. The background
- * thread is created in the DiskScheduler constructor and joined in its destructor.
+ * A request is scheduled by calling DiskScheduler::Schedule() with an
+ * appropriate DiskRequest object. The scheduler maintains a background worker
+ * thread that processes the scheduled requests using the disk manager. The
+ * background thread is created in the DiskScheduler constructor and joined in
+ * its destructor.
  */
 class DiskScheduler {
- public:
+public:
   explicit DiskScheduler(DiskManager *disk_manager);
   ~DiskScheduler();
 
@@ -62,8 +65,9 @@ class DiskScheduler {
   using DiskSchedulerPromise = std::promise<bool>;
 
   /**
-   * @brief Create a Promise object. If you want to implement your own version of promise, you can change this function
-   * so that our test cases can use your promise implementation.
+   * @brief Create a Promise object. If you want to implement your own version
+   * of promise, you can change this function so that our test cases can use
+   * your promise implementation.
    *
    * @return std::promise<bool>
    */
@@ -72,22 +76,26 @@ class DiskScheduler {
   /**
    * @brief Deallocates a page on disk.
    *
-   * Note: You should look at the documentation for `DeletePage` in `BufferPoolManager` before using this method.
+   * Note: You should look at the documentation for `DeletePage` in
+   * `BufferPoolManager` before using this method.
    *
    * @param page_id The page ID of the page to deallocate from disk.
    */
   void DeallocatePage(page_id_t page_id) { disk_manager_->DeletePage(page_id); }
 
- private:
+private:
   /** Pointer to the disk manager. */
-  DiskManager *disk_manager_ __attribute__((__unused__));  // 执行磁盘操作的成员（指针）
+  DiskManager *disk_manager_
+      __attribute__((__unused__)); // 执行磁盘操作的成员（指针）
   //__attribute__((__unused__))表示抑制编译器对该变量可能未被使用的警告
-  /** A shared queue to concurrently schedule and process requests. When the DiskScheduler's destructor is called,
-   * `std::nullopt` is put into the queue to signal to the background thread to stop execution. */
+  /** A shared queue to concurrently schedule and process requests. When the
+   * DiskScheduler's destructor is called, `std::nullopt` is put into the queue
+   * to signal to the background thread to stop execution. */
   Channel<std::optional<DiskRequest>> request_queue_;
   // 实现生产者 - 消费者模型，内部有可调用保证了线程安全的函数
-  /** The background thread responsible for issuing scheduled requests to the disk manager. */
+  /** The background thread responsible for issuing scheduled requests to the
+   * disk manager. */
   std::optional<std::thread> background_thread_;
   // optional包裹的thread，后台线程对象
 };
-}  // namespace bustub
+} // namespace bustub

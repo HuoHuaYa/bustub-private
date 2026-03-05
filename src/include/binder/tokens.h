@@ -45,4 +45,4 @@ class ConstantExpression;
 //===--------------------------------------------------------------------===//
 class TableRef;
 
-}  // namespace bustub
+} // namespace bustub

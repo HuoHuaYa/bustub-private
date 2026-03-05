@@ -27,17 +27,20 @@ namespace bustub {
  * The ProjectionExecutor executor executes a projection.
  */
 class ProjectionExecutor : public AbstractExecutor {
- public:
+public:
   ProjectionExecutor(ExecutorContext *exec_ctx, const ProjectionPlanNode *plan,
                      std::unique_ptr<AbstractExecutor> &&child_executor);
 
   void Init() override;
-  auto Next(std::vector<Tuple> *tuple_batch, std::vector<RID> *rid_batch, size_t batch_size) -> bool override;
+  auto Next(std::vector<Tuple> *tuple_batch, std::vector<RID> *rid_batch,
+            size_t batch_size) -> bool override;
 
   /** @return The output schema for the projection plan */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  }
 
- private:
+private:
   /** The projection plan node to be executed */
   const ProjectionPlanNode *plan_;
 
@@ -51,4 +54,4 @@ class ProjectionExecutor : public AbstractExecutor {
   /** child tuple batch offset */
   size_t child_offset_ = 0;
 };
-}  // namespace bustub
+} // namespace bustub

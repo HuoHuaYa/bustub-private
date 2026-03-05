@@ -16,7 +16,8 @@ namespace bustub {
 
 /**
  * Create a new ClockReplacer.
- * @param num_pages the maximum number of pages the ClockReplacer will be required to store
+ * @param num_pages the maximum number of pages the ClockReplacer will be
+ * required to store
  */
 ClockReplacer::ClockReplacer(size_t num_pages) {}
 
@@ -33,4 +34,4 @@ void ClockReplacer::Unpin(frame_id_t frame_id) {}
 
 auto ClockReplacer::Size() -> size_t { return 0; }
 
-}  // namespace bustub
+} // namespace bustub

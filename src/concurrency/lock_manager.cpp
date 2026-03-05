@@ -32,7 +32,10 @@ namespace bustub {
  * @param oid the table_oid_t of the table to be locked in lock_mode
  * @return true if the upgrade is successful, false otherwise
  */
-auto LockManager::LockTable(Transaction *txn, LockMode lock_mode, const table_oid_t &oid) -> bool { return true; }
+auto LockManager::LockTable(Transaction *txn, LockMode lock_mode,
+                            const table_oid_t &oid) -> bool {
+  return true;
+}
 
 /**
  * Release the lock held on a table by the transaction.
@@ -45,7 +48,10 @@ auto LockManager::LockTable(Transaction *txn, LockMode lock_mode, const table_oi
  * @param oid the table_oid_t of the table to be unlocked
  * @return true if the unlock is successful, false otherwise
  */
-auto LockManager::UnlockTable(Transaction *txn, const table_oid_t &oid) -> bool { return true; }
+auto LockManager::UnlockTable(Transaction *txn, const table_oid_t &oid)
+    -> bool {
+  return true;
+}
 
 /**
  * Acquire a lock on rid in the given lock_mode.
@@ -62,7 +68,8 @@ auto LockManager::UnlockTable(Transaction *txn, const table_oid_t &oid) -> bool 
  * @param rid the RID of the row to be locked
  * @return true if the upgrade is successful, false otherwise
  */
-auto LockManager::LockRow(Transaction *txn, LockMode lock_mode, const table_oid_t &oid, const RID &rid) -> bool {
+auto LockManager::LockRow(Transaction *txn, LockMode lock_mode,
+                          const table_oid_t &oid, const RID &rid) -> bool {
   return true;
 }
 
@@ -77,10 +84,12 @@ auto LockManager::LockRow(Transaction *txn, LockMode lock_mode, const table_oid_
  * @param rid the RID that is locked by the transaction
  * @param oid the table_oid_t of the table to which the row belongs
  * @param rid the RID of the row to be unlocked
- * @param force unlock the tuple regardless of isolation level, not changing the transaction state
+ * @param force unlock the tuple regardless of isolation level, not changing the
+ * transaction state
  * @return true if the unlock is successful, false otherwise
  */
-auto LockManager::UnlockRow(Transaction *txn, const table_oid_t &oid, const RID &rid, bool force) -> bool {
+auto LockManager::UnlockRow(Transaction *txn, const table_oid_t &oid,
+                            const RID &rid, bool force) -> bool {
   return true;
 }
 
@@ -103,9 +112,12 @@ void LockManager::AddEdge(txn_id_t t1, txn_id_t t2) {}
 void LockManager::RemoveEdge(txn_id_t t1, txn_id_t t2) {}
 
 /**
- * Checks if the graph has a cycle, returning the newest transaction ID in the cycle if so.
- * @param[out] txn_id if the graph has a cycle, will contain the newest transaction ID
- * @return false if the graph has no cycle; otherwise, stores the newest transaction ID in the cycle to txn_id
+ * Checks if the graph has a cycle, returning the newest transaction ID in the
+ * cycle if so.
+ * @param[out] txn_id if the graph has a cycle, will contain the newest
+ * transaction ID
+ * @return false if the graph has no cycle; otherwise, stores the newest
+ * transaction ID in the cycle to txn_id
  */
 auto LockManager::HasCycle(txn_id_t *txn_id) -> bool { return false; }
 
@@ -123,9 +135,9 @@ auto LockManager::GetEdgeList() -> std::vector<std::pair<txn_id_t, txn_id_t>> {
 void LockManager::RunCycleDetection() {
   while (enable_cycle_detection_) {
     std::this_thread::sleep_for(cycle_detection_interval);
-    {  // TODO(students): detect deadlock
+    { // TODO(students): detect deadlock
     }
   }
 }
 
-}  // namespace bustub
+} // namespace bustub

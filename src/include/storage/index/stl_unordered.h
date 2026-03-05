@@ -14,7 +14,7 @@
 
 #include <map>
 #include <memory>
-#include <mutex>  // NOLINT
+#include <mutex> // NOLINT
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -32,16 +32,18 @@ namespace bustub {
 
 template <typename KT, typename VT, typename Cmp>
 class STLUnorderedIndex : public Index {
- public:
-  STLUnorderedIndex(std::unique_ptr<IndexMetadata> &&metadata, BufferPoolManager *buffer_pool_manager,
+public:
+  STLUnorderedIndex(std::unique_ptr<IndexMetadata> &&metadata,
+                    BufferPoolManager *buffer_pool_manager,
                     const HashFunction<KT> &hash_fn)
-      : Index(std::move(metadata)),
-        comparator_(StlComparatorWrapper<KT, Cmp>(Cmp(metadata_->GetKeySchema()))),
+      : Index(std::move(metadata)), comparator_(StlComparatorWrapper<KT, Cmp>(
+                                        Cmp(metadata_->GetKeySchema()))),
         hash_fn_(StlHasherWrapper<KT>(hash_fn)),
         eq_(StlEqualWrapper<KT, Cmp>(Cmp(metadata_->GetKeySchema()))),
         data_(0, hash_fn_, eq_) {}
 
-  auto InsertEntry(const Tuple &key, VT rid, Transaction *transaction) -> bool override {
+  auto InsertEntry(const Tuple &key, VT rid, Transaction *transaction)
+      -> bool override {
     KT index_key;
     index_key.SetFromKey(key);
     std::scoped_lock<std::mutex> lck(lock_);
@@ -52,7 +54,8 @@ class STLUnorderedIndex : public Index {
     return true;
   }
 
-  void DeleteEntry(const Tuple &key, VT rid, Transaction *transaction) override {
+  void DeleteEntry(const Tuple &key, VT rid,
+                   Transaction *transaction) override {
     KT index_key;
     index_key.SetFromKey(key);
     std::scoped_lock<std::mutex> lck(lock_);
@@ -62,7 +65,8 @@ class STLUnorderedIndex : public Index {
     }
   }
 
-  void ScanKey(const Tuple &key, std::vector<RID> *result, Transaction *transaction) override {
+  void ScanKey(const Tuple &key, std::vector<RID> *result,
+               Transaction *transaction) override {
     KT index_key;
     index_key.SetFromKey(key);
     std::scoped_lock<std::mutex> lck(lock_);
@@ -73,14 +77,16 @@ class STLUnorderedIndex : public Index {
     *result = {};
   }
 
- protected:
+protected:
   std::mutex lock_;
   StlComparatorWrapper<KT, Cmp> comparator_;
   StlHasherWrapper<KT> hash_fn_;
   StlEqualWrapper<KT, Cmp> eq_;
-  std::unordered_map<KT, VT, StlHasherWrapper<KT>, StlEqualWrapper<KT, Cmp>> data_;
+  std::unordered_map<KT, VT, StlHasherWrapper<KT>, StlEqualWrapper<KT, Cmp>>
+      data_;
 };
 
-using STLUnorderedIndexForTwoIntegerColumn = STLUnorderedIndex<GenericKey<8>, RID, GenericComparator<8>>;
+using STLUnorderedIndexForTwoIntegerColumn =
+    STLUnorderedIndex<GenericKey<8>, RID, GenericComparator<8>>;
 
-}  // namespace bustub
+} // namespace bustub

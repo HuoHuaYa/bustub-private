@@ -10,14 +10,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <string>
-#include <vector>
 #include "common/exception.h"
 #include "fmt/core.h"
 #include "fmt/format.h"
 #include "fmt/ranges.h"
-#include "gtest/gtest.h"
 #include "primer/orset_driver.h"
+#include "gtest/gtest.h"
+#include <string>
+#include <vector>
 
 namespace bustub {
 
@@ -276,4 +276,4 @@ TEST(ORSetDriverTest, NetworkLostTest) {
   }
 }
 
-}  // namespace bustub
+} // namespace bustub

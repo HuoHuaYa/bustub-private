@@ -14,8 +14,8 @@
 #include <filesystem>
 
 #include "buffer/buffer_pool_manager.h"
-#include "gtest/gtest.h"
 #include "storage/page/page_guard.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -25,7 +25,8 @@ static std::filesystem::path db_fname("test.bustub");
 const size_t FRAMES = 10;
 
 void CopyString(char *dest, const std::string &src) {
-  BUSTUB_ENSURE(src.length() + 1 <= BUSTUB_PAGE_SIZE, "CopyString src too long");
+  BUSTUB_ENSURE(src.length() + 1 <= BUSTUB_PAGE_SIZE,
+                "CopyString src too long");
   snprintf(dest, BUSTUB_PAGE_SIZE, "%s", src.c_str());
 }
 
@@ -74,58 +75,58 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinEasyTest) {
   {
     auto page0_write_opt = bpm->CheckedWritePage(pageid0);
     ASSERT_TRUE(page0_write_opt.has_value());
-    auto page0_write = std::move(page0_write_opt.value());  // NOLINT
+    auto page0_write = std::move(page0_write_opt.value()); // NOLINT
     CopyString(page0_write.GetDataMut(), str0);
-    
+
     auto page1_write_opt = bpm->CheckedWritePage(pageid1);
     ASSERT_TRUE(page1_write_opt.has_value());
-    auto page1_write = std::move(page1_write_opt.value());  // NOLINT
+    auto page1_write = std::move(page1_write_opt.value()); // NOLINT
     CopyString(page1_write.GetDataMut(), str1);
-    
+
     ASSERT_EQ(1, bpm->GetPinCount(pageid0));
     ASSERT_EQ(1, bpm->GetPinCount(pageid1));
-    
+
     const auto temp_page_id1 = bpm->NewPage();
     const auto temp_page1_opt = bpm->CheckedReadPage(temp_page_id1);
     ASSERT_FALSE(temp_page1_opt.has_value());
-    
+
     const auto temp_page_id2 = bpm->NewPage();
     const auto temp_page2_opt = bpm->CheckedWritePage(temp_page_id2);
     ASSERT_FALSE(temp_page2_opt.has_value());
-    
+
     ASSERT_EQ(1, bpm->GetPinCount(pageid0));
     page0_write.Drop();
     ASSERT_EQ(0, bpm->GetPinCount(pageid0));
-    
+
     ASSERT_EQ(1, bpm->GetPinCount(pageid1));
     page1_write.Drop();
     ASSERT_EQ(0, bpm->GetPinCount(pageid1));
   }
-  
+
   {
     const auto temp_page_id1 = bpm->NewPage();
     const auto temp_page1_opt = bpm->CheckedReadPage(temp_page_id1);
     ASSERT_TRUE(temp_page1_opt.has_value());
-    
+
     const auto temp_page_id2 = bpm->NewPage();
     const auto temp_page2_opt = bpm->CheckedWritePage(temp_page_id2);
     ASSERT_TRUE(temp_page2_opt.has_value());
-    
+
     ASSERT_FALSE(bpm->GetPinCount(pageid0).has_value());
     ASSERT_FALSE(bpm->GetPinCount(pageid1).has_value());
   }
-  
+
   // std::cout<<1<<'\n';
   {
     auto page0_write_opt = bpm->CheckedWritePage(pageid0);
     ASSERT_TRUE(page0_write_opt.has_value());
-    auto page0_write = std::move(page0_write_opt.value());  // NOLINT
+    auto page0_write = std::move(page0_write_opt.value()); // NOLINT
     EXPECT_STREQ(page0_write.GetData(), str0.c_str());
     CopyString(page0_write.GetDataMut(), str0updated);
 
     auto page1_write_opt = bpm->CheckedWritePage(pageid1);
     ASSERT_TRUE(page1_write_opt.has_value());
-    auto page1_write = std::move(page1_write_opt.value());  // NOLINT
+    auto page1_write = std::move(page1_write_opt.value()); // NOLINT
     EXPECT_STREQ(page1_write.GetData(), str1.c_str());
     CopyString(page1_write.GetDataMut(), str1updated);
 
@@ -139,12 +140,12 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinEasyTest) {
   {
     auto page0_read_opt = bpm->CheckedReadPage(pageid0);
     ASSERT_TRUE(page0_read_opt.has_value());
-    const auto page0_read = std::move(page0_read_opt.value());  // NOLINT
+    const auto page0_read = std::move(page0_read_opt.value()); // NOLINT
     EXPECT_STREQ(page0_read.GetData(), str0updated.c_str());
 
     auto page1_read_opt = bpm->CheckedReadPage(pageid1);
     ASSERT_TRUE(page1_read_opt.has_value());
-    const auto page1_read = std::move(page1_read_opt.value());  // NOLINT
+    const auto page1_read = std::move(page1_read_opt.value()); // NOLINT
     EXPECT_STREQ(page1_read.GetData(), str1updated.c_str());
 
     ASSERT_EQ(1, bpm->GetPinCount(pageid0));
@@ -173,10 +174,12 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinMediumTest) {
 
   page0.Drop();
 
-  // Create a vector of unique pointers to page guards, which prevents the guards from getting destructed.
+  // Create a vector of unique pointers to page guards, which prevents the
+  // guards from getting destructed.
   std::vector<WritePageGuard> pages;
 
-  // Scenario: We should be able to create new pages until we fill up the buffer pool.
+  // Scenario: We should be able to create new pages until we fill up the buffer
+  // pool.
   for (size_t i = 0; i < FRAMES; i++) {
     const auto pid = bpm->NewPage();
     auto page = bpm->WritePage(pid);
@@ -189,7 +192,8 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinMediumTest) {
     EXPECT_EQ(1, bpm->GetPinCount(pid));
   }
 
-  // Scenario: Once the buffer pool is full, we should not be able to create any new pages.
+  // Scenario: Once the buffer pool is full, we should not be able to create any
+  // new pages.
   for (size_t i = 0; i < FRAMES; i++) {
     const auto pid = bpm->NewPage();
     const auto fail = bpm->CheckedWritePage(pid);
@@ -204,28 +208,31 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinMediumTest) {
     EXPECT_EQ(0, bpm->GetPinCount(pid));
   }
 
-  // Scenario: All of the pin counts of the pages we haven't dropped yet should still be 1.
+  // Scenario: All of the pin counts of the pages we haven't dropped yet should
+  // still be 1.
   for (const auto &page : pages) {
     const auto pid = page.GetPageId();
     EXPECT_EQ(1, bpm->GetPinCount(pid));
   }
 
-  // Scenario: After unpinning pages {1, 2, 3, 4, 5}, we should be able to create 4 new pages and bring them into
-  // memory. Bringing those 4 pages into memory should evict the first 4 pages {1, 2, 3, 4} because of LRU.
+  // Scenario: After unpinning pages {1, 2, 3, 4, 5}, we should be able to
+  // create 4 new pages and bring them into memory. Bringing those 4 pages into
+  // memory should evict the first 4 pages {1, 2, 3, 4} because of LRU.
   for (size_t i = 0; i < ((FRAMES / 2) - 1); i++) {
     const auto pid = bpm->NewPage();
     auto page = bpm->WritePage(pid);
     pages.push_back(std::move(page));
   }
 
-  // Scenario: There should be one frame available, and we should be able to fetch the data we wrote a while ago.
+  // Scenario: There should be one frame available, and we should be able to
+  // fetch the data we wrote a while ago.
   {
     const auto original_page = bpm->ReadPage(pid0);
     EXPECT_STREQ(original_page.GetData(), hello.c_str());
   }
 
-  // Scenario: Once we unpin page 0 and then make a new page, all the buffer pages should now be pinned. Fetching page 0
-  // again should fail.
+  // Scenario: Once we unpin page 0 and then make a new page, all the buffer
+  // pages should now be pinned. Fetching page 0 again should fail.
   const auto last_pid = bpm->NewPage();
   const auto last_page = bpm->ReadPage(last_pid);
 
@@ -256,7 +263,8 @@ TEST(BufferPoolManagerTest, DISABLED_PageAccessTest) {
   });
 
   for (size_t i = 0; i < rounds; i++) {
-    // Wait for a bit before taking the latch, allowing the writer to write some stuff.
+    // Wait for a bit before taking the latch, allowing the writer to write some
+    // stuff.
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // While we are reading, nobody should be able to modify the data.
@@ -265,7 +273,8 @@ TEST(BufferPoolManagerTest, DISABLED_PageAccessTest) {
     // Save the data we observe.
     memcpy(buf, guard.GetData(), BUSTUB_PAGE_SIZE);
 
-    // Sleep for a bit. If latching is working properly, nothing should be writing to the page.
+    // Sleep for a bit. If latching is working properly, nothing should be
+    // writing to the page.
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // Check that the data is unmodified.
@@ -284,7 +293,7 @@ TEST(BufferPoolManagerTest, DISABLED_ContentionTest) {
   const auto pid = bpm->NewPage();
 
   auto thread1 = std::thread([&]() {
-    for (size_t i = 0; i < rounds; i++) {   
+    for (size_t i = 0; i < rounds; i++) {
       auto guard = bpm->WritePage(pid);
       CopyString(guard.GetDataMut(), std::to_string(i));
     }
@@ -342,11 +351,13 @@ TEST(BufferPoolManagerTest, DISABLED_DeadlockTest) {
   }
 
   // Make the other thread wait for a bit.
-  // This mimics the main thread doing some work while holding the write latch on page 0.
+  // This mimics the main thread doing some work while holding the write latch
+  // on page 0.
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  // If your latching mechanism is incorrect, the next line of code will deadlock.
-  // Think about what might happen if you hold a certain "all-encompassing" latch for too long...
+  // If your latching mechanism is incorrect, the next line of code will
+  // deadlock. Think about what might happen if you hold a certain
+  // "all-encompassing" latch for too long...
 
   // While holding page 0, take the latch on page 1.
   const auto guard1 = bpm->WritePage(pid1);
@@ -370,12 +381,14 @@ TEST(BufferPoolManagerTest, DISABLED_EvictableTest) {
     std::mutex mutex;
     std::condition_variable cv;
 
-    // This signal tells the readers that they can start reading after the main thread has already taken the read latch.
+    // This signal tells the readers that they can start reading after the main
+    // thread has already taken the read latch.
     bool signal = false;
 
     // This page will be loaded into the only available frame.
     const auto winner_pid = bpm->NewPage();
-    // We will attempt to load this page into the occupied frame, and it should fail every time.
+    // We will attempt to load this page into the occupied frame, and it should
+    // fail every time.
     const auto loser_pid = bpm->NewPage();
 
     std::vector<std::thread> readers;
@@ -391,7 +404,8 @@ TEST(BufferPoolManagerTest, DISABLED_EvictableTest) {
         // Read the page in shared mode.
         const auto read_guard = bpm->ReadPage(winner_pid);
 
-        // Since the only frame is pinned, no thread should be able to bring in a new page.
+        // Since the only frame is pinned, no thread should be able to bring in
+        // a new page.
         ASSERT_FALSE(bpm->CheckedReadPage(loser_pid).has_value());
       });
     }
@@ -428,4 +442,4 @@ TEST(BufferPoolManagerTest, DISABLED_EvictableTest) {
   }
 }
 
-}  // namespace bustub
+} // namespace bustub

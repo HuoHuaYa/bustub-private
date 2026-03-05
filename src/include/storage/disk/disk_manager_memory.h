@@ -14,16 +14,16 @@
 
 #include <array>
 #include <cassert>
-#include <chrono>  // NOLINT
+#include <chrono> // NOLINT
 #include <cstring>
 #include <fstream>
-#include <future>  // NOLINT
+#include <future> // NOLINT
 #include <memory>
-#include <mutex>  // NOLINT
+#include <mutex> // NOLINT
 #include <optional>
 #include <shared_mutex>
 #include <string>
-#include <thread>  // NOLINT
+#include <thread> // NOLINT
 #include <utility>
 #include <vector>
 
@@ -35,11 +35,11 @@
 namespace bustub {
 
 /**
- * DiskManagerMemory replicates the utility of DiskManager on memory. It is primarily used for
- * data structure performance testing.
+ * DiskManagerMemory replicates the utility of DiskManager on memory. It is
+ * primarily used for data structure performance testing.
  */
 class DiskManagerMemory : public DiskManager {
- public:
+public:
   explicit DiskManagerMemory(size_t capacity);
 
   ~DiskManagerMemory() override { delete[] memory_; }
@@ -48,16 +48,16 @@ class DiskManagerMemory : public DiskManager {
 
   void ReadPage(page_id_t page_id, char *page_data) override;
 
- private:
+private:
   char *memory_;
 };
 
 /**
- * DiskManagerMemory replicates the utility of DiskManager on memory. It is primarily used for
- * data structure performance testing.
+ * DiskManagerMemory replicates the utility of DiskManager on memory. It is
+ * primarily used for data structure performance testing.
  */
 class DiskManagerUnlimitedMemory : public DiskManager {
- public:
+public:
   DiskManagerUnlimitedMemory();
 
   void WritePage(page_id_t page_id, const char *page_data) override;
@@ -70,11 +70,13 @@ class DiskManagerUnlimitedMemory : public DiskManager {
 
   void PostProcessLatency(page_id_t page_id);
 
-  void EnableLatencySimulator(bool enabled) { latency_simulator_enabled_ = enabled; }
+  void EnableLatencySimulator(bool enabled) {
+    latency_simulator_enabled_ = enabled;
+  }
 
   auto GetLastReadThreadAndClear() -> std::optional<std::thread::id>;
 
- private:
+private:
   bool latency_simulator_enabled_{false};
 
   std::mutex latency_processor_mutex_;
@@ -89,4 +91,4 @@ class DiskManagerUnlimitedMemory : public DiskManager {
   std::vector<std::shared_ptr<ProtectedPage>> data_;
 };
 
-}  // namespace bustub
+} // namespace bustub

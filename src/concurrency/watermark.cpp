@@ -11,8 +11,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "concurrency/watermark.h"
-#include <exception>
 #include "common/exception.h"
+#include <exception>
 
 namespace bustub {
 
@@ -28,4 +28,4 @@ auto Watermark::RemoveTxn(timestamp_t read_ts) -> void {
   // TODO(P4): implement me!
 }
 
-}  // namespace bustub
+} // namespace bustub

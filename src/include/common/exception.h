@@ -24,9 +24,12 @@
 
 namespace bustub {
 
-// TODO(WAN): the comment I added below is a lie, but you shouldn't need to poke around here. Don't worry about it.
-//  Most of the exception types are type subsystem madness. I think we can get rid of it at some point.
-/** ExceptionType is all the types of exceptions that we expect to throw in our system. */
+// TODO(WAN): the comment I added below is a lie, but you shouldn't need to poke
+// around here. Don't worry about it.
+//  Most of the exception types are type subsystem madness. I think we can get
+//  rid of it at some point.
+/** ExceptionType is all the types of exceptions that we expect to throw in our
+ * system. */
 enum class ExceptionType {
   /** Invalid exception type.*/
   INVALID = 0,
@@ -55,7 +58,7 @@ enum class ExceptionType {
 extern std::atomic<bool> global_disable_execution_exception_print;
 
 class Exception : public std::runtime_error {
- public:
+public:
   /**
    * Construct a new Exception instance.
    * @param message The exception message
@@ -75,12 +78,14 @@ class Exception : public std::runtime_error {
    * @param exception_type The exception type
    * @param message The exception message
    */
-  Exception(ExceptionType exception_type, const std::string &message, bool print = true)
+  Exception(ExceptionType exception_type, const std::string &message,
+            bool print = true)
       : std::runtime_error(message), type_(exception_type) {
 #ifndef NDEBUG
     if (print && !global_disable_execution_exception_print.load()) {
       std::string exception_message =
-          "\nException Type :: " + ExceptionTypeToString(type_) + ", Message :: " + message + "\n\n";
+          "\nException Type :: " + ExceptionTypeToString(type_) +
+          ", Message :: " + message + "\n\n";
       std::cerr << exception_message;
     }
 #endif
@@ -92,47 +97,49 @@ class Exception : public std::runtime_error {
   /** @return A human-readable string for the specified exception type */
   static auto ExceptionTypeToString(ExceptionType type) -> std::string {
     switch (type) {
-      case ExceptionType::INVALID:
-        return "Invalid";
-      case ExceptionType::OUT_OF_RANGE:
-        return "Out of Range";
-      case ExceptionType::CONVERSION:
-        return "Conversion";
-      case ExceptionType::UNKNOWN_TYPE:
-        return "Unknown Type";
-      case ExceptionType::DECIMAL:
-        return "Decimal";
-      case ExceptionType::MISMATCH_TYPE:
-        return "Mismatch Type";
-      case ExceptionType::DIVIDE_BY_ZERO:
-        return "Divide by Zero";
-      case ExceptionType::INCOMPATIBLE_TYPE:
-        return "Incompatible type";
-      case ExceptionType::OUT_OF_MEMORY:
-        return "Out of Memory";
-      case ExceptionType::NOT_IMPLEMENTED:
-        return "Not implemented";
-      case ExceptionType::EXECUTION:
-        return "Execution";
-      default:
-        return "Unknown";
+    case ExceptionType::INVALID:
+      return "Invalid";
+    case ExceptionType::OUT_OF_RANGE:
+      return "Out of Range";
+    case ExceptionType::CONVERSION:
+      return "Conversion";
+    case ExceptionType::UNKNOWN_TYPE:
+      return "Unknown Type";
+    case ExceptionType::DECIMAL:
+      return "Decimal";
+    case ExceptionType::MISMATCH_TYPE:
+      return "Mismatch Type";
+    case ExceptionType::DIVIDE_BY_ZERO:
+      return "Divide by Zero";
+    case ExceptionType::INCOMPATIBLE_TYPE:
+      return "Incompatible type";
+    case ExceptionType::OUT_OF_MEMORY:
+      return "Out of Memory";
+    case ExceptionType::NOT_IMPLEMENTED:
+      return "Not implemented";
+    case ExceptionType::EXECUTION:
+      return "Execution";
+    default:
+      return "Unknown";
     }
   }
 
- private:
+private:
   ExceptionType type_;
 };
 
 class NotImplementedException : public Exception {
- public:
+public:
   NotImplementedException() = delete;
-  explicit NotImplementedException(const std::string &msg) : Exception(ExceptionType::NOT_IMPLEMENTED, msg) {}
+  explicit NotImplementedException(const std::string &msg)
+      : Exception(ExceptionType::NOT_IMPLEMENTED, msg) {}
 };
 
 class ExecutionException : public Exception {
- public:
+public:
   ExecutionException() = delete;
-  explicit ExecutionException(const std::string &msg) : Exception(ExceptionType::EXECUTION, msg, true) {}
+  explicit ExecutionException(const std::string &msg)
+      : Exception(ExceptionType::EXECUTION, msg, true) {}
 };
 
-}  // namespace bustub
+} // namespace bustub

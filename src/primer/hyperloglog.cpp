@@ -25,7 +25,8 @@ HyperLogLog<KeyType>::HyperLogLog(int16_t n_bits) : cardinality_(0) {}
  * @returns binary of a given hash
  */
 template <typename KeyType>
-auto HyperLogLog<KeyType>::ComputeBinary(const hash_t &hash) const -> std::bitset<BITSET_CAPACITY> {
+auto HyperLogLog<KeyType>::ComputeBinary(const hash_t &hash) const
+    -> std::bitset<BITSET_CAPACITY> {
   /** @TODO(student) Implement this function! */
   return {0};
 }
@@ -37,7 +38,8 @@ auto HyperLogLog<KeyType>::ComputeBinary(const hash_t &hash) const -> std::bitse
  * @returns leading zeros of given binary set
  */
 template <typename KeyType>
-auto HyperLogLog<KeyType>::PositionOfLeftmostOne(const std::bitset<BITSET_CAPACITY> &bset) const -> uint64_t {
+auto HyperLogLog<KeyType>::PositionOfLeftmostOne(
+    const std::bitset<BITSET_CAPACITY> &bset) const -> uint64_t {
   /** @TODO(student) Implement this function! */
   return 0;
 }
@@ -63,4 +65,4 @@ auto HyperLogLog<KeyType>::ComputeCardinality() -> void {
 template class HyperLogLog<int64_t>;
 template class HyperLogLog<std::string>;
 
-}  // namespace bustub
+} // namespace bustub

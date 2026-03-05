@@ -29,7 +29,9 @@ VectorType::~VectorType() = default;
 /**
  * Access the raw variable length data
  */
-auto VectorType::GetData(const Value &val) const -> const char * { return val.value_.varlen_; }
+auto VectorType::GetData(const Value &val) const -> const char * {
+  return val.value_.varlen_;
+}
 
 auto VectorType::GetVector(const Value &val) const -> std::vector<double> {
   auto *base_ptr = reinterpret_cast<double *>(val.value_.varlen_);
@@ -45,29 +47,37 @@ auto VectorType::GetVector(const Value &val) const -> std::vector<double> {
 /**
  * Get the length of the variable length data (including the length field)
  */
-auto VectorType::GetStorageSize(const Value &val) const -> uint32_t { return val.size_.len_; }
+auto VectorType::GetStorageSize(const Value &val) const -> uint32_t {
+  return val.size_.len_;
+}
 
-auto VectorType::CompareEquals(const Value &left, const Value &right) const -> CmpBool {
+auto VectorType::CompareEquals(const Value &left, const Value &right) const
+    -> CmpBool {
   UNIMPLEMENTED("vector type comparison not supported");
 }
 
-auto VectorType::CompareNotEquals(const Value &left, const Value &right) const -> CmpBool {
+auto VectorType::CompareNotEquals(const Value &left, const Value &right) const
+    -> CmpBool {
   UNIMPLEMENTED("vector type comparison not supported");
 }
 
-auto VectorType::CompareLessThan(const Value &left, const Value &right) const -> CmpBool {
+auto VectorType::CompareLessThan(const Value &left, const Value &right) const
+    -> CmpBool {
   UNIMPLEMENTED("vector type comparison not supported");
 }
 
-auto VectorType::CompareLessThanEquals(const Value &left, const Value &right) const -> CmpBool {
+auto VectorType::CompareLessThanEquals(const Value &left,
+                                       const Value &right) const -> CmpBool {
   UNIMPLEMENTED("vector type comparison not supported");
 }
 
-auto VectorType::CompareGreaterThan(const Value &left, const Value &right) const -> CmpBool {
+auto VectorType::CompareGreaterThan(const Value &left, const Value &right) const
+    -> CmpBool {
   UNIMPLEMENTED("vector type comparison not supported");
 }
 
-auto VectorType::CompareGreaterThanEquals(const Value &left, const Value &right) const -> CmpBool {
+auto VectorType::CompareGreaterThanEquals(const Value &left,
+                                          const Value &right) const -> CmpBool {
   UNIMPLEMENTED("vector type comparison not supported");
 }
 
@@ -127,7 +137,8 @@ auto VectorType::DeserializeFrom(const char *storage) const -> Value {
  */
 auto VectorType::Copy(const Value &val) const -> Value { return {val}; }
 
-auto VectorType::CastAs(const Value &value, const TypeId type_id) const -> Value {
+auto VectorType::CastAs(const Value &value, const TypeId type_id) const
+    -> Value {
   UNIMPLEMENTED("vector type cast not supported");
 }
-}  // namespace bustub
+} // namespace bustub

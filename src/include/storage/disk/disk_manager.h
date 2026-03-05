@@ -15,8 +15,8 @@
 #include <atomic>
 #include <filesystem>
 #include <fstream>
-#include <future>  // NOLINT
-#include <mutex>   // NOLINT
+#include <future> // NOLINT
+#include <mutex>  // NOLINT
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -27,15 +27,18 @@
 namespace bustub {
 
 /**
- * DiskManager takes care of the allocation and deallocation of pages within a database. It performs the reading and
- * writing of pages to and from disk, providing a logical file layer within the context of a database management system.
+ * DiskManager takes care of the allocation and deallocation of pages within a
+ * database. It performs the reading and writing of pages to and from disk,
+ * providing a logical file layer within the context of a database management
+ * system.
  *
- * DiskManager uses lazy allocation, meaning that it only allocates space on disk when it is first accessed. It
- * maintains a mapping of page ids to their corresponding offsets in the database file. When a page is deleted, it is
+ * DiskManager uses lazy allocation, meaning that it only allocates space on
+ * disk when it is first accessed. It maintains a mapping of page ids to their
+ * corresponding offsets in the database file. When a page is deleted, it is
  * marked as free and can be reused by future allocations.
  */
 class DiskManager {
- public:
+public:
   explicit DiskManager(const std::filesystem::path &db_file);
 
   /** FOR TEST / LEADERBOARD ONLY, used by DiskManagerMemory */
@@ -87,7 +90,9 @@ class DiskManager {
   inline auto HasFlushLogFuture() -> bool { return flush_log_f_ != nullptr; }
 
   /** @brief returns the log file name */
-  inline auto GetLogFileName() const -> std::filesystem::path { return log_file_name_; }
+  inline auto GetLogFileName() const -> std::filesystem::path {
+    return log_file_name_;
+  }
 
   /** @brief returns the size of disk space in use */
   auto GetDbFileSize() -> size_t {
@@ -99,7 +104,7 @@ class DiskManager {
     return static_cast<size_t>(file_size);
   }
 
- protected:
+protected:
   int num_flushes_{0};
   int num_writes_{0};
   int num_deletes_{0};
@@ -107,7 +112,7 @@ class DiskManager {
   /** @brief The capacity of the file used for storage on disk. */
   size_t page_capacity_{DEFAULT_DB_IO_SIZE};
 
- private:
+private:
   auto GetFileSize(const std::string &file_name) -> int;
 
   auto AllocatePage() -> size_t;
@@ -121,7 +126,8 @@ class DiskManager {
 
   // Records the offset of each page in the db file.
   std::unordered_map<page_id_t, size_t> pages_;
-  // Records the free slots in the db file if pages are deleted, indicated by offset.
+  // Records the free slots in the db file if pages are deleted, indicated by
+  // offset.
   std::vector<size_t> free_slots_;
 
   bool flush_log_{false};
@@ -130,4 +136,4 @@ class DiskManager {
   std::mutex db_io_latch_;
 };
 
-}  // namespace bustub
+} // namespace bustub

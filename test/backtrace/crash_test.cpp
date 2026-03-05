@@ -41,6 +41,6 @@ TEST(CrashTest, DISABLED_Ensure) {
 
 TEST(CrashTest, Throw) {}
 
-}  // namespace bustub
+} // namespace bustub
 
 // NOLINTEND

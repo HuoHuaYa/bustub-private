@@ -37,7 +37,8 @@ void ExtendibleHTableBucketPage<K, V, KC>::Init(uint32_t max_size) {
  * @return true if the key and value are present, false if not found.
  */
 template <typename K, typename V, typename KC>
-auto ExtendibleHTableBucketPage<K, V, KC>::Lookup(const K &key, V &value, const KC &cmp) const -> bool {
+auto ExtendibleHTableBucketPage<K, V, KC>::Lookup(const K &key, V &value,
+                                                  const KC &cmp) const -> bool {
   return false;
 }
 
@@ -47,10 +48,12 @@ auto ExtendibleHTableBucketPage<K, V, KC>::Lookup(const K &key, V &value, const 
  * @param key key to insert
  * @param value value to insert
  * @param cmp the comparator to use
- * @return true if inserted, false if bucket is full or the same key is already present
+ * @return true if inserted, false if bucket is full or the same key is already
+ * present
  */
 template <typename K, typename V, typename KC>
-auto ExtendibleHTableBucketPage<K, V, KC>::Insert(const K &key, const V &value, const KC &cmp) -> bool {
+auto ExtendibleHTableBucketPage<K, V, KC>::Insert(const K &key, const V &value,
+                                                  const KC &cmp) -> bool {
   return false;
 }
 
@@ -60,7 +63,8 @@ auto ExtendibleHTableBucketPage<K, V, KC>::Insert(const K &key, const V &value, 
  * @return true if removed, false if not found
  */
 template <typename K, typename V, typename KC>
-auto ExtendibleHTableBucketPage<K, V, KC>::Remove(const K &key, const KC &cmp) -> bool {
+auto ExtendibleHTableBucketPage<K, V, KC>::Remove(const K &key, const KC &cmp)
+    -> bool {
   return false;
 }
 
@@ -76,7 +80,8 @@ void ExtendibleHTableBucketPage<K, V, KC>::RemoveAt(uint32_t bucket_idx) {
  * @return key at index bucket_idx of the bucket
  */
 template <typename K, typename V, typename KC>
-auto ExtendibleHTableBucketPage<K, V, KC>::KeyAt(uint32_t bucket_idx) const -> K {
+auto ExtendibleHTableBucketPage<K, V, KC>::KeyAt(uint32_t bucket_idx) const
+    -> K {
   return {};
 }
 
@@ -87,7 +92,8 @@ auto ExtendibleHTableBucketPage<K, V, KC>::KeyAt(uint32_t bucket_idx) const -> K
  * @return value at index bucket_idx of the bucket
  */
 template <typename K, typename V, typename KC>
-auto ExtendibleHTableBucketPage<K, V, KC>::ValueAt(uint32_t bucket_idx) const -> V {
+auto ExtendibleHTableBucketPage<K, V, KC>::ValueAt(uint32_t bucket_idx) const
+    -> V {
   return {};
 }
 
@@ -98,7 +104,8 @@ auto ExtendibleHTableBucketPage<K, V, KC>::ValueAt(uint32_t bucket_idx) const ->
  * @return entry at index bucket_idx of the bucket
  */
 template <typename K, typename V, typename KC>
-auto ExtendibleHTableBucketPage<K, V, KC>::EntryAt(uint32_t bucket_idx) const -> const std::pair<K, V> & {
+auto ExtendibleHTableBucketPage<K, V, KC>::EntryAt(uint32_t bucket_idx) const
+    -> const std::pair<K, V> & {
   return array_[0];
 }
 
@@ -127,10 +134,15 @@ auto ExtendibleHTableBucketPage<K, V, KC>::IsEmpty() const -> bool {
 }
 
 template class ExtendibleHTableBucketPage<int, int, IntComparator>;
-template class ExtendibleHTableBucketPage<GenericKey<4>, RID, GenericComparator<4>>;
-template class ExtendibleHTableBucketPage<GenericKey<8>, RID, GenericComparator<8>>;
-template class ExtendibleHTableBucketPage<GenericKey<16>, RID, GenericComparator<16>>;
-template class ExtendibleHTableBucketPage<GenericKey<32>, RID, GenericComparator<32>>;
-template class ExtendibleHTableBucketPage<GenericKey<64>, RID, GenericComparator<64>>;
+template class ExtendibleHTableBucketPage<GenericKey<4>, RID,
+                                          GenericComparator<4>>;
+template class ExtendibleHTableBucketPage<GenericKey<8>, RID,
+                                          GenericComparator<8>>;
+template class ExtendibleHTableBucketPage<GenericKey<16>, RID,
+                                          GenericComparator<16>>;
+template class ExtendibleHTableBucketPage<GenericKey<32>, RID,
+                                          GenericComparator<32>>;
+template class ExtendibleHTableBucketPage<GenericKey<64>, RID,
+                                          GenericComparator<64>>;
 
-}  // namespace bustub
+} // namespace bustub

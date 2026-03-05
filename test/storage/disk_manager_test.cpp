@@ -14,8 +14,8 @@
 
 #include "common/config.h"
 #include "common/exception.h"
-#include "gtest/gtest.h"
 #include "storage/disk/disk_manager.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -23,7 +23,7 @@ static std::filesystem::path db_fname("test.bustub");
 static std::filesystem::path log_fname("test.log");
 
 class DiskManagerTest : public ::testing::Test {
- protected:
+protected:
   // This function is called before every test.
   void SetUp() override {
     remove(db_fname);
@@ -44,7 +44,7 @@ TEST_F(DiskManagerTest, ReadWritePageTest) {
   auto dm = DiskManager(db_fname);
   std::strncpy(data, "A test string.", sizeof(data));
 
-  dm.ReadPage(0, buf);  // tolerate empty read
+  dm.ReadPage(0, buf); // tolerate empty read
 
   dm.WritePage(0, data);
   dm.ReadPage(0, buf);
@@ -65,7 +65,7 @@ TEST_F(DiskManagerTest, ReadWriteLogTest) {
   auto dm = DiskManager(db_fname);
   std::strncpy(data, "A test string.", sizeof(data));
 
-  dm.ReadLog(buf, sizeof(buf), 0);  // tolerate empty read
+  dm.ReadLog(buf, sizeof(buf), 0); // tolerate empty read
 
   dm.WriteLog(data, sizeof(data));
   dm.ReadLog(buf, sizeof(buf), 0);
@@ -80,11 +80,12 @@ TEST_F(DiskManagerTest, DeletePageTest) {
   auto dm = DiskManager(db_fname);
   auto initial_size = dm.GetDbFileSize();
 
-  dm.ReadPage(0, buf);  // tolerate empty read
+  dm.ReadPage(0, buf); // tolerate empty read
 
   std::strncpy(data, "A test string.", sizeof(data));
   size_t pages_to_write = 100;
-  for (page_id_t page_id = 0; page_id < static_cast<page_id_t>(pages_to_write); page_id++) {
+  for (page_id_t page_id = 0; page_id < static_cast<page_id_t>(pages_to_write);
+       page_id++) {
     dm.WritePage(page_id, data);
     dm.ReadPage(page_id, buf);
     EXPECT_EQ(std::memcmp(buf, data, sizeof(buf)), 0);
@@ -95,7 +96,8 @@ TEST_F(DiskManagerTest, DeletePageTest) {
 
   pages_to_write *= 2;
   std::strncpy(data, "test string version 2", sizeof(data));
-  for (page_id_t page_id = 0; page_id < static_cast<page_id_t>(pages_to_write); page_id++) {
+  for (page_id_t page_id = 0; page_id < static_cast<page_id_t>(pages_to_write);
+       page_id++) {
     dm.WritePage(page_id, data);
     dm.ReadPage(page_id, buf);
     EXPECT_EQ(std::memcmp(buf, data, sizeof(buf)), 0);
@@ -115,4 +117,4 @@ TEST_F(DiskManagerTest, ThrowBadFileTest) {
   EXPECT_THROW(DiskManager("dev/null\\/foo/bar/baz/test.bustub"), Exception);
 }
 
-}  // namespace bustub
+} // namespace bustub

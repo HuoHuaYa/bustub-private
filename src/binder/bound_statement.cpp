@@ -16,4 +16,4 @@ namespace bustub {
 
 BoundStatement::BoundStatement(StatementType type) : type_(type) {}
 
-}  // namespace bustub
+} // namespace bustub

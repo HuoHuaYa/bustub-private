@@ -13,7 +13,7 @@
 #include "concurrency/transaction_manager.h"
 
 #include <memory>
-#include <mutex>  // NOLINT
+#include <mutex> // NOLINT
 #include <optional>
 #include <shared_mutex>
 #include <unordered_map>
@@ -40,7 +40,8 @@ namespace bustub {
  * @param isolation_level an optional isolation level of the transaction.
  * @return an initialized transaction
  */
-auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * {
+auto TransactionManager::Begin(IsolationLevel isolation_level)
+    -> Transaction * {
   std::unique_lock<std::shared_mutex> l(txn_map_mutex_);
   auto txn_id = next_txn_id_++;
   auto txn = std::make_unique<Transaction>(txn_id, isolation_level);
@@ -53,14 +54,14 @@ auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * 
   return txn_ref;
 }
 
-/** @brief Verify if a txn satisfies serializability. We will not test this function and you can change / remove it as
- * you want. */
+/** @brief Verify if a txn satisfies serializability. We will not test this
+ * function and you can change / remove it as you want. */
 auto TransactionManager::VerifyTxn(Transaction *txn) -> bool { return true; }
 
 /**
  * Commits a transaction.
- * @param txn the transaction to commit, the txn will be managed by the txn manager so no need to delete it by
- * yourself
+ * @param txn the transaction to commit, the txn will be managed by the txn
+ * manager so no need to delete it by yourself
  */
 auto TransactionManager::Commit(Transaction *txn) -> bool {
   std::unique_lock<std::mutex> commit_lck(commit_mutex_);
@@ -94,10 +95,12 @@ auto TransactionManager::Commit(Transaction *txn) -> bool {
 
 /**
  * Aborts a transaction
- * @param txn the transaction to abort, the txn will be managed by the txn manager so no need to delete it by yourself
+ * @param txn the transaction to abort, the txn will be managed by the txn
+ * manager so no need to delete it by yourself
  */
 void TransactionManager::Abort(Transaction *txn) {
-  if (txn->state_ != TransactionState::RUNNING && txn->state_ != TransactionState::TAINTED) {
+  if (txn->state_ != TransactionState::RUNNING &&
+      txn->state_ != TransactionState::TAINTED) {
     throw Exception("txn not in running / tainted state");
   }
 
@@ -108,8 +111,10 @@ void TransactionManager::Abort(Transaction *txn) {
   running_txns_.RemoveTxn(txn->read_ts_);
 }
 
-/** @brief Stop-the-world garbage collection. Will be called only when all transactions are not accessing the table
- * heap. */
-void TransactionManager::GarbageCollection() { UNIMPLEMENTED("not implemented"); }
+/** @brief Stop-the-world garbage collection. Will be called only when all
+ * transactions are not accessing the table heap. */
+void TransactionManager::GarbageCollection() {
+  UNIMPLEMENTED("not implemented");
+}
 
-}  // namespace bustub
+} // namespace bustub

@@ -26,16 +26,19 @@ namespace bustub {
  * The ValuesExecutor executor produces rows of values.
  */
 class ValuesExecutor : public AbstractExecutor {
- public:
+public:
   ValuesExecutor(ExecutorContext *exec_ctx, const ValuesPlanNode *plan);
 
   void Init() override;
-  auto Next(std::vector<Tuple> *tuple_batch, std::vector<RID> *rid_batch, size_t batch_size) -> bool override;
+  auto Next(std::vector<Tuple> *tuple_batch, std::vector<RID> *rid_batch,
+            size_t batch_size) -> bool override;
 
   /** @return The output schema for the values */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  }
 
- private:
+private:
   /** The values plan node to be executed */
   const ValuesPlanNode *plan_;
 
@@ -43,4 +46,4 @@ class ValuesExecutor : public AbstractExecutor {
 
   size_t cursor_{0};
 };
-}  // namespace bustub
+} // namespace bustub

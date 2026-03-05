@@ -13,7 +13,7 @@
 #pragma once
 
 #include <list>
-#include <mutex>  // NOLINT
+#include <mutex> // NOLINT
 #include <vector>
 
 #include "buffer/replacer.h"
@@ -22,10 +22,11 @@
 namespace bustub {
 
 /**
- * ClockReplacer implements the clock replacement policy, which approximates the Least Recently Used policy.
+ * ClockReplacer implements the clock replacement policy, which approximates the
+ * Least Recently Used policy.
  */
 class ClockReplacer : public Replacer {
- public:
+public:
   explicit ClockReplacer(size_t num_pages);
 
   ~ClockReplacer() override;
@@ -38,8 +39,8 @@ class ClockReplacer : public Replacer {
 
   auto Size() -> size_t override;
 
- private:
+private:
   // TODO(student): implement me!
 };
 
-}  // namespace bustub
+} // namespace bustub

@@ -15,11 +15,11 @@
 #include <random>
 
 #include "buffer/buffer_pool_manager.h"
-#include "gtest/gtest.h"
 #include "storage/b_plus_tree_utils.h"
 #include "storage/disk/disk_manager_memory.h"
 #include "storage/index/b_plus_tree.h"
-#include "test_util.h"  // NOLINT
+#include "test_util.h" // NOLINT
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -239,7 +239,7 @@ TEST(BPlusTreeTests, DISABLED_HighPressureInsertTest) {
     index_key.SetFromInteger(key);
 
     bool is_inserted = tree.Insert(index_key, rid);
-    ASSERT_TRUE(is_inserted);  // 断言：每次插入必须成功，绝不能半路失败
+    ASSERT_TRUE(is_inserted); // 断言：每次插入必须成功，绝不能半路失败
   }
 
   // ==========================================
@@ -252,11 +252,11 @@ TEST(BPlusTreeTests, DISABLED_HighPressureInsertTest) {
     bool is_present = tree.GetValue(index_key, &rids);
 
     ASSERT_TRUE(
-        is_present);  // 断言：数据一定得存在！如果触发说明你分裂时把节点搞丢了！
-    ASSERT_EQ(rids.size(), 1);  // 断言：必须有且只有一个结果
+        is_present); // 断言：数据一定得存在！如果触发说明你分裂时把节点搞丢了！
+    ASSERT_EQ(rids.size(), 1); // 断言：必须有且只有一个结果
 
     int64_t value = key & 0xFFFFFFFF;
-    ASSERT_EQ(rids[0].GetSlotNum(), value);  // 断言：取出来的值必须完全吻合
+    ASSERT_EQ(rids[0].GetSlotNum(), value); // 断言：取出来的值必须完全吻合
   }
 
   // 5. 打扫战场，防止被 ASan 抓内存泄漏
@@ -299,16 +299,16 @@ TEST(BPlusTreeTests, DISABLED_RandomInsertTest) {
     index_key.SetFromInteger(key);
 
     bool is_inserted = tree.Insert(index_key, rid);
-    ASSERT_TRUE(is_inserted);  // 乱序插入也必须每次成功！
+    ASSERT_TRUE(is_inserted); // 乱序插入也必须每次成功！
   }
 
   // ==========================================
   // 4. 挑刺测试：故意插入一个已经存在的重复 Key
   // ==========================================
-  index_key.SetFromInteger(keys[0]);  // 拿刚才插进去的第一个 key 再插一次
+  index_key.SetFromInteger(keys[0]); // 拿刚才插进去的第一个 key 再插一次
   bool is_duplicate_inserted = tree.Insert(index_key, rid);
   ASSERT_FALSE(
-      is_duplicate_inserted);  // 断言：你的代码必须无情拒绝并返回 false！
+      is_duplicate_inserted); // 断言：你的代码必须无情拒绝并返回 false！
 
   // ==========================================
   // 5. 严苛验尸：乱序插进去的，能不能精确找出来？
@@ -337,7 +337,7 @@ TEST(BPlusTreeTests, Easy_Remove) {
   page_id_t page_id = bpm->NewPage();
 
   // 依然用极其变态的小容量 (3, 4)
-  BPlusTree<GenericKey<8>, RID, GenericComparator<8>,2> tree(
+  BPlusTree<GenericKey<8>, RID, GenericComparator<8>, 2> tree(
       "foo_pk", page_id, bpm, comparator, 3, 4);
   GenericKey<8> index_key;
   RID rid;
@@ -364,4 +364,4 @@ TEST(BPlusTreeTests, Easy_Remove) {
   // std::cout<<iter.current_page_id_<<' '<<iter.current_index_<<'\n';
   delete bpm;
 }
-}  // namespace bustub
+} // namespace bustub

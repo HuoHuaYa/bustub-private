@@ -24,15 +24,16 @@ namespace bustub {
  *
  */
 class Watermark {
- public:
-  explicit Watermark(timestamp_t commit_ts) : commit_ts_(commit_ts), watermark_(commit_ts) {}
+public:
+  explicit Watermark(timestamp_t commit_ts)
+      : commit_ts_(commit_ts), watermark_(commit_ts) {}
 
   auto AddTxn(timestamp_t read_ts) -> void;
 
   auto RemoveTxn(timestamp_t read_ts) -> void;
 
-  /** The caller should update commit ts before removing the txn from the watermark so that we can track watermark
-   * correctly. */
+  /** The caller should update commit ts before removing the txn from the
+   * watermark so that we can track watermark correctly. */
   auto UpdateCommitTs(timestamp_t commit_ts) { commit_ts_ = commit_ts; }
 
   auto GetWatermark() -> timestamp_t {
@@ -49,4 +50,4 @@ class Watermark {
   std::unordered_map<timestamp_t, int> current_reads_;
 };
 
-};  // namespace bustub
+}; // namespace bustub

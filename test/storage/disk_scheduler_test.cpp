@@ -11,13 +11,13 @@
 //===----------------------------------------------------------------------===//
 
 #include <cstring>
-#include <future>  // NOLINT
+#include <future> // NOLINT
 #include <memory>
 
 #include "common/exception.h"
-#include "gtest/gtest.h"
 #include "storage/disk/disk_manager_memory.h"
 #include "storage/disk/disk_scheduler.h"
+#include "gtest/gtest.h"
 
 namespace bustub {
 
@@ -52,8 +52,9 @@ TEST(DiskSchedulerTest, DISABLED_ScheduleWriteReadPageTest) {
   ASSERT_TRUE(future2.get());
   ASSERT_EQ(std::memcmp(buf, data, sizeof(buf)), 0);
 
-  disk_scheduler = nullptr;  // Call the DiskScheduler destructor to finish all scheduled jobs.
+  disk_scheduler = nullptr; // Call the DiskScheduler destructor to finish all
+                            // scheduled jobs.
   dm->ShutDown();
 }
 
-}  // namespace bustub
+} // namespace bustub

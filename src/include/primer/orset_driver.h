@@ -12,25 +12,24 @@
 
 #pragma once
 
+#include "primer/orset.h"
 #include <memory>
 #include <vector>
-#include "primer/orset.h"
 
 namespace bustub {
 
 /** @brief Unique ID type. */
 using uid_t = int64_t;
 
-template <typename T>
-class ORSetDriver;
+template <typename T> class ORSetDriver;
 
-template <typename T>
-class ORSetNode {
- public:
+template <typename T> class ORSetNode {
+public:
   ORSetNode() = delete;
 
   explicit ORSetNode(ORSetDriver<T> *driver, size_t node_id, size_t n)
-      : driver_(driver), node_id_(node_id), peer_size_(n), last_read_version_(n, 0) {}
+      : driver_(driver), node_id_(node_id), peer_size_(n),
+        last_read_version_(n, 0) {}
 
   /**
    * @brief Adds an element to the local ORSet.
@@ -72,7 +71,7 @@ class ORSetNode {
    */
   inline auto GetORSet() -> ORSet<T> { return orset_; }
 
- private:
+private:
   /** @brief The local ORSet. */
   ORSet<T> orset_;
 
@@ -90,18 +89,21 @@ class ORSetNode {
 };
 
 /** @brief A driver class for managing ORSets. */
-template <typename T>
-class ORSetDriver {
+template <typename T> class ORSetDriver {
   friend class ORSetNode<T>;
 
- public:
+public:
   explicit ORSetDriver(size_t num_orset_node);
 
   /**
    * @brief Gets the ORSetNode at index.
    */
-  inline auto operator[](size_t index) -> std::unique_ptr<ORSetNode<T>> & { return orset_nodes_[index]; }
-  auto operator[](size_t index) const -> const std::unique_ptr<ORSetNode<T>> & { return orset_nodes_[index]; }
+  inline auto operator[](size_t index) -> std::unique_ptr<ORSetNode<T>> & {
+    return orset_nodes_[index];
+  }
+  auto operator[](size_t index) const -> const std::unique_ptr<ORSetNode<T>> & {
+    return orset_nodes_[index];
+  }
 
   /**
    * @brief Gets the ORSet node at index.
@@ -109,11 +111,13 @@ class ORSetDriver {
    * @param index index of the ORSet node.
    * @return the ORSet node associated with the index.
    */
-  inline auto At(size_t index) -> std::unique_ptr<ORSetNode<T>> & { return orset_nodes_[index]; }
+  inline auto At(size_t index) -> std::unique_ptr<ORSetNode<T>> & {
+    return orset_nodes_[index];
+  }
 
   void Sync();
 
- private:
+private:
   /**
    * @brief Generates a unique id.
    *
@@ -134,4 +138,4 @@ class ORSetDriver {
   uid_t next_uid_ = 0;
 };
 
-}  // namespace bustub
+} // namespace bustub

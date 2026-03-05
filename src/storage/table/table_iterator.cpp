@@ -22,8 +22,8 @@ namespace bustub {
 
 TableIterator::TableIterator(TableHeap *table_heap, RID rid, RID stop_at_rid)
     : table_heap_(table_heap), rid_(rid), stop_at_rid_(stop_at_rid) {
-  // If the rid doesn't correspond to a tuple (i.e., the table has just been initialized), then
-  // we set rid_ to invalid.
+  // If the rid doesn't correspond to a tuple (i.e., the table has just been
+  // initialized), then we set rid_ to invalid.
   if (rid.GetPageId() == INVALID_PAGE_ID) {
     rid_ = RID{INVALID_PAGE_ID, 0};
   } else {
@@ -35,11 +35,15 @@ TableIterator::TableIterator(TableHeap *table_heap, RID rid, RID stop_at_rid)
   }
 }
 
-auto TableIterator::GetTuple() -> std::pair<TupleMeta, Tuple> { return table_heap_->GetTuple(rid_); }
+auto TableIterator::GetTuple() -> std::pair<TupleMeta, Tuple> {
+  return table_heap_->GetTuple(rid_);
+}
 
 auto TableIterator::GetRID() -> RID { return rid_; }
 
-auto TableIterator::IsEnd() -> bool { return rid_.GetPageId() == INVALID_PAGE_ID; }
+auto TableIterator::IsEnd() -> bool {
+  return rid_.GetPageId() == INVALID_PAGE_ID;
+}
 
 auto TableIterator::operator++() -> TableIterator & {
   auto page_guard = table_heap_->bpm_->ReadPage(rid_.GetPageId());
@@ -48,9 +52,11 @@ auto TableIterator::operator++() -> TableIterator & {
 
   if (stop_at_rid_.GetPageId() != INVALID_PAGE_ID) {
     BUSTUB_ASSERT(
-        /* case 1: cursor before the page of the stop tuple */ rid_.GetPageId() < stop_at_rid_.GetPageId() ||
+        /* case 1: cursor before the page of the stop tuple */ rid_
+                    .GetPageId() < stop_at_rid_.GetPageId() ||
             /* case 2: cursor at the page before the tuple */
-            (rid_.GetPageId() == stop_at_rid_.GetPageId() && next_tuple_id <= stop_at_rid_.GetSlotNum()),
+            (rid_.GetPageId() == stop_at_rid_.GetPageId() &&
+             next_tuple_id <= stop_at_rid_.GetSlotNum()),
         "iterate out of bound");
   }
 
@@ -62,7 +68,8 @@ auto TableIterator::operator++() -> TableIterator & {
     // that's fine
   } else {
     auto next_page_id = page->GetNextPageId();
-    // if next page is invalid, RID is set to invalid page; otherwise, it's the first tuple in that page.
+    // if next page is invalid, RID is set to invalid page; otherwise, it's the
+    // first tuple in that page.
     rid_ = RID{next_page_id, 0};
   }
 
@@ -71,4 +78,4 @@ auto TableIterator::operator++() -> TableIterator & {
   return *this;
 }
 
-}  // namespace bustub
+} // namespace bustub

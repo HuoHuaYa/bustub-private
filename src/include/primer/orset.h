@@ -21,9 +21,8 @@ namespace bustub {
 using uid_t = int64_t;
 
 /** @brief The observed remove set datatype. */
-template <typename T>
-class ORSet {
- public:
+template <typename T> class ORSet {
+public:
   ORSet() = default;
 
   auto Contains(const T &elem) const -> bool;
@@ -38,8 +37,8 @@ class ORSet {
 
   auto ToString() const -> std::string;
 
- private:
+private:
   // TODO(student): Add your private member variables to represent ORSet.
 };
 
-}  // namespace bustub
+} // namespace bustub

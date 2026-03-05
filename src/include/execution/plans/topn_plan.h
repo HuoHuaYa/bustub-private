@@ -25,11 +25,11 @@
 namespace bustub {
 
 /**
- * The TopNPlanNode represents a top-n operation. It will gather the n extreme rows based on
- * limit and order expressions.
+ * The TopNPlanNode represents a top-n operation. It will gather the n extreme
+ * rows based on limit and order expressions.
  */
 class TopNPlanNode : public AbstractPlanNode {
- public:
+public:
   /**
    * Construct a new TopNPlanNode instance.
    * @param output The output schema of this TopN plan node
@@ -37,8 +37,10 @@ class TopNPlanNode : public AbstractPlanNode {
    * @param order_bys The sort expressions and their order by types.
    * @param n Retain n elements.
    */
-  TopNPlanNode(SchemaRef output, AbstractPlanNodeRef child, std::vector<OrderBy> order_bys, std::size_t n)
-      : AbstractPlanNode(std::move(output), {std::move(child)}), order_bys_(std::move(order_bys)), n_{n} {}
+  TopNPlanNode(SchemaRef output, AbstractPlanNodeRef child,
+               std::vector<OrderBy> order_bys, std::size_t n)
+      : AbstractPlanNode(std::move(output), {std::move(child)}),
+        order_bys_(std::move(order_bys)), n_{n} {}
 
   /** @return The type of the plan node */
   auto GetType() const -> PlanType override { return PlanType::TopN; }
@@ -51,7 +53,8 @@ class TopNPlanNode : public AbstractPlanNode {
 
   /** @return The child plan node */
   auto GetChildPlan() const -> AbstractPlanNodeRef {
-    BUSTUB_ASSERT(GetChildren().size() == 1, "TopN should have exactly one child plan.");
+    BUSTUB_ASSERT(GetChildren().size() == 1,
+                  "TopN should have exactly one child plan.");
     return GetChildAt(0);
   }
 
@@ -60,8 +63,8 @@ class TopNPlanNode : public AbstractPlanNode {
   std::vector<OrderBy> order_bys_;
   std::size_t n_;
 
- protected:
+protected:
   auto PlanNodeToString() const -> std::string override;
 };
 
-}  // namespace bustub
+} // namespace bustub

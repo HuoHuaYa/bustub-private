@@ -19,7 +19,8 @@
 namespace bustub {
 
 /**
- * Constructs the schema corresponding to the vector of columns, read left-to-right.
+ * Constructs the schema corresponding to the vector of columns, read
+ * left-to-right.
  * @param columns columns that describe the schema's individual columns
  */
 Schema::Schema(const std::vector<Column> &columns) {
@@ -86,4 +87,4 @@ auto Schema::ToString(bool simplified) const -> std::string {
   return os.str();
 }
 
-}  // namespace bustub
+} // namespace bustub
