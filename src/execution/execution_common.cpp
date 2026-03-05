@@ -20,12 +20,10 @@
 
 namespace bustub {
 
-TupleComparator::TupleComparator(std::vector<OrderBy> order_bys)
-    : order_bys_(std::move(order_bys)) {}
+TupleComparator::TupleComparator(std::vector<OrderBy> order_bys) : order_bys_(std::move(order_bys)) {}
 
 /** TODO(P3): Implement the comparison method */
-auto TupleComparator::operator()(const SortEntry &entry_a,
-                                 const SortEntry &entry_b) const -> bool {
+auto TupleComparator::operator()(const SortEntry &entry_a, const SortEntry &entry_b) const -> bool {
   // 遍历所有的orderby，和window差不多的判断
   for (size_t i = 0; i < order_bys_.size(); i++) {
     const auto &order_by = order_bys_[i];
@@ -41,7 +39,7 @@ auto TupleComparator::operator()(const SortEntry &entry_a,
       continue;
     }
     if (val_a.CompareEquals(val_b) == CmpBool::CmpTrue) {
-      continue; // 平局，继续比下一列
+      continue;  // 平局，继续比下一列
     }
     if (a_null || b_null) {
       bool a_comes_first;
@@ -63,9 +61,8 @@ auto TupleComparator::operator()(const SortEntry &entry_a,
     // 正常的值比大小
     if (order_type == OrderByType::DEFAULT || order_type == OrderByType::ASC) {
       return val_a.CompareLessThan(val_b) == CmpBool::CmpTrue;
-    } else {
-      return val_a.CompareGreaterThan(val_b) == CmpBool::CmpTrue;
     }
+    return val_a.CompareGreaterThan(val_b) == CmpBool::CmpTrue;
   }
   // 所有列都相等，返回 false 即可
   return false;
@@ -76,8 +73,7 @@ auto TupleComparator::operator()(const SortEntry &entry_a,
  *
  * TODO(P3): Implement this method.
  */
-auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys,
-                     const Schema &schema) -> SortKey {
+auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys, const Schema &schema) -> SortKey {
   SortKey sort_key;
   sort_key.reserve(order_bys.size());
   for (const auto &ob : order_bys) {
@@ -106,10 +102,8 @@ auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys,
  * @return An optional tuple that represents the reconstructed tuple. If the
  * tuple is deleted as the result, returns std::nullopt.
  */
-auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple,
-                      const TupleMeta &base_meta,
-                      const std::vector<UndoLog> &undo_logs)
-    -> std::optional<Tuple> {
+auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const TupleMeta &base_meta,
+                      const std::vector<UndoLog> &undo_logs) -> std::optional<Tuple> {
   UNIMPLEMENTED("not implemented");
 }
 
@@ -126,10 +120,8 @@ auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple,
  * @return An optional vector of undo logs to pass to ReconstructTuple().
  * std::nullopt if the tuple did not exist at the time.
  */
-auto CollectUndoLogs(RID rid, const TupleMeta &base_meta,
-                     const Tuple &base_tuple, std::optional<UndoLink> undo_link,
-                     Transaction *txn, TransactionManager *txn_mgr)
-    -> std::optional<std::vector<UndoLog>> {
+auto CollectUndoLogs(RID rid, const TupleMeta &base_meta, const Tuple &base_tuple, std::optional<UndoLink> undo_link,
+                     Transaction *txn, TransactionManager *txn_mgr) -> std::optional<std::vector<UndoLog>> {
   UNIMPLEMENTED("not implemented");
 }
 
@@ -146,8 +138,7 @@ auto CollectUndoLogs(RID rid, const TupleMeta &base_meta,
  * @param prev_version The undo link to the latest undo log of this tuple.
  * @return The generated undo log.
  */
-auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple,
-                        const Tuple *target_tuple, timestamp_t ts,
+auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple, timestamp_t ts,
                         UndoLink prev_version) -> UndoLog {
   UNIMPLEMENTED("not implemented");
 }
@@ -164,14 +155,13 @@ auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple,
  * @param log The original undo log.
  * @return The updated undo log.
  */
-auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple,
-                            const Tuple *target_tuple, const UndoLog &log)
-    -> UndoLog {
+auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple,
+                            const UndoLog &log) -> UndoLog {
   UNIMPLEMENTED("not implemented");
 }
 
-void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr,
-               const TableInfo *table_info, TableHeap *table_heap) {
+void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr, const TableInfo *table_info,
+               TableHeap *table_heap) {
   // always use stderr for printing logs...
   fmt::println(stderr, "debug_hook: {}", info);
 
@@ -197,4 +187,4 @@ void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr,
   //   txn3@1 (7, _, _) ts=1
 }
 
-} // namespace bustub
+}  // namespace bustub

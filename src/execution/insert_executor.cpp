@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "common/macros.h"
 #include <memory>
+#include "common/macros.h"
 
 #include "execution/executors/insert_executor.h"
 
@@ -24,11 +24,9 @@ namespace bustub {
  * @param child_executor The child executor from which inserted tuples are
  * pulled
  */
-InsertExecutor::InsertExecutor(
-    ExecutorContext *exec_ctx, const InsertPlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan),
-      child_executor_(std::move(child_executor)) {
+InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *plan,
+                               std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
   // UNIMPLEMENTED("TODO(P3): Add implementation.");
 }
 
@@ -83,8 +81,7 @@ plan_->GetValues().size()) { std::vector<Value> values{};
   return !tuple_batch->empty();
 }
 */
-auto InsertExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                          std::vector<bustub::RID> *rid_batch,
+auto InsertExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                           size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -119,11 +116,9 @@ auto InsertExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
           //   return {values, &key_schema};
           // }
           Tuple key_tuple =
-              tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
-                                 index_info->index_->GetKeyAttrs());
+              tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
           // 将我们提取出来的key与rid真正的插入b+tree
-          index_info->index_->InsertEntry(key_tuple, rid,
-                                          exec_ctx_->GetTransaction());
+          index_info->index_->InsertEntry(key_tuple, rid, exec_ctx_->GetTransaction());
         }
         insert_count++;
       }
@@ -144,4 +139,4 @@ auto InsertExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   return true;
 }
 
-} // namespace bustub
+}  // namespace bustub

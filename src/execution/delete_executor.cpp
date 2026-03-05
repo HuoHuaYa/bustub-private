@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "common/macros.h"
 #include <memory>
+#include "common/macros.h"
 
 #include "execution/executors/delete_executor.h"
 
@@ -23,11 +23,9 @@ namespace bustub {
  * @param plan The delete plan to be executed
  * @param child_executor The child executor that feeds the delete
  */
-DeleteExecutor::DeleteExecutor(
-    ExecutorContext *exec_ctx, const DeletePlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan),
-      child_executor_(std::move(child_executor)) {}
+DeleteExecutor::DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
+                               std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
 /** Initialize the delete */
 void DeleteExecutor::Init() {
@@ -56,8 +54,7 @@ void DeleteExecutor::Init() {
  * NOTE: DeleteExecutor::Next() returns true with the number of deleted rows
  * produced only once.
  */
-auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                          std::vector<bustub::RID> *rid_batch,
+auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                           size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -85,8 +82,7 @@ auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
         // 如果用一句大白话来解释：它就是一张“精确到列的采摘清单”，告诉系统到底该从完整的表中，把哪几列抽出来作为
         // B+ 树的 Key。
         Tuple key =
-            tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
-                               index_info->index_->GetKeyAttrs());
+            tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
         // 物理删除
         index_info->index_->DeleteEntry(key, rid, exec_ctx_->GetTransaction());
       }
@@ -105,4 +101,4 @@ auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   return true;
 }
 
-} // namespace bustub
+}  // namespace bustub

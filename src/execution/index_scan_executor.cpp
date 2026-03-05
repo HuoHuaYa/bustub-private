@@ -21,8 +21,7 @@ namespace bustub {
  * @param exec_ctx the executor context
  * @param plan the index scan plan to be executed
  */
-IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx,
-                                     const IndexScanPlanNode *plan)
+IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx, const IndexScanPlanNode *plan)
     : AbstractExecutor(exec_ctx), plan_(plan) {
   // UNIMPLEMENTED("TODO(P3): Add implementation.");
 }
@@ -53,6 +52,7 @@ void IndexScanExecutor::Init() {
      * For example when dealing "WHERE v = 1" we could store the constant value
      * 1 here
      */
+    values.reserve(plan_->pred_keys_.size());
     for (const auto &expr : plan_->pred_keys_) {
       // where v1 = 1
       // (*tuple, &schema)
@@ -62,14 +62,12 @@ void IndexScanExecutor::Init() {
     Tuple lookup_key{values, &index_info_->key_schema_};
 
     // 去 B+ 树里发起精准打击，把匹配的门牌号全都装进 rids_ 数组里
-    index_info_->index_->ScanKey(lookup_key, &rids_,
-                                 exec_ctx_->GetTransaction());
+    index_info_->index_->ScanKey(lookup_key, &rids_, exec_ctx_->GetTransaction());
   } else {
     // ORDER BY v1
     // 强制转换为底层的单列整数 B+ 树对象 (BusTub
     // 官方默认测试用例都是单列整数索引)
-    auto *tree = dynamic_cast<BPlusTreeIndexForTwoIntegerColumn *>(
-        index_info_->index_.get());
+    auto *tree = dynamic_cast<BPlusTreeIndexForTwoIntegerColumn *>(index_info_->index_.get());
     BUSTUB_ASSERT(tree != nullptr, "not a BPlusTreeIndexForTwoIntegerColumn");
 
     // 获取迭代器，从最左边的叶子节点开始，顺着链表把所有门牌号全收集起来！
@@ -80,8 +78,7 @@ void IndexScanExecutor::Init() {
   }
 }
 
-auto IndexScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                             std::vector<bustub::RID> *rid_batch,
+auto IndexScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                              size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -95,8 +92,7 @@ auto IndexScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       auto tuple_pair = table_info_->table_->GetTuple(rid);
       // 判断还有没有额外的where子句
       if (plan_->filter_predicate_ != nullptr) {
-        auto result = plan_->filter_predicate_->Evaluate(&tuple_pair.second,
-                                                         table_info_->schema_);
+        auto result = plan_->filter_predicate_->Evaluate(&tuple_pair.second, table_info_->schema_);
         if (result.IsNull() || !result.GetAs<bool>()) {
           // 如果不满足，就舍弃这段
           continue;
@@ -113,4 +109,4 @@ auto IndexScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   return !tuple_batch->empty();
 }
 
-} // namespace bustub
+}  // namespace bustub

@@ -20,8 +20,7 @@ namespace bustub {
  * @param exec_ctx The executor context
  * @param plan The sequential scan plan to be executed
  */
-SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx,
-                                 const SeqScanPlanNode *plan)
+SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
     : AbstractExecutor(exec_ctx), plan_(plan) {}
 
 /** Initialize the sequential scan */
@@ -44,13 +43,11 @@ void SeqScanExecutor::Init() {
  * BUSTUB_BATCH_SIZE)
  * @return `true` if a tuple was produced, `false` if there are no more tuples
  */
-auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                           std::vector<bustub::RID> *rid_batch,
+auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                            size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
   while (tuple_batch->size() < batch_size && !iter_->IsEnd()) {
-
     // debug
     // std::cout << "[DEBUG-SeqScan] Trying to read RID -> Page: " <<
     // iter_->GetRID().GetPageId()
@@ -59,13 +56,11 @@ auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
     auto [meta, tuple] = iter_->GetTuple();
     auto rid = iter_->GetRID();
     if (!meta.is_deleted_) {
-
       bool is_match = true;
       // 判断有没有过滤条件
       if (plan_->filter_predicate_ != nullptr) {
         // 传入当前元组和表的 schema 进行求值
-        auto value =
-            plan_->filter_predicate_->Evaluate(&tuple, table_info_->schema_);
+        auto value = plan_->filter_predicate_->Evaluate(&tuple, table_info_->schema_);
         // 有 NULL 值处理逻辑，需要当心，但常规情况下 GetAs<bool> 足够
         is_match = value.GetAs<bool>();
       }
@@ -85,4 +80,4 @@ auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   return !tuple_batch->empty();
 }
 
-} // namespace bustub
+}  // namespace bustub

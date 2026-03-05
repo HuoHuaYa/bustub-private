@@ -26,24 +26,20 @@ namespace bustub {
  * NestedLoopJoinExecutor executes a nested-loop JOIN on two tables.
  */
 class NestedLoopJoinExecutor : public AbstractExecutor {
-public:
-  NestedLoopJoinExecutor(ExecutorContext *exec_ctx,
-                         const NestedLoopJoinPlanNode *plan,
+ public:
+  NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const NestedLoopJoinPlanNode *plan,
                          std::unique_ptr<AbstractExecutor> &&left_executor,
                          std::unique_ptr<AbstractExecutor> &&right_executor);
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the insert */
-  auto GetOutputSchema() const -> const Schema & override {
-    return plan_->OutputSchema();
-  };
+  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
 
-private:
+ private:
   /** The NestedLoopJoin plan node to be executed. */
   const NestedLoopJoinPlanNode *plan_;
 
@@ -64,13 +60,13 @@ private:
   // 左表（外表）的状态缓存
   // 是什么：保存从底层一次性拉取上来的左表数据批次，以及当前遍历到的索引。
   std::vector<Tuple> left_tuple_batch_;
-  size_t left_idx_{0}; // 当前正在处理 left_tuple_batch_ 中的第几个元组
-  bool is_left_done_{false}; // 左表是否已经彻底查到底了
+  size_t left_idx_{0};        // 当前正在处理 left_tuple_batch_ 中的第几个元组
+  bool is_left_done_{false};  // 左表是否已经彻底查到底了
 
   // 右表（内表）的状态缓存
   // 保存从底层拉取上来的右表数据批次，以及当前遍历到的索引。
   std::vector<Tuple> right_tuple_batch_;
-  size_t right_idx_{0}; // 当前正在处理 right_tuple_batch_ 中的第几个元组
+  size_t right_idx_{0};  // 当前正在处理 right_tuple_batch_ 中的第几个元组
 
   // Left Join 专用匹配标记
   // 记录当前的左表元组在遍历整个右表的过程中，是否至少匹配成功过一次。
@@ -79,4 +75,4 @@ private:
   bool is_current_left_matched_{false};
 };
 
-} // namespace bustub
+}  // namespace bustub

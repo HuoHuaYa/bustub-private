@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "common/macros.h"
 #include <memory>
+#include "common/macros.h"
 
 #include "execution/executors/aggregation_executor.h"
 
@@ -24,10 +24,10 @@ namespace bustub {
  * @param child_executor The child executor from which inserted tuples are
  * pulled (may be `nullptr`)
  */
-AggregationExecutor::AggregationExecutor(
-    ExecutorContext *exec_ctx, const AggregationPlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan),
+AggregationExecutor::AggregationExecutor(ExecutorContext *exec_ctx, const AggregationPlanNode *plan,
+                                         std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx),
+      plan_(plan),
       child_executor_(std::move(child_executor)),
       aht_(plan_->GetAggregates(), plan_->GetAggregateTypes()),
       aht_iterator_(aht_.Begin()) {
@@ -91,10 +91,8 @@ void AggregationExecutor::Init() {
  * tuples
  */
 
-auto AggregationExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                               std::vector<bustub::RID> *rid_batch,
+auto AggregationExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                                size_t batch_size) -> bool {
-
   tuple_batch->clear();
   rid_batch->clear();
 
@@ -108,14 +106,12 @@ auto AggregationExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
     // AggregationPlanNode 的输出列格式永远是固定的,所有的 GroupBy + 所有的
     // Aggregate 所以我们必须按照这个死顺序，把内存里的 Key 和 Value
     // 拼接成一个大数组。
-    values.insert(values.end(), aht_iterator_.Key().group_bys_.begin(),
-                  aht_iterator_.Key().group_bys_.end());
-    values.insert(values.end(), aht_iterator_.Val().aggregates_.begin(),
-                  aht_iterator_.Val().aggregates_.end());
+    values.insert(values.end(), aht_iterator_.Key().group_bys_.begin(), aht_iterator_.Key().group_bys_.end());
+    values.insert(values.end(), aht_iterator_.Val().aggregates_.begin(), aht_iterator_.Val().aggregates_.end());
 
     // 用拼好的数组，生成外界认识的 Tuple，塞进输出批次里。
-    Tuple tuple_{values, &GetOutputSchema()};
-    tuple_batch->emplace_back(tuple_);
+    Tuple tuple{values, &GetOutputSchema()};
+    tuple_batch->emplace_back(tuple);
 
     // 聚合产生的结果是虚拟出来的统计数据，在磁盘上没有真实的门牌号
     // (RID)，给上层返回一个空的/假的 RID 充数。
@@ -132,8 +128,6 @@ auto AggregationExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
 }
 
 /** Do not use or remove this function; otherwise, you will get zero points. */
-auto AggregationExecutor::GetChildExecutor() const -> const AbstractExecutor * {
-  return child_executor_.get();
-}
+auto AggregationExecutor::GetChildExecutor() const -> const AbstractExecutor * { return child_executor_.get(); }
 
-} // namespace bustub
+}  // namespace bustub

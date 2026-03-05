@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "common/macros.h"
 #include <memory>
+#include "common/macros.h"
 
 #include "execution/executors/update_executor.h"
 
@@ -23,11 +23,9 @@ namespace bustub {
  * @param plan The update plan to be executed
  * @param child_executor The child executor that feeds the update
  */
-UpdateExecutor::UpdateExecutor(
-    ExecutorContext *exec_ctx, const UpdatePlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), table_info_(nullptr),
-      child_executor_(std::move(child_executor)) {}
+UpdateExecutor::UpdateExecutor(ExecutorContext *exec_ctx, const UpdatePlanNode *plan,
+                               std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan), table_info_(nullptr), child_executor_(std::move(child_executor)) {}
 
 /** Initialize the update */
 void UpdateExecutor::Init() {
@@ -55,8 +53,7 @@ void UpdateExecutor::Init() {
  * NOTE: UpdateExecutor::Next() returns true with the number of updated rows
  * produced only once.
  */
-auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                          std::vector<bustub::RID> *rid_batch,
+auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                           size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -73,7 +70,6 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   // 底层矿工，遍历表把数据挖出来
   while (child_executor_->Next(&child_tuples, &child_rids, batch_size)) {
     for (size_t i = 0; i < child_tuples.size(); i++) {
-
       const auto &old_tuple = child_tuples[i];
       const auto &old_rid = child_rids[i];
       // 装老数据的容器
@@ -90,8 +86,7 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       for (const auto &expr : plan_->target_expressions_) {
         // 对老元组的每一列进行计算，比如 age = age + 1
         // 通过多态的override，得到动态分发的效果
-        values.push_back(
-            expr->Evaluate(&old_tuple, child_executor_->GetOutputSchema()));
+        values.push_back(expr->Evaluate(&old_tuple, child_executor_->GetOutputSchema()));
       }
       Tuple new_tuple{values, &table_info_->schema_};
 
@@ -118,7 +113,7 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       // 已被删除 更新时间戳 - 设置 ts_ 字段（用于 MVCC 事务管理） 物理更新 -
       // 修改页面上的元数据存储
       table_info_->table_->UpdateTupleMeta(old_meta, old_rid);
-      TupleMeta new_meta{0, false}; // 伪造新户口本
+      TupleMeta new_meta{0, false};  // 伪造新户口本
       auto new_rid_opt = table_info_->table_->InsertTuple(new_meta, new_tuple);
       // 新标识也有可能创建失败
       if (new_rid_opt.has_value()) {
@@ -126,18 +121,14 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
 
         for (const auto &index_info : table_indexes_) {
           // 提取老 Key，从 B+ 树里抹除
-          Tuple old_key = old_tuple.KeyFromTuple(
-              table_info_->schema_, index_info->key_schema_,
-              index_info->index_->GetKeyAttrs());
-          index_info->index_->DeleteEntry(old_key, old_rid,
-                                          exec_ctx_->GetTransaction());
+          Tuple old_key =
+              old_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
+          index_info->index_->DeleteEntry(old_key, old_rid, exec_ctx_->GetTransaction());
 
           // 提取新 Key，在 B+ 树里登记
-          Tuple new_key = new_tuple.KeyFromTuple(
-              table_info_->schema_, index_info->key_schema_,
-              index_info->index_->GetKeyAttrs());
-          index_info->index_->InsertEntry(new_key, new_rid,
-                                          exec_ctx_->GetTransaction());
+          Tuple new_key =
+              new_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
+          index_info->index_->InsertEntry(new_key, new_rid, exec_ctx_->GetTransaction());
         }
         update_count++;
       }
@@ -155,4 +146,4 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   return true;
 }
 
-} // namespace bustub
+}  // namespace bustub

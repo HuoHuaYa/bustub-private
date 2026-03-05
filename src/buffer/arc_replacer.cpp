@@ -12,9 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer/arc_replacer.h"
-#include "common/config.h"
 #include <algorithm>
 #include <optional>
+#include "common/config.h"
 
 namespace bustub {
 

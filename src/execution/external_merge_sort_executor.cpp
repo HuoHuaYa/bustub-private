@@ -21,29 +21,29 @@
 namespace bustub {
 
 template <size_t K>
-ExternalMergeSortExecutor<K>::ExternalMergeSortExecutor(
-    ExecutorContext *exec_ctx, const SortPlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), cmp_(plan->GetOrderBy()),
-      child_executor_(std::move(child_executor)) {
+ExternalMergeSortExecutor<K>::ExternalMergeSortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan,
+                                                        std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan), cmp_(plan->GetOrderBy()), child_executor_(std::move(child_executor)) {
   // UNIMPLEMENTED("TODO(P3): Add implementation.");
 }
 
-template <size_t K> ExternalMergeSortExecutor<K>::~ExternalMergeSortExecutor() {
+template <size_t K>
+ExternalMergeSortExecutor<K>::~ExternalMergeSortExecutor() {
   // 如果执行器被销毁时，runs_ 里还有没删干净的页面（比如最终结果页）
   // 必须全部清空，把磁盘空间还给系统！
   final_iter_ = std::nullopt;
   auto bpm = exec_ctx_->GetBufferPoolManager();
 
   for (auto &run : runs_) {
-    for (auto page_id : run.GetPages()) { // 用你之前加的那个 Getter 方法
+    for (auto page_id : run.GetPages()) {  // 用你之前加的那个 Getter 方法
       bpm->DeletePage(page_id);
     }
   }
 }
 
 /** Initialize the external merge sort */
-template <size_t K> void ExternalMergeSortExecutor<K>::Init() {
+template <size_t K>
+void ExternalMergeSortExecutor<K>::Init() {
   child_executor_->Init();
   runs_.clear();
   final_iter_ = std::nullopt;
@@ -64,11 +64,12 @@ template <size_t K> void ExternalMergeSortExecutor<K>::Init() {
   std::vector<SortEntry> chunk;
   size_t current_chunk_bytes = 0;
   // 我们设定每次在内存里最多囤 4 个页面的数据量，防OOM
-  const size_t MAX_CHUNK_BYTES = BUSTUB_PAGE_SIZE * 4;
+  const size_t max_chunk_bytes = BUSTUB_PAGE_SIZE * 4;
 
   auto flush_chunk_to_disk = [&]() {
-    if (chunk.empty())
+    if (chunk.empty()) {
       return;
+    }
     // 在内存里快排
     std::sort(chunk.begin(), chunk.end(), cmp_);
 
@@ -100,7 +101,7 @@ template <size_t K> void ExternalMergeSortExecutor<K>::Init() {
     }
     // 删除guard
     guard.Drop();
-    runs_.emplace_back(run_pages, bpm); // 生成了一个数据块
+    runs_.emplace_back(run_pages, bpm);  // 生成了一个数据块
     chunk.clear();
     current_chunk_bytes = 0;
   };
@@ -112,7 +113,7 @@ template <size_t K> void ExternalMergeSortExecutor<K>::Init() {
       chunk.emplace_back(std::move(key), tuple);
       current_chunk_bytes += tuple.GetLength();
 
-      if (current_chunk_bytes >= MAX_CHUNK_BYTES) {
+      if (current_chunk_bytes >= max_chunk_bytes) {
         flush_chunk_to_disk();
       }
     }
@@ -154,9 +155,7 @@ template <size_t K> void ExternalMergeSortExecutor<K>::Init() {
 
 // merge过程
 template <size_t K>
-auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1,
-                                                MergeSortRun &run2)
-    -> MergeSortRun {
+auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1, MergeSortRun &run2) -> MergeSortRun {
   auto it1 = run1.Begin();
   auto it2 = run2.Begin();
   const auto &schema = child_executor_->GetOutputSchema();
@@ -210,7 +209,7 @@ auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1,
   }
   it1 = run1.End();
   it2 = run2.End();
-  guard.Drop(); // 释放最后一页
+  guard.Drop();  // 释放最后一页
   // 旧的全部放转转回收了
   for (auto page_id : run1.GetPages()) {
     bpm->DeletePage(page_id);
@@ -218,7 +217,7 @@ auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1,
   for (auto page_id : run2.GetPages()) {
     bpm->DeletePage(page_id);
   }
-  return MergeSortRun(out_pages, bpm);
+  return {out_pages, bpm};
 }
 
 /**
@@ -232,8 +231,7 @@ auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1,
  * @return `true` if a tuple was produced, `false` if there are no more tuples
  */
 template <size_t K>
-auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch,
-                                        std::vector<bustub::RID> *rid_batch,
+auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                                         size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -248,10 +246,10 @@ auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch,
   while (tuple_batch->size() < batch_size && it != end) {
     tuple_batch->push_back(*it);
     rid_batch->push_back(RID{});
-    ++it; // 迭代器继续往前滚
+    ++it;  // 迭代器继续往前滚
   }
   if (it == end) {
-    final_iter_ = std::nullopt; // 销毁迭代器释放读锁
+    final_iter_ = std::nullopt;  // 销毁迭代器释放读锁
     auto bpm = exec_ctx_->GetBufferPoolManager();
     for (auto &run : runs_) {
       for (auto page_id : run.GetPages()) {
@@ -265,4 +263,4 @@ auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch,
 
 template class ExternalMergeSortExecutor<2>;
 
-} // namespace bustub
+}  // namespace bustub

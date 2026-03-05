@@ -30,55 +30,50 @@ struct HashJoinKey {
       return false;
     }
     for (size_t i = 0; i < join_keys_.size(); i++) {
-      if (join_keys_[i].CompareEquals(other.join_keys_[i]) !=
-          CmpBool::CmpTrue) {
+      if (join_keys_[i].CompareEquals(other.join_keys_[i]) != CmpBool::CmpTrue) {
         return false;
       }
     }
     return true;
   }
 };
-} // namespace bustub
+}  // namespace bustub
 
 namespace std {
 
-template <> struct hash<bustub::HashJoinKey> {
+template <>
+struct hash<bustub::HashJoinKey> {
   auto operator()(const bustub::HashJoinKey &key) const -> std::size_t {
     size_t curr_hash = 0;
     for (const auto &v : key.join_keys_) {
       if (!v.IsNull()) {
         // 使用 BusTub 底层提供的哈希工具，把每一列的哈希值揉在一起
-        curr_hash = bustub::HashUtil::CombineHashes(
-            curr_hash, bustub::HashUtil::HashValue(&v));
+        curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&v));
       }
     }
     return curr_hash;
   }
 };
-} // namespace std
-  // namespace std
+}  // namespace std
+   // namespace std
 namespace bustub {
 /**
  * HashJoinExecutor executes a nested-loop JOIN on two tables.
  */
 class HashJoinExecutor : public AbstractExecutor {
-public:
+ public:
   HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan,
-                   std::unique_ptr<AbstractExecutor> &&left_child,
-                   std::unique_ptr<AbstractExecutor> &&right_child);
+                   std::unique_ptr<AbstractExecutor> &&left_child, std::unique_ptr<AbstractExecutor> &&right_child);
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the join */
-  auto GetOutputSchema() const -> const Schema & override {
-    return plan_->OutputSchema();
-  };
+  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
 
-private:
+ private:
   /** The HashJoin plan node to be executed. */
   const HashJoinPlanNode *plan_;
   // 保存左右两个子执行器机器搬运工
@@ -100,4 +95,4 @@ private:
   bool is_current_left_matched_{false};
 };
 
-} // namespace bustub
+}  // namespace bustub

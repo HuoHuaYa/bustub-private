@@ -1,0 +1,48 @@
+--- src/execution/external_merge_sort_executor.cpp
++++ src/execution/external_merge_sort_executor.cpp (after clang format)
+@@ -21,28 +21,28 @@
+ namespace bustub {
+ 
+ template <size_t K>
+-ExternalMergeSortExecutor<K>::ExternalMergeSortExecutor(
+-    ExecutorContext *exec_ctx, const SortPlanNode *plan,
+-    std::unique_ptr<AbstractExecutor> &&child_executor)
+-    : AbstractExecutor(exec_ctx), plan_(plan), cmp_(plan->GetOrderBy()),
+-      child_executor_(std::move(child_executor)) {
++ExternalMergeSortExecutor<K>::ExternalMergeSortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan,
++                                                        std::unique_ptr<AbstractExecutor> &&child_executor)
++    : AbstractExecutor(exec_ctx), plan_(plan), cmp_(plan->GetOrderBy()), child_executor_(std::move(child_executor)) {
+   // UNIMPLEMENTED("TODO(P3): Add implementation.");
+ }
+ 
+-template <size_t K> ExternalMergeSortExecutor<K>::~ExternalMergeSortExecutor() {
++template <size_t K>
++ExternalMergeSortExecutor<K>::~ExternalMergeSortExecutor() {
+   // 如果执行器被销毁时，runs_ 里还有没删干净的页面（比如最终结果页）
+   // 必须全部清空，把磁盘空间还给系统！
+   auto bpm = exec_ctx_->GetBufferPoolManager();
+ 
+   for (auto &run : runs_) {
+-    for (auto page_id : run.GetPages()) { // 用你之前加的那个 Getter 方法
++    for (auto page_id : run.GetPages()) {  // 用你之前加的那个 Getter 方法
+       bpm->DeletePage(page_id);
+     }
+   }
+ }
+ 
+ /** Initialize the external merge sort */
+-template <size_t K> void ExternalMergeSortExecutor<K>::Init() {
++template <size_t K>
++void ExternalMergeSortExecutor<K>::Init() {
+   child_executor_->Init();
+   runs_.clear();
+   final_iter_ = std::nullopt;
+@@ -205,7 +202,7 @@
+     ++it2;
+   }
+ 
+-  guard.Drop(); // 释放最后一页
++  guard.Drop();  // 释放最后一页
+   // 旧的全部放转转回收了
+   for (auto page_id : run1.GetPages()) {
+     bpm->DeletePage(page_id);

@@ -22,11 +22,9 @@ namespace bustub {
  * @param plan The filter plan to be executed
  * @param child_executor The child executor that feeds the filter
  */
-FilterExecutor::FilterExecutor(
-    ExecutorContext *exec_ctx, const FilterPlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan),
-      child_executor_(std::move(child_executor)) {}
+FilterExecutor::FilterExecutor(ExecutorContext *exec_ctx, const FilterPlanNode *plan,
+                               std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
 /** Initialize the filter */
 void FilterExecutor::Init() {
@@ -42,8 +40,7 @@ void FilterExecutor::Init() {
  * BUSTUB_BATCH_SIZE)
  * @return `true` if a tuple was produced, `false` if there are no more tuples
  */
-auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                          std::vector<bustub::RID> *rid_batch,
+auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                           size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -58,10 +55,8 @@ auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
         auto &tuple = child_tuples_[i];
         auto &rid = child_rids_[i];
         // Evaluate the filter predicate
-        auto value =
-            filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
-        if (filter_expr == nullptr ||
-            (!value.IsNull() && value.GetAs<bool>())) {
+        auto value = filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
+        if (filter_expr == nullptr || (!value.IsNull() && value.GetAs<bool>())) {
           tuple_batch->push_back(tuple);
           rid_batch->push_back(rid);
         }
@@ -71,8 +66,7 @@ auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
     child_offset_ = 0;
 
     // Get the next tuple batch from the child executor
-    const auto status =
-        child_executor_->Next(&child_tuples_, &child_rids_, batch_size);
+    const auto status = child_executor_->Next(&child_tuples_, &child_rids_, batch_size);
 
     // If no more tuples and output batch is empty, return false
     if (!status && tuple_batch->empty()) {
@@ -88,8 +82,7 @@ auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       auto &tuple = child_tuples_[i];
       auto &rid = child_rids_[i];
       // Evaluate the filter predicate
-      auto value =
-          filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
+      auto value = filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
       if (filter_expr == nullptr || (!value.IsNull() && value.GetAs<bool>())) {
         tuple_batch->push_back(tuple);
         rid_batch->push_back(rid);
@@ -109,4 +102,4 @@ auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   }
 }
 
-} // namespace bustub
+}  // namespace bustub

@@ -1,0 +1,33 @@
+--- src/include/execution/plans/aggregation_plan.h (after clang format)
++++ src/include/execution/plans/aggregation_plan.h
+@@ -153,25 +173,25 @@
+   std::vector<Value> aggregates_;
+ };
+ 
+-}  // namespace bustub
++} // namespace bustub
+ 
+ namespace std {
+ 
+ /** Implements std::hash on AggregateKey */
+-template <>
+-struct hash<bustub::AggregateKey> {
++template <> struct hash<bustub::AggregateKey> {
+   auto operator()(const bustub::AggregateKey &agg_key) const -> std::size_t {
+     size_t curr_hash = 0;
+     for (const auto &key : agg_key.group_bys_) {
+       if (!key.IsNull()) {
+-        curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&key));
++        curr_hash = bustub::HashUtil::CombineHashes(
++            curr_hash, bustub::HashUtil::HashValue(&key));
+       }
+     }
+     return curr_hash;
+   }
+ };
+ 
+-}  // namespace std
++} // namespace std
+ 
+ template <>
+ struct fmt::formatter<bustub::AggregationType> : formatter<std::string> {

@@ -27,7 +27,7 @@ namespace bustub {
  * @param frame_id The frame ID / index of the frame we are creating a header
  * for.
  */
-FrameHeader::FrameHeader(frame_id_t frame_id) : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0) { Reset(); }  
+FrameHeader::FrameHeader(frame_id_t frame_id) : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0) { Reset(); }
 
 /**
  * @brief Get a raw const pointer to the frame's data.
@@ -941,8 +941,7 @@ void BufferPoolManager::FlushAllPages() {
  * 若页面存在于内存中，返回该页面的固定计数；若页面不存在，返回 `std::nullopt`。
  */
 
-auto BufferPoolManager::GetPinCount(page_id_t page_id)
-    -> std::optional<size_t> {
+auto BufferPoolManager::GetPinCount(page_id_t page_id) -> std::optional<size_t> {
   std::lock_guard<std::mutex> lock(*bpm_latch_);
   if (page_table_.find(page_id) == page_table_.end()) {
     return std::nullopt;

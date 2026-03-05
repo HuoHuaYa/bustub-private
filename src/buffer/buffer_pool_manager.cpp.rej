@@ -1,0 +1,185 @@
+--- src/buffer/buffer_pool_manager.cpp
++++ src/buffer/buffer_pool_manager.cpp (after clang format)
+@@ -27,10 +27,7 @@
+  * @param frame_id The frame ID / index of the frame we are creating a header
+  * for.
+  */
+-FrameHeader::FrameHeader(frame_id_t frame_id)
+-    : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0) {
+-  Reset();
+-}
++FrameHeader::FrameHeader(frame_id_t frame_id) : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0) { Reset(); }
+ 
+ /**
+  * @brief Get a raw const pointer to the frame's data.
+@@ -81,10 +78,9 @@
+  * @param disk_manager The disk manager.
+  * @param log_manager The log manager. Please ignore this for P1.
+  */
+-BufferPoolManager::BufferPoolManager(size_t num_frames,
+-                                     DiskManager *disk_manager,
+-                                     LogManager *log_manager)
+-    : num_frames_(num_frames), next_page_id_(0),
++BufferPoolManager::BufferPoolManager(size_t num_frames, DiskManager *disk_manager, LogManager *log_manager)
++    : num_frames_(num_frames),
++      next_page_id_(0),
+       bpm_latch_(std::make_shared<std::mutex>()),
+       replacer_(std::make_shared<ArcReplacer>(num_frames)),
+       disk_scheduler_(std::make_shared<DiskScheduler>(disk_manager)),
+@@ -136,9 +132,7 @@
+  * @return The page ID of the newly allocated page.
+  */
+ // 安全的添加一个页
+-auto BufferPoolManager::NewPage() -> page_id_t {
+-  return next_page_id_.fetch_add(1);
+-}
++auto BufferPoolManager::NewPage() -> page_id_t { return next_page_id_.fetch_add(1); }
+ 
+ // 快速获得一个空闲的帧或发现无法获得空闲帧（调用前必须在其他地方上锁）
+ /**
+@@ -311,9 +305,7 @@
+ // 获取一个可选的，针对指定页面的writepageguard(buffer...manager只会与guard交互)
+ // 构造一个wpg，我需要pageid，replacer，diskscheduler，frameheader，锁
+ 
+-auto BufferPoolManager::CheckedWritePage(page_id_t page_id,
+-                                         AccessType access_type)
+-    -> std::optional<WritePageGuard> {
++auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_type) -> std::optional<WritePageGuard> {
+   // auto frame = GetFreeFrame(page_id, access_type);
+   // if (!frame) {  // 检查是否获取到帧
+   //   return std::nullopt;
+@@ -339,8 +331,7 @@
+     // replacer_->SetEvictable(target_frame_id, false);
+     lock.unlock();
+     frame_header->rwlatch_.lock();
+-    return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_,
+-                          disk_scheduler_);
++    return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
+   }
+   // std::cout<<"N!\n";
+   // 未命中
+@@ -357,8 +348,7 @@
+     }
+     target_frame_id = evict_opt.value();
+     // new
+-    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0,
+-                  "FATAL: Replacer evicted a pinned frame!!!");
++    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0, "FATAL: Replacer evicted a pinned frame!!!");
+     // 清理这个帧上的旧数据
+     auto frame_header = frames_[target_frame_id];
+     page_id_t old_page = frame_table_[target_frame_id];
+@@ -429,8 +419,7 @@
+   // replacer_->SetEvictable(target_frame_id, false);
+   lock.unlock();
+   frame_header->rwlatch_.lock();
+-  return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_,
+-                        disk_scheduler_);
++  return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
+ }
+ /**
+  * @brief Acquires an optional read-locked guard over a page of data. The user
+@@ -490,9 +479,7 @@
+  *  导致数据页无法加载时，返回`std::nullopt`；否则返回一个`ReadPageGuard`实例，该实例用于确保
+  *  调用者对目标数据页拥有**共享、只读**的访问权限。
+  */
+-auto BufferPoolManager::CheckedReadPage(page_id_t page_id,
+-                                        AccessType access_type)
+-    -> std::optional<ReadPageGuard> {
++auto BufferPoolManager::CheckedReadPage(page_id_t page_id, AccessType access_type) -> std::optional<ReadPageGuard> {
+   // auto frame = GetFreeFrame(page_id, access_type);
+   // // 检查是否成功获取
+   // if (!frame) {
+@@ -518,8 +505,7 @@
+     }
+     lock.unlock();
+     frame_header->rwlatch_.lock_shared();
+-    return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_,
+-                         disk_scheduler_);
++    return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
+   }
+ 
+   // 未命中
+@@ -537,8 +523,7 @@
+     }
+     target_frame_id = evict_opt.value();
+     // new
+-    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0,
+-                  "FATAL: Replacer evicted a pinned frame!!!");
++    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0, "FATAL: Replacer evicted a pinned frame!!!");
+     // 清理这个帧上的旧数据
+     auto frame_header = frames_[target_frame_id];
+     page_id_t old_page = frame_table_[target_frame_id];
+@@ -607,8 +592,7 @@
+   // replacer_->SetEvictable(target_frame_id, false);
+   lock.unlock();
+   frame_header->rwlatch_.lock_shared();
+-  return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_,
+-                       disk_scheduler_);
++  return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
+ }
+ 
+ /**
+@@ -649,15 +633,13 @@
+  * 一个页面守卫对象，确保调用者对目标页面的数据拥有**独占且可修改**的访问权限。
+  */
+ // 测试checkwritepageguard
+-auto BufferPoolManager::WritePage(page_id_t page_id, AccessType access_type)
+-    -> WritePageGuard {
++auto BufferPoolManager::WritePage(page_id_t page_id, AccessType access_type) -> WritePageGuard {
+   // std::cout << "WritePageGuard is nullopt" << '\n';
+   auto guard_opt = CheckedWritePage(page_id, access_type);
+ 
+   // std::cout<<"sucess got\n";
+   if (!guard_opt.has_value()) {
+-    fmt::println(stderr, "\n`CheckedWritePage` failed to bring in page {}\n",
+-                 page_id);
++    fmt::println(stderr, "\n`CheckedWritePage` failed to bring in page {}\n", page_id);
+     std::abort();
+   }
+ 
+@@ -683,13 +665,11 @@
+  * @return ReadPageGuard A page guard ensuring shared and read-only access to a
+  * page's data.
+  */
+-auto BufferPoolManager::ReadPage(page_id_t page_id, AccessType access_type)
+-    -> ReadPageGuard {
++auto BufferPoolManager::ReadPage(page_id_t page_id, AccessType access_type) -> ReadPageGuard {
+   auto guard_opt = CheckedReadPage(page_id, access_type);
+ 
+   if (!guard_opt.has_value()) {
+-    fmt::println(stderr, "\n`CheckedReadPage` failed to bring in page {}\n",
+-                 page_id);
++    fmt::println(stderr, "\n`CheckedReadPage` failed to bring in page {}\n", page_id);
+     std::abort();
+   }
+ 
+@@ -811,7 +791,7 @@
+   {
+     std::unique_lock<std::mutex> lock(*bpm_latch_);
+     auto it = page_table_.find(page_id);
+-    if (it == page_table_.end()) { // 不在内存
++    if (it == page_table_.end()) {  // 不在内存
+       return false;
+     }
+     frame_id = it->second;
+@@ -819,9 +799,9 @@
+     frame->pin_count_.fetch_add(1);
+     replacer_->SetEvictable(frame_id, false);
+   }
+-  std::unique_lock<std::shared_mutex> lock(frame->rwlatch_); // 写锁
++  std::unique_lock<std::shared_mutex> lock(frame->rwlatch_);  // 写锁
+   // bpm_lock.unlock();//释放全局锁
+-  if (frame->is_dirty_) { // 脏页写磁盘
++  if (frame->is_dirty_) {  // 脏页写磁盘
+     // debug
+     // page_id_t evicted_page_id = frame_table_[frame_id];
+     // LOG_INFO("Evicting and flushing dirty page: %d", evicted_page_id);
+@@ -976,7 +955,7 @@
+   return frame_header->pin_count_.load();
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub
+ 
+ // auto BufferPoolManager::GetFrameid(page_id_t page_id) -> frame_id_t {
+ //   std::scoped_lock latch(*bpm_latch_);

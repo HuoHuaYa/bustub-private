@@ -1,0 +1,111 @@
+--- src/buffer/arc_replacer.cpp
++++ src/buffer/arc_replacer.cpp (after clang format)
+@@ -116,7 +116,7 @@
+       if (alive_map_[fid]->evictable_) {
+         page_id_t pid = alive_map_[fid]->page_id_;
+         curr_size_--;
+-        Tlist.erase(std::next(idx).base()); // 不能直接删除反向迭代器
++        Tlist.erase(std::next(idx).base());  // 不能直接删除反向迭代器
+         // 但是base改正向，会导致往前挪一位，所以现在挪回来
+         ghost.push_front(pid);
+         ghost_map_[pid] = alive_map_[fid];
+@@ -189,12 +189,10 @@
+  * @param access_type type of access that was received. This parameter is only
+  * needed for leaderboard tests.
+  */
+-void ArcReplacer::RecordAccess(frame_id_t frame_id, page_id_t page_id,
+-                               [[maybe_unused]] AccessType access_type) {
++void ArcReplacer::RecordAccess(frame_id_t frame_id, page_id_t page_id, [[maybe_unused]] AccessType access_type) {
+   std::lock_guard<std::mutex> lock(latch_);
+   // 更新，增删自己（链表，status），更新p ,map status
+-  if (alive_map_.find(frame_id) == alive_map_.end() &&
+-      ghost_map_.find(page_id) == ghost_map_.end()) {
++  if (alive_map_.find(frame_id) == alive_map_.end() && ghost_map_.find(page_id) == ghost_map_.end()) {
+     // 从未别命中，加入mru
+     if (mru_.size() + mru_ghost_.size() == replacer_size_) {
+       if (!mru_ghost_.empty()) {
+@@ -204,8 +202,7 @@
+         mru_ghost_.pop_back();
+       }
+     } else {
+-      if (mru_.size() + mru_ghost_.size() + mfu_ghost_.size() ==
+-          2 * replacer_size_) {
++      if (mru_.size() + mru_ghost_.size() + mfu_ghost_.size() == 2 * replacer_size_) {
+         if (!mfu_ghost_.empty()) {
+           page_id_t pid = mfu_ghost_.back();
+           ghost_map_.erase(pid);
+@@ -214,12 +211,10 @@
+         }
+       }
+     }
+-    alive_map_[frame_id] =
+-        std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MRU);
++    alive_map_[frame_id] = std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MRU);
+     mru_.push_front(frame_id);
+     alive_map_iter_[frame_id] = mru_.begin();
+-  } else if (alive_map_.find(frame_id) != alive_map_.end() &&
+-             alive_map_[frame_id]->arc_status_ == ArcStatus::MRU) {
++  } else if (alive_map_.find(frame_id) != alive_map_.end() && alive_map_[frame_id]->arc_status_ == ArcStatus::MRU) {
+     // 在mru命中
+     alive_map_[frame_id]->arc_status_ = ArcStatus::MFU;
+     // auto idx = std::find(mru_.begin(), mru_.end(), frame_id);
+@@ -227,8 +222,7 @@
+     LFerase(mru_, frame_id);
+     mfu_.push_front(frame_id);
+     alive_map_iter_[frame_id] = mfu_.begin();
+-  } else if (ghost_map_.find(page_id) != ghost_map_.end() &&
+-             ghost_map_[page_id]->arc_status_ == ArcStatus::MRU_GHOST) {
++  } else if (ghost_map_.find(page_id) != ghost_map_.end() && ghost_map_[page_id]->arc_status_ == ArcStatus::MRU_GHOST) {
+     // mru_ghost 命中
+     if (mru_ghost_.size() >= mfu_ghost_.size()) {
+       mru_target_size_++;
+@@ -237,8 +231,7 @@
+     }
+     // alive
+     mru_target_size_ = std::min(mru_target_size_, replacer_size_);
+-    alive_map_[frame_id] =
+-        std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
++    alive_map_[frame_id] = std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
+     mfu_.push_front(frame_id);
+     alive_map_iter_[frame_id] = mfu_.begin();
+     // ghost
+@@ -247,20 +240,17 @@
+     // ghost_map_iter_.erase(page_id);
+     // auto idx = std::find(mru_ghost_.begin(), mru_ghost_.end(), page_id);
+     // mru_ghost_.erase(idx);
+-  } else if (ghost_map_.find(page_id) != ghost_map_.end() &&
+-             ghost_map_[page_id]->arc_status_ == ArcStatus::MFU_GHOST) {
++  } else if (ghost_map_.find(page_id) != ghost_map_.end() && ghost_map_[page_id]->arc_status_ == ArcStatus::MFU_GHOST) {
+     if (mfu_ghost_.size() >= mru_ghost_.size()) {
+       mru_target_size_--;
+     } else if (!mfu_ghost_.empty()) {
+       // 因为是size_t，因此没有负数，所以这里如果减成负数会溢出
+-      mru_target_size_ -=
+-          std::min(mru_target_size_, mru_ghost_.size() / mfu_ghost_.size());
++      mru_target_size_ -= std::min(mru_target_size_, mru_ghost_.size() / mfu_ghost_.size());
+     }
+ 
+     // alive
+     mru_target_size_ = std::max(mru_target_size_, static_cast<size_t>(0));
+-    alive_map_[frame_id] =
+-        std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
++    alive_map_[frame_id] = std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
+     mfu_.push_front(frame_id);
+     alive_map_iter_[frame_id] = mfu_.begin();
+     // auto idx = std::find(mfu_ghost_.begin(), mfu_ghost_.end(), page_id);
+@@ -268,8 +258,7 @@
+     // ghost
+     LPerase(mfu_ghost_, page_id);
+     ghost_map_.erase(page_id);
+-  } else if (alive_map_.find(frame_id) != alive_map_.end() &&
+-             alive_map_[frame_id]->arc_status_ == ArcStatus::MFU) {
++  } else if (alive_map_.find(frame_id) != alive_map_.end() && alive_map_[frame_id]->arc_status_ == ArcStatus::MFU) {
+     // auto idx = std::find(mfu_.begin(), mfu_.end(), frame_id);
+     // mfu_.erase(idx);
+     LFerase(mfu_, frame_id);
+@@ -356,4 +345,4 @@
+   std::lock_guard<std::mutex> lock(latch_);
+   return curr_size_;
+ }
+-} // namespace bustub
++}  // namespace bustub

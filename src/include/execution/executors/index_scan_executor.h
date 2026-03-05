@@ -27,20 +27,17 @@ namespace bustub {
  */
 
 class IndexScanExecutor : public AbstractExecutor {
-public:
+ public:
   IndexScanExecutor(ExecutorContext *exec_ctx, const IndexScanPlanNode *plan);
 
-  auto GetOutputSchema() const -> const Schema & override {
-    return plan_->OutputSchema();
-  }
+  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
-private:
+ private:
   /** The index scan plan node to be executed. */
   const IndexScanPlanNode *plan_;
 
@@ -52,4 +49,4 @@ private:
   // 无法一次性处理所有rids_，所以用cursor_来记录处理到谁了
   size_t cursor_{0};
 };
-} // namespace bustub
+}  // namespace bustub
