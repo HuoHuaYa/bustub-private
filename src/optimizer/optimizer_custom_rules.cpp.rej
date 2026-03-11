@@ -1,0 +1,18 @@
+--- src/optimizer/optimizer_custom_rules.cpp
++++ src/optimizer/optimizer_custom_rules.cpp (after clang format)
+@@ -21,8 +21,7 @@
+ 
+ namespace bustub {
+ 
+-auto Optimizer::OptimizeCustom(const AbstractPlanNodeRef &plan)
+-    -> AbstractPlanNodeRef {
++auto Optimizer::OptimizeCustom(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
+   auto p = plan;
+   p = OptimizeMergeProjection(p);
+   p = OptimizeMergeFilterNLJ(p);
+@@ -34,4 +33,4 @@
+   return p;
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

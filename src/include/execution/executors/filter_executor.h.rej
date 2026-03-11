@@ -1,0 +1,35 @@
+--- src/include/execution/executors/filter_executor.h
++++ src/include/execution/executors/filter_executor.h (after clang format)
+@@ -27,22 +27,19 @@
+  * The FilterExecutor executor executes a filter.
+  */
+ class FilterExecutor : public AbstractExecutor {
+-public:
++ public:
+   FilterExecutor(ExecutorContext *exec_ctx, const FilterPlanNode *plan,
+                  std::unique_ptr<AbstractExecutor> &&child_executor);
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the filter plan */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+-private:
++ private:
+   /** The filter plan node to be executed */
+   const FilterPlanNode *plan_;
+ 
+@@ -56,4 +53,4 @@
+   /** child tuple batch offset */
+   size_t child_offset_ = 0;
+ };
+-} // namespace bustub
++}  // namespace bustub

@@ -33,15 +33,7 @@
                                     size_t batch_size) -> bool {
    tuple_batch->clear();
    rid_batch->clear();
-@@ -70,7 +65,6 @@
-   // std::cout<<"next\nnext\nnext\n";
-   // assert(static_cast<int>(emit_cnt) < 0);
-   while (tuple_batch->size() < batch_size && !is_left_done_) {
--
-     // 阶段一：处理当前左表元组查出来的一堆 RID
-     // 为什么我不直接while把数组所有的处理完呢
-     // 因为一次元组数量有限，不一定卸的完
-@@ -94,10 +88,10 @@
+@@ -93,10 +88,10 @@
        rid_batch->emplace_back(RID{});
        emitted = true;
        // emit_cnt++;
@@ -54,7 +46,7 @@
      }
  
      // 阶段二：当前的 RID 全处理完了（或者本来就是空的），判断是否需要补 NULL
-@@ -113,8 +107,7 @@
+@@ -112,8 +107,7 @@
            values.push_back(current_left_tuple.GetValue(&left_schema, i));
          }
          for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
@@ -64,7 +56,7 @@
          }
  
          tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
-@@ -140,7 +133,7 @@
+@@ -139,7 +133,7 @@
        }
        if (left_tuple_batch_.empty()) {
          is_left_done_ = true;
@@ -73,7 +65,7 @@
        }
        left_idx_ = 0;
      }
-@@ -153,8 +146,7 @@
+@@ -152,8 +146,7 @@
      //       << " | BatchSize: " << left_tuple_batch_.size() << std::endl;
      // B+ 树搜寻核心逻辑
      // 获取查询条件：比如 ON t1.id = t2.id，这行代码会提取出 t1.id 的值
@@ -83,7 +75,7 @@
  
      // 构造用来查询的 Tuple：BusTub 的索引要求你传进去的 Key 也是一个 Tuple 格式
      std::vector<Value> probe_values{probe_value};
-@@ -162,8 +154,7 @@
+@@ -161,8 +154,7 @@
  
      // 去 B+ 树里查出来的所有 RID 会被填充进 match_rids_
      match_rids_.clear();
@@ -93,7 +85,7 @@
  
      match_idx_ = 0;
    }
-@@ -171,4 +162,4 @@
+@@ -170,4 +162,4 @@
    return emitted;
  }
  

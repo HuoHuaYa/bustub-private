@@ -19,12 +19,10 @@
 
 namespace bustub {
 
-#define B_PLUS_TREE_INTERNAL_PAGE_TYPE                                         \
-  BPlusTreeInternalPage<KeyType, ValueType, KeyComparator>
+#define B_PLUS_TREE_INTERNAL_PAGE_TYPE BPlusTreeInternalPage<KeyType, ValueType, KeyComparator>
 #define INTERNAL_PAGE_HEADER_SIZE 12
-#define INTERNAL_PAGE_SLOT_CNT                                                 \
-  ((BUSTUB_PAGE_SIZE - INTERNAL_PAGE_HEADER_SIZE) /                            \
-   ((int)(sizeof(KeyType) + sizeof(ValueType)))) // NOLINT
+#define INTERNAL_PAGE_SLOT_CNT \
+  ((BUSTUB_PAGE_SIZE - INTERNAL_PAGE_HEADER_SIZE) / ((int)(sizeof(KeyType) + sizeof(ValueType))))  // NOLINT
 
 /**
  * Store `n` indexed keys and `n + 1` child pointers (page_id) within internal
@@ -48,7 +46,7 @@ namespace bustub {
 // 因为k(i) <= k < k(i+1) 所以第一个KEY是无效的，因为第一个人  < k(2) , 没有下界
 INDEX_TEMPLATE_ARGUMENTS
 class BPlusTreeInternalPage : public BPlusTreePage {
-public:
+ public:
   // Delete all constructor / destructor to ensure memory safety
   BPlusTreeInternalPage() = delete;
   BPlusTreeInternalPage(const BPlusTreeInternalPage &other) = delete;
@@ -70,12 +68,9 @@ public:
   // 值的类型
   void SetValueAt(int index, const ValueType &value);
   //
-  auto Lookup(const KeyType &key, const KeyComparator &comparator) const
-      -> ValueType;
-  auto InsertNodeAfter(const ValueType &old_value, const KeyType &new_key,
-                       const ValueType &new_value) -> int;
-  void PopulateNewRoot(const ValueType &old_value, const KeyType &new_key,
-                       const ValueType &new_value);
+  auto Lookup(const KeyType &key, const KeyComparator &comparator) const -> ValueType;
+  auto InsertNodeAfter(const ValueType &old_value, const KeyType &new_key, const ValueType &new_value) -> int;
+  void PopulateNewRoot(const ValueType &old_value, const KeyType &new_key, const ValueType &new_value);
   void Split(B_PLUS_TREE_INTERNAL_PAGE_TYPE *recipient, KeyType *split_key);
   void PushFront(const KeyType &key, const ValueType &value);
   void PushBack(const KeyType &key, const ValueType &value);
@@ -108,7 +103,7 @@ public:
     return kstr;
   }
 
-private:
+ private:
   // Array members for page data.
   // key装的是路标， value装的是子节点对应的page页面
   KeyType key_array_[INTERNAL_PAGE_SLOT_CNT];
@@ -117,4 +112,4 @@ private:
   // needed
 };
 
-} // namespace bustub
+}  // namespace bustub

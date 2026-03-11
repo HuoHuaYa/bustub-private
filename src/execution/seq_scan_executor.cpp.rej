@@ -1,0 +1,98 @@
+--- src/execution/seq_scan_executor.cpp
++++ src/execution/seq_scan_executor.cpp (after clang format)
+@@ -12,8 +12,8 @@
+ 
+ #include "execution/executors/seq_scan_executor.h"
+ #include "common/macros.h"
++#include "concurrency/transaction_manager.h"
+ #include "execution/execution_common.h"
+-#include "concurrency/transaction_manager.h"
+ namespace bustub {
+ 
+ /**
+@@ -21,8 +21,7 @@
+  * @param exec_ctx The executor context
+  * @param plan The sequential scan plan to be executed
+  */
+-SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx,
+-                                 const SeqScanPlanNode *plan)
++SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
+     : AbstractExecutor(exec_ctx), plan_(plan) {}
+ 
+ /** Initialize the sequential scan */
+@@ -50,8 +49,7 @@
+  * BUSTUB_BATCH_SIZE)
+  * @return `true` if a tuple was produced, `false` if there are no more tuples
+  */
+-auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
+-                           std::vector<bustub::RID> *rid_batch,
++auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
+                            size_t batch_size) -> bool {
+   tuple_batch->clear();
+   rid_batch->clear();
+@@ -62,7 +60,7 @@
+   // 只要表还没扫完并且批次还没装满就一直扫
+   while (!iter_->IsEnd() && tuple_batch->size() < batch_size) {
+     auto rid = iter_->GetRID();
+-    
++
+     // 获取基线数据和link
+     auto [meta, base_tuple, undo_link] = GetTupleAndUndoLink(txn_mgr, table_info_->table_.get(), rid);
+ 
+@@ -78,9 +76,10 @@
+           auto value = plan_->filter_predicate_->Evaluate(&base_tuple, table_info_->schema_);
+           is_match = !value.IsNull() && value.GetAs<bool>();
+         }
+-        if (is_match)
+-        {tuple_batch->push_back(base_tuple);
+-        rid_batch->push_back(rid);}
++        if (is_match) {
++          tuple_batch->push_back(base_tuple);
++          rid_batch->push_back(rid);
++        }
+       }
+       // 在sql被删除后，不应该返回null应该直接滚蛋
+       // 如果 is_deleted_ 是 true，说明是个墓碑，直接 continue 看下一行
+@@ -96,11 +95,11 @@
+     while (current_link.has_value() && current_link->IsValid()) {
+       auto undo_log = txn_mgr->GetUndoLog(*current_link);
+       logs_to_apply.push_back(undo_log);
+-      
++
+       // 找到最近的可见节点
+       if (undo_log.ts_ <= txn->GetReadTs()) {
+         found_visible_version = true;
+-        break; 
++        break;
+       }
+       current_link = undo_log.prev_version_;
+     }
+@@ -108,7 +107,7 @@
+     // 成功匹配启动重构
+     if (found_visible_version) {
+       auto history_tuple = ReconstructTuple(&table_info_->schema_, base_tuple, meta, logs_to_apply);
+-      
++
+       // 重构成功
+       if (history_tuple.has_value()) {
+         bool is_match = true;
+@@ -116,9 +115,10 @@
+           auto value = plan_->filter_predicate_->Evaluate(&history_tuple.value(), table_info_->schema_);
+           is_match = !value.IsNull() && value.GetAs<bool>();
+         }
+-        if(is_match)
+-        {tuple_batch->push_back(history_tuple.value());
+-        rid_batch->push_back(rid);}
++        if (is_match) {
++          tuple_batch->push_back(history_tuple.value());
++          rid_batch->push_back(rid);
++        }
+       }
+     }
+     // 如果found_visible_version是 false，或者 history_tuple是nullopt，
+@@ -128,4 +128,4 @@
+   return !tuple_batch->empty();
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

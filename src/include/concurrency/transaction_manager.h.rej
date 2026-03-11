@@ -1,0 +1,71 @@
+--- src/include/concurrency/transaction_manager.h
++++ src/include/concurrency/transaction_manager.h (after clang format)
+@@ -15,7 +15,7 @@
+ #include <atomic>
+ #include <functional>
+ #include <memory>
+-#include <mutex> // NOLINT
++#include <mutex>  // NOLINT
+ #include <optional>
+ #include <shared_mutex>
+ #include <tuple>
+@@ -35,22 +35,18 @@
+  * TransactionManager keeps track of all the transactions running in the system.
+  */
+ class TransactionManager {
+-public:
++ public:
+   TransactionManager() = default;
+   ~TransactionManager() = default;
+ 
+-  auto
+-  Begin(IsolationLevel isolation_level = IsolationLevel::SNAPSHOT_ISOLATION)
+-      -> Transaction *;
++  auto Begin(IsolationLevel isolation_level = IsolationLevel::SNAPSHOT_ISOLATION) -> Transaction *;
+ 
+   auto Commit(Transaction *txn) -> bool;
+ 
+   void Abort(Transaction *txn);
+ 
+-  auto
+-  UpdateUndoLink(RID rid, std::optional<UndoLink> prev_link,
+-                 std::function<bool(std::optional<UndoLink>)> &&check = nullptr)
+-      -> bool;
++  auto UpdateUndoLink(RID rid, std::optional<UndoLink> prev_link,
++                      std::function<bool(std::optional<UndoLink>)> &&check = nullptr) -> bool;
+ 
+   auto GetUndoLink(RID rid) -> std::optional<UndoLink>;
+ 
+@@ -99,7 +95,7 @@
+ 
+   std::atomic<txn_id_t> next_txn_id_{TXN_START_ID};
+ 
+-private:
++ private:
+   auto VerifyTxn(Transaction *txn) -> bool;
+ };
+ 
+@@ -107,17 +103,15 @@
+  * @brief Update the tuple and its undo link in the table heap atomically.
+  */
+ auto UpdateTupleAndUndoLink(
+-    TransactionManager *txn_mgr, RID rid, std::optional<UndoLink> undo_link,
+-    TableHeap *table_heap, Transaction *txn, const TupleMeta &meta,
+-    const Tuple &tuple,
+-    std::function<bool(const TupleMeta &meta, const Tuple &tuple, RID rid,
+-                       std::optional<UndoLink>)> &&check = nullptr) -> bool;
++    TransactionManager *txn_mgr, RID rid, std::optional<UndoLink> undo_link, TableHeap *table_heap, Transaction *txn,
++    const TupleMeta &meta, const Tuple &tuple,
++    std::function<bool(const TupleMeta &meta, const Tuple &tuple, RID rid, std::optional<UndoLink>)> &&check = nullptr)
++    -> bool;
+ 
+ /**
+  * @brief Get the tuple and its undo link in the table heap atomically.
+  */
+-auto GetTupleAndUndoLink(TransactionManager *txn_mgr, TableHeap *table_heap,
+-                         RID rid)
++auto GetTupleAndUndoLink(TransactionManager *txn_mgr, TableHeap *table_heap, RID rid)
+     -> std::tuple<TupleMeta, Tuple, std::optional<UndoLink>>;
+ 
+-} // namespace bustub
++}  // namespace bustub

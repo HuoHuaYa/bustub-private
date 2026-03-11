@@ -14,7 +14,7 @@ namespace bustub {
  * Supports variable-length tuples.
  */
 class IntermediateResultPage {
-public:
+ public:
   // 初始化一个全新的空页
   void Init() {
     num_tuples_ = 0;
@@ -36,7 +36,7 @@ public:
     // header 大小 (8字节) + 现有的所有 slot 大小 + 即将新增的 1 个 slot 大小
     uint32_t used_header_space = 8 + (num_tuples_ + 1) * sizeof(Slot);
     if (used_header_space + serialized_size > next_free_ptr_) {
-      return false; // 空间不够，插入失败
+      return false;  // 空间不够，插入失败
     }
 
     next_free_ptr_ -= serialized_size;
@@ -47,10 +47,9 @@ public:
     tuple.SerializeTo(target_ptr);
 
     // 记录槽位Slot
-    Slot *slot_array =
-        reinterpret_cast<Slot *>(reinterpret_cast<char *>(this) + 8);
+    Slot *slot_array = reinterpret_cast<Slot *>(reinterpret_cast<char *>(this) + 8);
     slot_array[num_tuples_].offset_ = next_free_ptr_;
-    slot_array[num_tuples_].size_ = serialized_size; // 记录总的物理占用大小
+    slot_array[num_tuples_].size_ = serialized_size;  // 记录总的物理占用大小
 
     num_tuples_++;
     return true;
@@ -60,24 +59,21 @@ public:
     BUSTUB_ASSERT(tuple_index < num_tuples_, "Tuple index out of range");
 
     // 找到对应的 Slot，优雅的找到Slot的数组指针
-    const Slot *slot_array = reinterpret_cast<const Slot *>(
-        reinterpret_cast<const char *>(this) + 8);
+    const Slot *slot_array = reinterpret_cast<const Slot *>(reinterpret_cast<const char *>(this) + 8);
     const Slot &slot = slot_array[tuple_index];
 
     // 找到tuple绝对地址
-    const char *tuple_data_ptr =
-        reinterpret_cast<const char *>(this) + slot.offset_;
+    const char *tuple_data_ptr = reinterpret_cast<const char *>(this) + slot.offset_;
 
     // 直接调用 tuple.cpp 里提供的 DeserializeFrom，它会自动读取前 4 个字节作为
     // size，并拷贝后续数据！
     tuple->DeserializeFrom(tuple_data_ptr);
   }
 
-private:
+ private:
   // 必须严格控制 Header 的大小
-  uint32_t num_tuples_; // 已经插入了多少个 Tuple
-  uint32_t
-      next_free_ptr_; // 数据区域是从后往前长的，这个指针记录数据的"最低水位线"
+  uint32_t num_tuples_;     // 已经插入了多少个 Tuple
+  uint32_t next_free_ptr_;  // 数据区域是从后往前长的，这个指针记录数据的"最低水位线"
 
   // 槽位结构：记录每个 Tuple 在页内的起始位置和大小
   struct Slot {
@@ -89,4 +85,4 @@ private:
   // char page_data_[0];
 };
 
-} // namespace bustub
+}  // namespace bustub

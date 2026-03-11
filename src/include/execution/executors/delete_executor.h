@@ -28,22 +28,19 @@ namespace bustub {
  * Deleted values are always pulled from a child.
  */
 class DeleteExecutor : public AbstractExecutor {
-public:
+ public:
   DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
                  std::unique_ptr<AbstractExecutor> &&child_executor);
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the delete */
-  auto GetOutputSchema() const -> const Schema & override {
-    return plan_->OutputSchema();
-  };
+  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
 
-private:
+ private:
   /** The delete plan node to be executed */
   const DeletePlanNode *plan_;
 
@@ -55,4 +52,4 @@ private:
   std::vector<std::shared_ptr<IndexInfo>> table_indexes_;
   bool has_deleted_{false};
 };
-} // namespace bustub
+}  // namespace bustub

@@ -1,0 +1,34 @@
+--- src/execution/limit_executor.cpp
++++ src/execution/limit_executor.cpp (after clang format)
+@@ -21,11 +21,9 @@
+  * @param plan The limit plan to be executed
+  * @param child_executor The child executor from which limited tuples are pulled
+  */
+-LimitExecutor::LimitExecutor(ExecutorContext *exec_ctx,
+-                             const LimitPlanNode *plan,
++LimitExecutor::LimitExecutor(ExecutorContext *exec_ctx, const LimitPlanNode *plan,
+                              std::unique_ptr<AbstractExecutor> &&child_executor)
+-    : AbstractExecutor(exec_ctx), plan_(plan),
+-      child_executor_(std::move(child_executor)) {
++    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+   // UNIMPLEMENTED("TODO(P3): Add implementation.");
+ }
+ 
+@@ -43,9 +41,8 @@
+  * BUSTUB_BATCH_SIZE)
+  * @return `true` if a tuple was produced, `false` if there are no more tuples
+  */
+-auto LimitExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
+-                         std::vector<bustub::RID> *rid_batch, size_t batch_size)
+-    -> bool {
++auto LimitExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
++                         size_t batch_size) -> bool {
+   tuple_batch->clear();
+   rid_batch->clear();
+ 
+@@ -80,4 +77,4 @@
+   return true;
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

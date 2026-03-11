@@ -27,19 +27,17 @@ namespace bustub {
  * @param right_executor The child executor that produces tuple for the right
  * side of join
  */
-NestedLoopJoinExecutor::NestedLoopJoinExecutor(
-    ExecutorContext *exec_ctx, const NestedLoopJoinPlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&left_executor,
-    std::unique_ptr<AbstractExecutor> &&right_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan),
+NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const NestedLoopJoinPlanNode *plan,
+                                               std::unique_ptr<AbstractExecutor> &&left_executor,
+                                               std::unique_ptr<AbstractExecutor> &&right_executor)
+    : AbstractExecutor(exec_ctx),
+      plan_(plan),
       left_executor_(std::move(left_executor)),
       right_executor_(std::move(right_executor)) {
-  if (plan->GetJoinType() != JoinType::LEFT &&
-      plan->GetJoinType() != JoinType::INNER) {
+  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
     // Note for Spring 2025: You ONLY need to implement left join and inner
     // join.
-    throw bustub::NotImplementedException(
-        fmt::format("join type {} not supported", plan->GetJoinType()));
+    throw bustub::NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
   }
   // UNIMPLEMENTED("TODO(P3): Add implementation.");
 }
@@ -71,8 +69,7 @@ void NestedLoopJoinExecutor::Init() {
  * BUSTUB_BATCH_SIZE)
  * @return `true` if a tuple was produced, `false` if there are no more tuples
  */
-auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                                  std::vector<bustub::RID> *rid_batch,
+auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                                   size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -100,7 +97,7 @@ auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
         is_left_done_ = true;
         break;
       }
-      left_idx_ = 0; // 重置左表游标
+      left_idx_ = 0;  // 重置左表游标
 
       // 左表换了新的一行，之前右表的匹配状态全部作废，必须重置！
       is_current_left_matched_ = false;
@@ -132,8 +129,7 @@ auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       if (!has_right_data || right_tuple_batch_.empty()) {
         // !:内表转完了一整圈拉不到数据了，此时该怎么办？
         // 如果是 LEFT JOIN，且左表这行数据在整个右表里一个都没匹配上
-        if (plan_->GetJoinType() == JoinType::LEFT &&
-            !is_current_left_matched_) {
+        if (plan_->GetJoinType() == JoinType::LEFT && !is_current_left_matched_) {
           // 如果是左连接，但是没有匹配上，右表就是null
           std::vector<Value> values;
 
@@ -143,8 +139,7 @@ auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
           }
           // 右表全部填 NULL（必须用对应列的正确类型去生成 NULL！）
           for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
-            values.push_back(ValueFactory::GetNullValueByType(
-                right_schema.GetColumn(i).GetType()));
+            values.push_back(ValueFactory::GetNullValueByType(right_schema.GetColumn(i).GetType()));
           }
 
           tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
@@ -182,8 +177,7 @@ auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
     if (predicate != nullptr) {
       // 必须用抽象表达树函数：EvaluateJoin，因为它知道怎么从左、右两个独立的
       // Tuple 和 Schema 里提取字段
-      Value match_val = predicate->EvaluateJoin(
-          &current_left_tuple, left_schema, &current_right_tuple, right_schema);
+      Value match_val = predicate->EvaluateJoin(&current_left_tuple, left_schema, &current_right_tuple, right_schema);
       // SQL 里的 NULL 逻辑：如果有任何 NULL 导致结果不是 true，就不算匹配
       is_match = (!match_val.IsNull() && match_val.GetAs<bool>());
     }
@@ -204,7 +198,7 @@ auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       }
 
       tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
-      rid_batch->emplace_back(RID{}); // Join 操作是虚拟表，无需返回真实 RID
+      rid_batch->emplace_back(RID{});  // Join 操作是虚拟表，无需返回真实 RID
       emitted = true;
       // emit_cnt++;
     }
@@ -218,4 +212,4 @@ auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   return emitted;
 }
 
-} // namespace bustub
+}  // namespace bustub

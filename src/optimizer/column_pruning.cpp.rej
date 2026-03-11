@@ -1,0 +1,15 @@
+--- src/optimizer/column_pruning.cpp
++++ src/optimizer/column_pruning.cpp (after clang format)
+@@ -20,10 +20,9 @@
+  * @return the new plan with column pruning
+  * @note You may use this function to implement column pruning optimization.
+  */
+-auto Optimizer::OptimizeColumnPruning(const bustub::AbstractPlanNodeRef &plan)
+-    -> AbstractPlanNodeRef {
++auto Optimizer::OptimizeColumnPruning(const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
+   // Your code here
+   return plan;
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

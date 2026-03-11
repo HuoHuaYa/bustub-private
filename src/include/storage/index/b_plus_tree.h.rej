@@ -1,0 +1,81 @@
+--- src/include/storage/index/b_plus_tree.h
++++ src/include/storage/index/b_plus_tree.h (after clang format)
+@@ -58,7 +58,7 @@
+  */
+ // context帮助你追踪你正在修改或访问的页面
+ class Context {
+-public:
++ public:
+   // When you insert into / remove from the B+ tree, store the write guard of
+   // header page here. Remember to drop the header page guard and set it to
+   // nullopt when you want to unlock all.
+@@ -78,9 +78,7 @@
+   // 当你获取值时，可能需要使用这个，但不是必要的
+   std::deque<ReadPageGuard> read_set_;
+ 
+-  auto IsRootPage(page_id_t page_id) -> bool {
+-    return page_id == root_page_id_;
+-  }
++  auto IsRootPage(page_id_t page_id) -> bool { return page_id == root_page_id_; }
+   void Clear() {
+     header_page_ = std::nullopt;
+     write_set_.clear();
+@@ -94,17 +92,14 @@
+ FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN
+ class BPlusTree {
+   using InternalPage = BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>;
+-  using LeafPage =
+-      BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>;
++  using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>;
+   // using InternalPage = BPlusTreeInternalPage<KeyType, page_id_t,
+   // KeyComparator>; using LeafPage = BPlusTreeLeafPage<KeyType, ValueType,
+   // KeyComparator>;
+ 
+-public:
+-  explicit BPlusTree(std::string name, page_id_t header_page_id,
+-                     BufferPoolManager *buffer_pool_manager,
+-                     const KeyComparator &comparator,
+-                     int leaf_max_size = LEAF_PAGE_SLOT_CNT,
++ public:
++  explicit BPlusTree(std::string name, page_id_t header_page_id, BufferPoolManager *buffer_pool_manager,
++                     const KeyComparator &comparator, int leaf_max_size = LEAF_PAGE_SLOT_CNT,
+                      int internal_max_size = INTERNAL_PAGE_SLOT_CNT);
+ 
+   // Returns true if this B+ tree has no keys and values.
+@@ -148,17 +143,14 @@
+ 
+   // 额外添加：
+   // 给你key，context，去把叶子节点给我找过来
+-  auto FindLeafForRead(const KeyType &key, Context *context) const
+-      -> const LeafPage *;
++  auto FindLeafForRead(const KeyType &key, Context *context) const -> const LeafPage *;
+   auto GetRootPageIdForRead(Context *ctx) const -> page_id_t;
+   auto FindLeafForWrite(const KeyType &key, Context *ctx) -> WritePageGuard;
+-  void InsertIntoParent(page_id_t old_page_id, const KeyType &key,
+-                        page_id_t new_page_id, Context *ctx);
++  void InsertIntoParent(page_id_t old_page_id, const KeyType &key, page_id_t new_page_id, Context *ctx);
+   auto FindLeafForRemove(const KeyType &key, Context *ctx) -> WritePageGuard;
+ 
+-private:
+-  void ToGraph(page_id_t page_id, const BPlusTreePage *page,
+-               std::ofstream &out);
++ private:
++  void ToGraph(page_id_t page_id, const BPlusTreePage *page, std::ofstream &out);
+ 
+   void PrintTree(page_id_t page_id, const BPlusTreePage *page);
+ 
+@@ -167,7 +159,7 @@
+   // member variable
+   std::string index_name_;
+   KeyComparator comparator_;
+-  std::vector<std::string> log; // NOLINT
++  std::vector<std::string> log;  // NOLINT
+   int leaf_max_size_;
+   int internal_max_size_;
+   page_id_t header_page_id_;
+@@ -210,4 +202,4 @@
+   }
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub

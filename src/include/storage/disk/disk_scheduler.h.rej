@@ -1,0 +1,42 @@
+--- src/include/storage/disk/disk_scheduler.h
++++ src/include/storage/disk/disk_scheduler.h (after clang format)
+@@ -12,9 +12,9 @@
+ 
+ #pragma once
+ 
+-#include <future> // NOLINT
++#include <future>  // NOLINT
+ #include <optional>
+-#include <thread> // NOLINT
++#include <thread>  // NOLINT
+ #include <vector>
+ 
+ #include "common/channel.h"
+@@ -54,7 +54,7 @@
+  * its destructor.
+  */
+ class DiskScheduler {
+-public:
++ public:
+   explicit DiskScheduler(DiskManager *disk_manager);
+   ~DiskScheduler();
+ 
+@@ -83,10 +83,9 @@
+    */
+   void DeallocatePage(page_id_t page_id) { disk_manager_->DeletePage(page_id); }
+ 
+-private:
++ private:
+   /** Pointer to the disk manager. */
+-  DiskManager *disk_manager_
+-      __attribute__((__unused__)); // 执行磁盘操作的成员（指针）
++  DiskManager *disk_manager_ __attribute__((__unused__));  // 执行磁盘操作的成员（指针）
+   //__attribute__((__unused__))表示抑制编译器对该变量可能未被使用的警告
+   /** A shared queue to concurrently schedule and process requests. When the
+    * DiskScheduler's destructor is called, `std::nullopt` is put into the queue
+@@ -98,4 +97,4 @@
+   std::optional<std::thread> background_thread_;
+   // optional包裹的thread，后台线程对象
+ };
+-} // namespace bustub
++}  // namespace bustub

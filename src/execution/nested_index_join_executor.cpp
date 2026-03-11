@@ -22,17 +22,13 @@ namespace bustub {
  * @param plan the nested index join plan to be executed
  * @param child_executor the outer table
  */
-NestedIndexJoinExecutor::NestedIndexJoinExecutor(
-    ExecutorContext *exec_ctx, const NestedIndexJoinPlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan),
-      child_executor_(std::move(child_executor)) {
-  if (plan->GetJoinType() != JoinType::LEFT &&
-      plan->GetJoinType() != JoinType::INNER) {
+NestedIndexJoinExecutor::NestedIndexJoinExecutor(ExecutorContext *exec_ctx, const NestedIndexJoinPlanNode *plan,
+                                                 std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
     // Note for Spring 2025: You ONLY need to implement left join and inner
     // join.
-    throw bustub::NotImplementedException(
-        fmt::format("join type {} not supported", plan->GetJoinType()));
+    throw bustub::NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
   }
   // UNIMPLEMENTED("TODO(P3): Add implementation.");
 }
@@ -58,8 +54,7 @@ void NestedIndexJoinExecutor::Init() {
 }
 // 判断有没有处理好的rid没有装走，然后判断rid全没有，left 就要输出null的情况
 // 最后就是正常的lefttuple里寻找配对的rid
-auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                                   std::vector<bustub::RID> *rid_batch,
+auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                                    size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
@@ -93,10 +88,10 @@ auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       rid_batch->emplace_back(RID{});
       emitted = true;
       // emit_cnt++;
-      is_current_left_matched_ = true; // 匹配成功！
+      is_current_left_matched_ = true;  // 匹配成功！
 
       match_idx_++;
-      continue; // 优先把这一批 RID 处理完
+      continue;  // 优先把这一批 RID 处理完
     }
 
     // 阶段二：当前的 RID 全处理完了（或者本来就是空的），判断是否需要补 NULL
@@ -112,8 +107,7 @@ auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
           values.push_back(current_left_tuple.GetValue(&left_schema, i));
         }
         for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
-          values.push_back(ValueFactory::GetNullValueByType(
-              right_schema.GetColumn(i).GetType()));
+          values.push_back(ValueFactory::GetNullValueByType(right_schema.GetColumn(i).GetType()));
         }
 
         tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
@@ -139,7 +133,7 @@ auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       }
       if (left_tuple_batch_.empty()) {
         is_left_done_ = true;
-        break; // 彻底结束
+        break;  // 彻底结束
       }
       left_idx_ = 0;
     }
@@ -152,8 +146,7 @@ auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
     //       << " | BatchSize: " << left_tuple_batch_.size() << std::endl;
     // B+ 树搜寻核心逻辑
     // 获取查询条件：比如 ON t1.id = t2.id，这行代码会提取出 t1.id 的值
-    Value probe_value =
-        plan_->KeyPredicate()->Evaluate(&current_left_tuple, left_schema);
+    Value probe_value = plan_->KeyPredicate()->Evaluate(&current_left_tuple, left_schema);
 
     // 构造用来查询的 Tuple：BusTub 的索引要求你传进去的 Key 也是一个 Tuple 格式
     std::vector<Value> probe_values{probe_value};
@@ -161,8 +154,7 @@ auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
 
     // 去 B+ 树里查出来的所有 RID 会被填充进 match_rids_
     match_rids_.clear();
-    index_info_->index_->ScanKey(probe_tuple, &match_rids_,
-                                 exec_ctx_->GetTransaction());
+    index_info_->index_->ScanKey(probe_tuple, &match_rids_, exec_ctx_->GetTransaction());
 
     match_idx_ = 0;
   }
@@ -170,4 +162,4 @@ auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
   return emitted;
 }
 
-} // namespace bustub
+}  // namespace bustub

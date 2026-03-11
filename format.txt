@@ -1,2337 +1,1656 @@
 > make check-format -j$(nproc)
---- /autograder/source/bustub/src/buffer/arc_replacer.cpp
-+++ /autograder/source/bustub/src/buffer/arc_replacer.cpp (after clang format)
-@@ -12,9 +12,9 @@
- //===----------------------------------------------------------------------===//
- 
- #include "buffer/arc_replacer.h"
--#include "common/config.h"
- #include <algorithm>
- #include <optional>
-+#include "common/config.h"
- 
- namespace bustub {
- 
-@@ -116,7 +116,7 @@
-       if (alive_map_[fid]->evictable_) {
-         page_id_t pid = alive_map_[fid]->page_id_;
-         curr_size_--;
--        Tlist.erase(std::next(idx).base()); // 不能直接删除反向迭代器
-+        Tlist.erase(std::next(idx).base());  // 不能直接删除反向迭代器
-         // 但是base改正向，会导致往前挪一位，所以现在挪回来
-         ghost.push_front(pid);
-         ghost_map_[pid] = alive_map_[fid];
-@@ -189,12 +189,10 @@
-  * @param access_type type of access that was received. This parameter is only
-  * needed for leaderboard tests.
-  */
--void ArcReplacer::RecordAccess(frame_id_t frame_id, page_id_t page_id,
--                               [[maybe_unused]] AccessType access_type) {
-+void ArcReplacer::RecordAccess(frame_id_t frame_id, page_id_t page_id, [[maybe_unused]] AccessType access_type) {
-   std::lock_guard<std::mutex> lock(latch_);
-   // 更新，增删自己（链表，status），更新p ,map status
--  if (alive_map_.find(frame_id) == alive_map_.end() &&
--      ghost_map_.find(page_id) == ghost_map_.end()) {
-+  if (alive_map_.find(frame_id) == alive_map_.end() && ghost_map_.find(page_id) == ghost_map_.end()) {
-     // 从未别命中，加入mru
-     if (mru_.size() + mru_ghost_.size() == replacer_size_) {
-       if (!mru_ghost_.empty()) {
-@@ -204,8 +202,7 @@
-         mru_ghost_.pop_back();
-       }
-     } else {
--      if (mru_.size() + mru_ghost_.size() + mfu_ghost_.size() ==
--          2 * replacer_size_) {
-+      if (mru_.size() + mru_ghost_.size() + mfu_ghost_.size() == 2 * replacer_size_) {
-         if (!mfu_ghost_.empty()) {
-           page_id_t pid = mfu_ghost_.back();
-           ghost_map_.erase(pid);
-@@ -214,12 +211,10 @@
-         }
-       }
-     }
--    alive_map_[frame_id] =
--        std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MRU);
-+    alive_map_[frame_id] = std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MRU);
-     mru_.push_front(frame_id);
-     alive_map_iter_[frame_id] = mru_.begin();
--  } else if (alive_map_.find(frame_id) != alive_map_.end() &&
--             alive_map_[frame_id]->arc_status_ == ArcStatus::MRU) {
-+  } else if (alive_map_.find(frame_id) != alive_map_.end() && alive_map_[frame_id]->arc_status_ == ArcStatus::MRU) {
-     // 在mru命中
-     alive_map_[frame_id]->arc_status_ = ArcStatus::MFU;
-     // auto idx = std::find(mru_.begin(), mru_.end(), frame_id);
-@@ -227,8 +222,7 @@
-     LFerase(mru_, frame_id);
-     mfu_.push_front(frame_id);
-     alive_map_iter_[frame_id] = mfu_.begin();
--  } else if (ghost_map_.find(page_id) != ghost_map_.end() &&
--             ghost_map_[page_id]->arc_status_ == ArcStatus::MRU_GHOST) {
-+  } else if (ghost_map_.find(page_id) != ghost_map_.end() && ghost_map_[page_id]->arc_status_ == ArcStatus::MRU_GHOST) {
-     // mru_ghost 命中
-     if (mru_ghost_.size() >= mfu_ghost_.size()) {
-       mru_target_size_++;
-@@ -237,8 +231,7 @@
-     }
-     // alive
-     mru_target_size_ = std::min(mru_target_size_, replacer_size_);
--    alive_map_[frame_id] =
--        std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
-+    alive_map_[frame_id] = std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
-     mfu_.push_front(frame_id);
-     alive_map_iter_[frame_id] = mfu_.begin();
-     // ghost
-@@ -247,20 +240,17 @@
-     // ghost_map_iter_.erase(page_id);
-     // auto idx = std::find(mru_ghost_.begin(), mru_ghost_.end(), page_id);
-     // mru_ghost_.erase(idx);
--  } else if (ghost_map_.find(page_id) != ghost_map_.end() &&
--             ghost_map_[page_id]->arc_status_ == ArcStatus::MFU_GHOST) {
-+  } else if (ghost_map_.find(page_id) != ghost_map_.end() && ghost_map_[page_id]->arc_status_ == ArcStatus::MFU_GHOST) {
-     if (mfu_ghost_.size() >= mru_ghost_.size()) {
-       mru_target_size_--;
-     } else if (!mfu_ghost_.empty()) {
-       // 因为是size_t，因此没有负数，所以这里如果减成负数会溢出
--      mru_target_size_ -=
--          std::min(mru_target_size_, mru_ghost_.size() / mfu_ghost_.size());
-+      mru_target_size_ -= std::min(mru_target_size_, mru_ghost_.size() / mfu_ghost_.size());
-     }
- 
-     // alive
-     mru_target_size_ = std::max(mru_target_size_, static_cast<size_t>(0));
--    alive_map_[frame_id] =
--        std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
-+    alive_map_[frame_id] = std::make_shared<FrameStatus>(page_id, frame_id, false, ArcStatus::MFU);
-     mfu_.push_front(frame_id);
-     alive_map_iter_[frame_id] = mfu_.begin();
-     // auto idx = std::find(mfu_ghost_.begin(), mfu_ghost_.end(), page_id);
-@@ -268,8 +258,7 @@
-     // ghost
-     LPerase(mfu_ghost_, page_id);
-     ghost_map_.erase(page_id);
--  } else if (alive_map_.find(frame_id) != alive_map_.end() &&
--             alive_map_[frame_id]->arc_status_ == ArcStatus::MFU) {
-+  } else if (alive_map_.find(frame_id) != alive_map_.end() && alive_map_[frame_id]->arc_status_ == ArcStatus::MFU) {
-     // auto idx = std::find(mfu_.begin(), mfu_.end(), frame_id);
-     // mfu_.erase(idx);
-     LFerase(mfu_, frame_id);
-@@ -356,4 +345,4 @@
-   std::lock_guard<std::mutex> lock(latch_);
-   return curr_size_;
- }
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/buffer/buffer_pool_manager.cpp
-+++ /autograder/source/bustub/src/buffer/buffer_pool_manager.cpp (after clang format)
-@@ -27,10 +27,7 @@
-  * @param frame_id The frame ID / index of the frame we are creating a header
-  * for.
-  */
--FrameHeader::FrameHeader(frame_id_t frame_id)
--    : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0) {
--  Reset();
--}
-+FrameHeader::FrameHeader(frame_id_t frame_id) : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0) { Reset(); }
- 
- /**
-  * @brief Get a raw const pointer to the frame's data.
-@@ -81,10 +78,9 @@
-  * @param disk_manager The disk manager.
-  * @param log_manager The log manager. Please ignore this for P1.
-  */
--BufferPoolManager::BufferPoolManager(size_t num_frames,
--                                     DiskManager *disk_manager,
--                                     LogManager *log_manager)
--    : num_frames_(num_frames), next_page_id_(0),
-+BufferPoolManager::BufferPoolManager(size_t num_frames, DiskManager *disk_manager, LogManager *log_manager)
-+    : num_frames_(num_frames),
-+      next_page_id_(0),
-       bpm_latch_(std::make_shared<std::mutex>()),
-       replacer_(std::make_shared<ArcReplacer>(num_frames)),
-       disk_scheduler_(std::make_shared<DiskScheduler>(disk_manager)),
-@@ -136,9 +132,7 @@
-  * @return The page ID of the newly allocated page.
-  */
- // 安全的添加一个页
--auto BufferPoolManager::NewPage() -> page_id_t {
--  return next_page_id_.fetch_add(1);
--}
-+auto BufferPoolManager::NewPage() -> page_id_t { return next_page_id_.fetch_add(1); }
- 
- // 快速获得一个空闲的帧或发现无法获得空闲帧（调用前必须在其他地方上锁）
- /**
-@@ -312,9 +306,7 @@
- // 获取一个可选的，针对指定页面的writepageguard(buffer...manager只会与guard交互)
- // 构造一个wpg，我需要pageid，replacer，diskscheduler，frameheader，锁
- 
--auto BufferPoolManager::CheckedWritePage(page_id_t page_id,
--                                         AccessType access_type)
--    -> std::optional<WritePageGuard> {
-+auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_type) -> std::optional<WritePageGuard> {
-   // auto frame = GetFreeFrame(page_id, access_type);
-   // if (!frame) {  // 检查是否获取到帧
-   //   return std::nullopt;
-@@ -340,8 +332,7 @@
-     // replacer_->SetEvictable(target_frame_id, false);
-     lock.unlock();
-     frame_header->rwlatch_.lock();
--    return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_,
--                          disk_scheduler_);
-+    return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
-   }
-   // std::cout<<"N!\n";
-   // 未命中
-@@ -358,8 +349,7 @@
-     }
-     target_frame_id = evict_opt.value();
-     // new
--    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0,
--                  "FATAL: Replacer evicted a pinned frame!!!");
-+    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0, "FATAL: Replacer evicted a pinned frame!!!");
-     // 清理这个帧上的旧数据
-     auto frame_header = frames_[target_frame_id];
-     page_id_t old_page = frame_table_[target_frame_id];
-@@ -430,8 +420,7 @@
-   // replacer_->SetEvictable(target_frame_id, false);
-   lock.unlock();
-   frame_header->rwlatch_.lock();
--  return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_,
--                        disk_scheduler_);
-+  return WritePageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
- }
- /**
-  * @brief Acquires an optional read-locked guard over a page of data. The user
-@@ -491,9 +480,7 @@
-  *  导致数据页无法加载时，返回`std::nullopt`；否则返回一个`ReadPageGuard`实例，该实例用于确保
-  *  调用者对目标数据页拥有**共享、只读**的访问权限。
-  */
--auto BufferPoolManager::CheckedReadPage(page_id_t page_id,
--                                        AccessType access_type)
--    -> std::optional<ReadPageGuard> {
-+auto BufferPoolManager::CheckedReadPage(page_id_t page_id, AccessType access_type) -> std::optional<ReadPageGuard> {
-   // auto frame = GetFreeFrame(page_id, access_type);
-   // // 检查是否成功获取
-   // if (!frame) {
-@@ -519,8 +506,7 @@
-     }
-     lock.unlock();
-     frame_header->rwlatch_.lock_shared();
--    return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_,
--                         disk_scheduler_);
-+    return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
-   }
- 
-   // 未命中
-@@ -538,8 +524,7 @@
-     }
-     target_frame_id = evict_opt.value();
-     // new
--    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0,
--                  "FATAL: Replacer evicted a pinned frame!!!");
-+    BUSTUB_ASSERT(frames_[target_frame_id]->pin_count_.load() == 0, "FATAL: Replacer evicted a pinned frame!!!");
-     // 清理这个帧上的旧数据
-     auto frame_header = frames_[target_frame_id];
-     page_id_t old_page = frame_table_[target_frame_id];
-@@ -608,8 +593,7 @@
-   // replacer_->SetEvictable(target_frame_id, false);
-   lock.unlock();
-   frame_header->rwlatch_.lock_shared();
--  return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_,
--                       disk_scheduler_);
-+  return ReadPageGuard(page_id, frame_header, replacer_, bpm_latch_, disk_scheduler_);
- }
- 
- /**
-@@ -650,15 +634,13 @@
-  * 一个页面守卫对象，确保调用者对目标页面的数据拥有**独占且可修改**的访问权限。
-  */
- // 测试checkwritepageguard
--auto BufferPoolManager::WritePage(page_id_t page_id, AccessType access_type)
--    -> WritePageGuard {
-+auto BufferPoolManager::WritePage(page_id_t page_id, AccessType access_type) -> WritePageGuard {
-   // std::cout << "WritePageGuard is nullopt" << '\n';
-   auto guard_opt = CheckedWritePage(page_id, access_type);
- 
-   // std::cout<<"sucess got\n";
-   if (!guard_opt.has_value()) {
--    fmt::println(stderr, "\n`CheckedWritePage` failed to bring in page {}\n",
--                 page_id);
-+    fmt::println(stderr, "\n`CheckedWritePage` failed to bring in page {}\n", page_id);
-     std::abort();
-   }
- 
-@@ -684,13 +666,11 @@
-  * @return ReadPageGuard A page guard ensuring shared and read-only access to a
-  * page's data.
-  */
--auto BufferPoolManager::ReadPage(page_id_t page_id, AccessType access_type)
--    -> ReadPageGuard {
-+auto BufferPoolManager::ReadPage(page_id_t page_id, AccessType access_type) -> ReadPageGuard {
-   auto guard_opt = CheckedReadPage(page_id, access_type);
- 
-   if (!guard_opt.has_value()) {
--    fmt::println(stderr, "\n`CheckedReadPage` failed to bring in page {}\n",
--                 page_id);
-+    fmt::println(stderr, "\n`CheckedReadPage` failed to bring in page {}\n", page_id);
-     std::abort();
-   }
- 
-@@ -812,7 +792,7 @@
-   {
-     std::unique_lock<std::mutex> lock(*bpm_latch_);
-     auto it = page_table_.find(page_id);
--    if (it == page_table_.end()) { // 不在内存
-+    if (it == page_table_.end()) {  // 不在内存
-       return false;
-     }
-     frame_id = it->second;
-@@ -820,9 +800,9 @@
-     frame->pin_count_.fetch_add(1);
-     replacer_->SetEvictable(frame_id, false);
-   }
--  std::unique_lock<std::shared_mutex> lock(frame->rwlatch_); // 写锁
-+  std::unique_lock<std::shared_mutex> lock(frame->rwlatch_);  // 写锁
-   // bpm_lock.unlock();//释放全局锁
--  if (frame->is_dirty_) { // 脏页写磁盘
-+  if (frame->is_dirty_) {  // 脏页写磁盘
-     // debug
-     // page_id_t evicted_page_id = frame_table_[frame_id];
-     // LOG_INFO("Evicting and flushing dirty page: %d", evicted_page_id);
-@@ -961,8 +941,7 @@
-  * 若页面存在于内存中，返回该页面的固定计数；若页面不存在，返回 `std::nullopt`。
-  */
- 
--auto BufferPoolManager::GetPinCount(page_id_t page_id)
--    -> std::optional<size_t> {
-+auto BufferPoolManager::GetPinCount(page_id_t page_id) -> std::optional<size_t> {
-   std::lock_guard<std::mutex> lock(*bpm_latch_);
-   if (page_table_.find(page_id) == page_table_.end()) {
-     return std::nullopt;
-@@ -978,7 +957,7 @@
-   return frame_header->pin_count_.load();
- }
- 
--} // namespace bustub
-+}  // namespace bustub
- 
- // auto BufferPoolManager::GetFrameid(page_id_t page_id) -> frame_id_t {
- //   std::scoped_lock latch(*bpm_latch_);
---- /autograder/source/bustub/src/concurrency/transaction_manager.cpp
-+++ /autograder/source/bustub/src/concurrency/transaction_manager.cpp (after clang format)
-@@ -13,7 +13,7 @@
- #include "concurrency/transaction_manager.h"
- 
- #include <memory>
--#include <mutex> // NOLINT
-+#include <mutex>  // NOLINT
- #include <optional>
- #include <shared_mutex>
- #include <unordered_map>
-@@ -40,8 +40,7 @@
-  * @param isolation_level an optional isolation level of the transaction.
-  * @return an initialized transaction
-  */
--auto TransactionManager::Begin(IsolationLevel isolation_level)
--    -> Transaction * {
-+auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * {
-   // txn_map 的锁
-   std::unique_lock<std::shared_mutex> l(txn_map_mutex_);
-   // 新事务id
-@@ -62,39 +61,37 @@
- auto TransactionManager::VerifyTxn(Transaction *txn) -> bool {
-   // 纯读不用管
-   if (txn->GetWriteSets().empty()) {
--    return true; 
-+    return true;
-   }
-   auto my_predicates = txn->GetScanPredicates();
-   if (my_predicates.empty()) {
-     return true;
-   }
--  
-+
-   // 遍历系统中所有的事务，注意加 txn_map_mutex_ 读锁
-   std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
--  
-+
-   for (const auto &[other_txn_id, other_txn] : txn_map_) {
-     // 在我提交之前提交的事务
--    if (other_txn->GetTransactionState() == TransactionState::COMMITTED && 
--    other_txn->GetCommitTs() > txn->GetReadTs()) {
+--- /autograder/source/bustub/src/execution/update_executor.cpp
++++ /autograder/source/bustub/src/execution/update_executor.cpp (after clang format)
+@@ -126,8 +126,8 @@
+     if (pk_changed[i]) {
+       RID old_rid = buffered_rids[i];
+       auto [old_meta, old_tuple] = table_info_->table_->GetTuple(old_rid);
 -      
-+    if (other_txn->GetTransactionState() == TransactionState::COMMITTED &&
-+        other_txn->GetCommitTs() > txn->GetReadTs()) {
-       // 查所有表
-       for (const auto &[table_oid, rids] : other_txn->GetWriteSets()) {
--        
-         // 如果他改的表，刚好是我扫描过的表
-         if (my_predicates.find(table_oid) != my_predicates.end()) {
-           auto table_info = catalog_->GetTable(table_oid);
-           auto predicates_for_table = my_predicates[table_oid];
--          
+-      // W-W 检测 
 +
-           // 遍历他改过的每一行数据(RID)
-           for (auto rid : rids) {
-             auto [meta, current_tuple] = table_info->table_->GetTuple(rid);
--            
-+
-             // 用我的扫描条件，去判断一下这行数据
-             for (const auto &predicate : predicates_for_table) {
-               if (predicate == nullptr) {
--                return false; // 全表扫描的祖宗，别人只要写了表，立刻冲突
-+                return false;  // 全表扫描的祖宗，别人只要写了表，立刻冲突
-               }
--              
-+
-               // ==========================================
-               // ⚔️ 绝杀 1：检查“新数据” (防移入幻读)
-               // 别人把不符合条件的数据，改成了符合我条件的
-@@ -103,7 +100,7 @@
-               if (!res_new.IsNull() && res_new.GetAs<bool>()) {
-                 return false;
-               }
--              
-+
-               // ==========================================
-               // ⚔️ 绝杀 2：检查“老数据” (防移出幻读)
-               // 别人把我原本能查到的数据，给改没了或者删了
-@@ -126,50 +123,50 @@
-       }
-     }
-   }
--  
-+
-   return true;
-   // 纯读不用管
-   // if (txn->GetWriteSets().empty()) {
--  //   return true; 
-+  //   return true;
-   // }
-   // auto my_predicates = txn->GetScanPredicates();
-   // if (my_predicates.empty()) {
-   //   return true;
-   // }
--  
-+
-   // // 遍历系统中所有的事务注意加 txn_map_mutex_ 读锁
-   // std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
--  
-+
-   // for (const auto &[other_txn_id, other_txn] : txn_map_) {
-   //   // 在我提交之前提交的事务
--  //   if (other_txn->GetTransactionState() == TransactionState::COMMITTED && 
-+  //   if (other_txn->GetTransactionState() == TransactionState::COMMITTED &&
-   //       other_txn->GetCommitTs() > txn->GetReadTs()) {
--        
-+
-   //     // 查所有表
-   //     for (const auto &[table_oid, rids] : other_txn->GetWriteSets()) {
--        
-+
-   //       // 如果他改的表，刚好是我扫描过的表
-   //       if (my_predicates.find(table_oid) != my_predicates.end()) {
-   //         auto table_info = catalog_->GetTable(table_oid);
-   //         auto predicates_for_table = my_predicates[table_oid];
--  
-+
-   //         // 遍历他改过的每一行数据(RID)
-   //         for (auto rid : rids) {
-   //           // auto tuple_meta = table_info->table_->GetTupleMeta(rid);
-   //           auto tuple = table_info->table_->GetTuple(rid).second;
--  
-+
-   //           // 用我的扫描条件，去判断一下他改过的数据
-   //           for (const auto &predicate : predicates_for_table) {
-   //             // 如果没有条件就是全表扫描，只要他改了这个表，立刻冲突
-   //             if (predicate == nullptr) {
--  //               return false; 
-+  //               return false;
-   //             }
--  
-+
-   //             // 拿着他修改后的实体数据，跑一下我的过滤条件
-   //             auto result = predicate->Evaluate(&tuple, table_info->schema_);
-   //             if (!result.IsNull() && result.GetAs<bool>()) {
-   //               // 成功了就说明他会改变我也要改变的数据
--  //               return false; 
-+  //               return false;
-   //             }
-   //           }
-   //         }
-@@ -177,16 +174,16 @@
-   //     }
-   //   }
-   // }
--  
-+
-   // // 没有任何冲突
-   // return true;
- }
- 
- /**
--* Commits a transaction.
--* @param txn the transaction to commit, the txn will be managed by the txn
--* manager so no need to delete it by yourself
--*/
-+ * Commits a transaction.
-+ * @param txn the transaction to commit, the txn will be managed by the txn
-+ * manager so no need to delete it by yourself
-+ */
- auto TransactionManager::Commit(Transaction *txn) -> bool {
-   std::unique_lock<std::mutex> commit_lck(commit_mutex_);
- 
-@@ -237,8 +234,7 @@
-  * manager so no need to delete it by yourself
-  */
- void TransactionManager::Abort(Transaction *txn) {
--  if (txn->state_ != TransactionState::RUNNING &&
--      txn->state_ != TransactionState::TAINTED) {
-+  if (txn->state_ != TransactionState::RUNNING && txn->state_ != TransactionState::TAINTED) {
-     throw Exception("txn not in running / tainted state");
-   }
- 
-@@ -251,7 +247,6 @@
- 
-       // 如果这行数据不是我改的就不回滚它 (虽然正常情况下WriteSet里肯定是改的)，这是保险起见
-       if (meta.ts_ == txn->GetTransactionTempTs()) {
--        
-         if (undo_link.has_value() && undo_link->IsValid()) {
-           // 回滚Update/Delete操作
-           auto undo_log = GetUndoLog(*undo_link);
-@@ -264,35 +259,26 @@
-           if (restored_tuple.has_value()) {
-             // 过去是有数据的，连同数据一起砸回物理页
-             is_inserted = UpdateTupleAndUndoLink(
--                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, 
--                old_meta, restored_tuple.value(), 
--                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
--        return check_meta.ts_ == txn->GetTransactionTempTs();
--    }
--            );
-+                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, old_meta, restored_tuple.value(),
-+                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
-+                      std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
-           } else {
-             // 过去是墓碑
-             is_inserted = UpdateTupleAndUndoLink(
--                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, 
--                old_meta, base_tuple,
--                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
--        return check_meta.ts_ == txn->GetTransactionTempTs();
--    }
--            );
-+                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, old_meta, base_tuple,
-+                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
-+                      std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
-           }
--          if(!is_inserted){
-+          if (!is_inserted) {
-             throw Exception("Abort failed: Tuple was modified by another transaction unexpectedly!");
-           }
-         } else {
-           // 没有link说明是Insert操作
-           TupleMeta tombstone_meta{0, true};
-           UpdateTupleAndUndoLink(
--              this, rid, std::nullopt, table_info->table_.get(), txn, 
--              tombstone_meta, base_tuple,
--              [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
--        return check_meta.ts_ == txn->GetTransactionTempTs();
--    }
--          );
-+              this, rid, std::nullopt, table_info->table_.get(), txn, tombstone_meta, base_tuple,
-+              [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
-+                    std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
-         }
-       }
-     }
-@@ -311,37 +297,38 @@
- 
-   // 获得水印（即最远ts）
-   // 如果当前没有任何人在运行，水位线就是全世界最新的提交时间
--  timestamp_t watermark = last_commit_ts_; 
-+  timestamp_t watermark = last_commit_ts_;
-   // 正在运行的事务不能被删除，所以和水位线取min
-   for (const auto &[txn_id, txn] : txn_map_) {
--    if (txn->GetTransactionState() != TransactionState::COMMITTED && 
--      txn->GetTransactionState() != TransactionState::ABORTED) {
-+    if (txn->GetTransactionState() != TransactionState::COMMITTED &&
-+        txn->GetTransactionState() != TransactionState::ABORTED) {
-       watermark = std::min(watermark, txn->GetReadTs());
-     }
-   }
- 
-   // 清洗txn_map
--  for (auto it = txn_map_.begin(); it != txn_map_.end(); ) {
-+  for (auto it = txn_map_.begin(); it != txn_map_.end();) {
-     auto *txn = it->second.get();
-     bool is_garbage = false;
-     // 没有undolog的人没必要留着
--    if (txn->GetTransactionState() == TransactionState::COMMITTED || 
--    txn->GetTransactionState() == TransactionState::ABORTED)
--    {if(txn->GetUndoLogNum() == 0){
--      is_garbage = true;
--    }
--    // 已经commit的事务，且它的提交时间在最低水位线之前，就算垃圾了
--    else if (txn->GetTransactionState() == TransactionState::COMMITTED) {
--      if (txn->GetCommitTs() < watermark) {
-+    if (txn->GetTransactionState() == TransactionState::COMMITTED ||
-+        txn->GetTransactionState() == TransactionState::ABORTED) {
-+      if (txn->GetUndoLogNum() == 0) {
-         is_garbage = true;
-       }
--    }
--    // abort也一样
--    else if (txn->GetTransactionState() == TransactionState::ABORTED) {
--      if (txn->GetReadTs() < watermark) {
--        is_garbage = true;
--      }
--    }}
-+      // 已经commit的事务，且它的提交时间在最低水位线之前，就算垃圾了
-+      else if (txn->GetTransactionState() == TransactionState::COMMITTED) {
-+        if (txn->GetCommitTs() < watermark) {
-+          is_garbage = true;
-+        }
-+      }
-+      // abort也一样
-+      else if (txn->GetTransactionState() == TransactionState::ABORTED) {
-+        if (txn->GetReadTs() < watermark) {
-+          is_garbage = true;
-+        }
-+      }
-+    }
- 
-     // 执行物理超度
-     if (is_garbage) {
-@@ -350,7 +337,7 @@
-       // 只要把它从 Map 中 erase 掉，shared_ptr 的引用计数归零，
-       // C++的智能指针会自动析构整个Transaction对象，顺带炸毁它肚子里的所有 UndoLog！
-       // erase 会返回下一个合法元素的迭代器
--      it = txn_map_.erase(it); 
-+      it = txn_map_.erase(it);
-     } else {
-       // 如果不是垃圾，检查下一个
-       ++it;
-@@ -358,4 +345,4 @@
-   }
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/concurrency/watermark.cpp
-+++ /autograder/source/bustub/src/concurrency/watermark.cpp (after clang format)
-@@ -11,9 +11,9 @@
- //===----------------------------------------------------------------------===//
- 
- #include "concurrency/watermark.h"
--#include "common/exception.h"
- #include <algorithm>
- #include <exception>
-+#include "common/exception.h"
- namespace bustub {
- 
- auto Watermark::AddTxn(timestamp_t read_ts) -> void {
-@@ -42,8 +42,7 @@
-   }
-   // 只要堆顶的元素在哈希表里找不到（说明它已经被 erase 掉了，是个死人）
-   // 千万不要用 current_reads_[top] == 0 判断，会重新插入一个值为 0 的废键
--  while (!min_heap_.empty() &&
--         current_reads_.find(min_heap_.top()) == current_reads_.end()) {
-+  while (!min_heap_.empty() && current_reads_.find(min_heap_.top()) == current_reads_.end()) {
-     min_heap_.pop();
-   }
-   if (min_heap_.empty()) {
-@@ -55,4 +54,4 @@
-   }
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/aggregation_executor.cpp
-+++ /autograder/source/bustub/src/execution/aggregation_executor.cpp (after clang format)
-@@ -10,8 +10,8 @@
- //
- //===----------------------------------------------------------------------===//
- 
-+#include <memory>
- #include "common/macros.h"
--#include <memory>
- 
- #include "execution/executors/aggregation_executor.h"
- 
-@@ -24,10 +24,10 @@
-  * @param child_executor The child executor from which inserted tuples are
-  * pulled (may be `nullptr`)
-  */
--AggregationExecutor::AggregationExecutor(
--    ExecutorContext *exec_ctx, const AggregationPlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&child_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan),
-+AggregationExecutor::AggregationExecutor(ExecutorContext *exec_ctx, const AggregationPlanNode *plan,
-+                                         std::unique_ptr<AbstractExecutor> &&child_executor)
-+    : AbstractExecutor(exec_ctx),
-+      plan_(plan),
-       child_executor_(std::move(child_executor)),
-       aht_(plan_->GetAggregates(), plan_->GetAggregateTypes()),
-       aht_iterator_(aht_.Begin()) {
-@@ -91,8 +91,7 @@
-  * tuples
-  */
- 
--auto AggregationExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                               std::vector<bustub::RID> *rid_batch,
-+auto AggregationExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                                size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -107,10 +106,8 @@
-     // AggregationPlanNode 的输出列格式永远是固定的,所有的 GroupBy + 所有的
-     // Aggregate 所以我们必须按照这个死顺序，把内存里的 Key 和 Value
-     // 拼接成一个大数组。
--    values.insert(values.end(), aht_iterator_.Key().group_bys_.begin(),
--                  aht_iterator_.Key().group_bys_.end());
--    values.insert(values.end(), aht_iterator_.Val().aggregates_.begin(),
--                  aht_iterator_.Val().aggregates_.end());
-+    values.insert(values.end(), aht_iterator_.Key().group_bys_.begin(), aht_iterator_.Key().group_bys_.end());
-+    values.insert(values.end(), aht_iterator_.Val().aggregates_.begin(), aht_iterator_.Val().aggregates_.end());
- 
-     // 用拼好的数组，生成外界认识的 Tuple，塞进输出批次里。
-     Tuple tuple{values, &GetOutputSchema()};
-@@ -131,8 +128,6 @@
- }
- 
- /** Do not use or remove this function; otherwise, you will get zero points. */
--auto AggregationExecutor::GetChildExecutor() const -> const AbstractExecutor * {
--  return child_executor_.get();
--}
-+auto AggregationExecutor::GetChildExecutor() const -> const AbstractExecutor * { return child_executor_.get(); }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/delete_executor.cpp
-+++ /autograder/source/bustub/src/execution/delete_executor.cpp (after clang format)
-@@ -10,11 +10,11 @@
- //
- //===----------------------------------------------------------------------===//
- 
-+#include <memory>
- #include "common/macros.h"
--#include <memory>
- 
-+#include "concurrency/transaction_manager.h"
- #include "execution/execution_common.h"
--#include "concurrency/transaction_manager.h"
- #include "execution/executors/delete_executor.h"
- 
- namespace bustub {
-@@ -25,11 +25,9 @@
-  * @param plan The delete plan to be executed
-  * @param child_executor The child executor that feeds the delete
-  */
--DeleteExecutor::DeleteExecutor(
--    ExecutorContext *exec_ctx, const DeletePlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&child_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan),
--      child_executor_(std::move(child_executor)) {}
-+DeleteExecutor::DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
-+                               std::unique_ptr<AbstractExecutor> &&child_executor)
-+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
- 
- /** Initialize the delete */
- void DeleteExecutor::Init() {
-@@ -58,8 +56,7 @@
-  * NOTE: DeleteExecutor::Next() returns true with the number of deleted rows
-  * produced only once.
-  */
--auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                          std::vector<bustub::RID> *rid_batch,
-+auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                           size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -100,8 +97,7 @@
-     bool is_self = (meta.ts_ == txn->GetTransactionTempTs());
- 
-     if (!is_self) {
--      if (meta.ts_ > txn->GetReadTs() || 
--         (meta.ts_ > TXN_START_ID && meta.ts_ != txn->GetTransactionTempTs())) {
-+      if (meta.ts_ > txn->GetReadTs() || (meta.ts_ > TXN_START_ID && meta.ts_ != txn->GetTransactionTempTs())) {
++      // W-W 检测
+       if (old_meta.ts_ > txn->GetReadTs() && old_meta.ts_ != txn->GetTransactionTempTs()) {
          txn->SetTainted();
-         throw ExecutionException("Write-Write Conflict in Delete!");
-       }
-@@ -129,13 +125,14 @@
-       }
-       // 追加到事务内存，拿到新指针
-       link_to_update = txn->AppendUndoLog(new_log);
--      
-+
-     } else {
-       if (old_link.has_value()) {
-         UndoLog old_log = txn->GetUndoLog(old_link->prev_log_idx_);
-         // 说明之前不是insert，而是update
-         if (!old_log.is_deleted_) {
--          std::optional<Tuple> original_tuple = ReconstructTuple(&child_executor_->GetOutputSchema(), base_tuple, meta, {old_log});
-+          std::optional<Tuple> original_tuple =
-+              ReconstructTuple(&child_executor_->GetOutputSchema(), base_tuple, meta, {old_log});
-           // 成功构造出了事务之前的tuple，把他刷到物理层
-           if (original_tuple.has_value()) {
-             old_log.tuple_ = original_tuple.value();
-@@ -149,9 +146,8 @@
-         txn_mgr, rid, link_to_update, table_info_->table_.get(), txn, new_meta, base_tuple,
-         // 双重检查锁定
-         [meta = meta](const TupleMeta &fresh_meta, const Tuple &, RID, std::optional<UndoLink>) -> bool {
--            return fresh_meta.ts_ == meta.ts_ && fresh_meta.is_deleted_ == meta.is_deleted_;
--        }
--    );
-+          return fresh_meta.ts_ == meta.ts_ && fresh_meta.is_deleted_ == meta.is_deleted_;
-+        });
-     // 如果update失败，就是被写写冲突阻拦了
-     if (!is_updated) {
-       txn->SetTainted();
-@@ -164,8 +160,8 @@
-     // 只有当这条数据之前还活着的时候，我们才去删它的索引（防止重复删除索引，出现错误）
-     // if (!meta.is_deleted_) {
-     //   for (const auto &index_info : table_indexes_) {
--    //     Tuple key = base_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
--    //     index_info->index_->DeleteEntry(key, rid, txn);
-+    //     Tuple key = base_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
-+    //     index_info->index_->GetKeyAttrs()); index_info->index_->DeleteEntry(key, rid, txn);
-     //   }
-     // }
+         throw ExecutionException("Write-Write Conflict");
+--- /autograder/source/bustub/src/include/concurrency/watermark.h
++++ /autograder/source/bustub/src/include/concurrency/watermark.h (after clang format)
+@@ -50,9 +50,7 @@
+   // 有多少事务在用这些时间戳
+   std::unordered_map<timestamp_t, int> current_reads_;
+   // 时间戳自增，直接找最小值就行了
+-  std::priority_queue<timestamp_t, std::vector<timestamp_t>,
+-                      std::greater<>>
+-      min_heap_;
++  std::priority_queue<timestamp_t, std::vector<timestamp_t>, std::greater<>> min_heap_;
+ };
  
-@@ -174,9 +170,9 @@
-   std::vector<Value> result_values{};
-   result_values.emplace_back(TypeId::INTEGER, delete_count);
-   Tuple result_tuple{result_values, &GetOutputSchema()};
--  
-+
-   tuple_batch->push_back(result_tuple);
-   return true;
- }
+-}; // namespace bustub
++};  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/execution_common.h
++++ /autograder/source/bustub/src/include/execution/execution_common.h (after clang format)
+@@ -32,44 +32,36 @@
  
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/execution_common.cpp
-+++ /autograder/source/bustub/src/execution/execution_common.cpp (after clang format)
-@@ -17,8 +17,8 @@
- #include "concurrency/transaction_manager.h"
- #include "fmt/core.h"
- #include "storage/table/table_heap.h"
-+#include "storage/table/tuple.h"
- #include "type/value.h"
--#include "storage/table/tuple.h"
+ /** The Tuple Comparator provides a comparison function for SortEntry */
+ class TupleComparator {
+-public:
++ public:
+   explicit TupleComparator(std::vector<OrderBy> order_bys);
  
- namespace bustub {
- 
-@@ -113,15 +113,15 @@
-     if (log.is_deleted_) {
-       // 标记deleted表示不存在
-       current_is_deleted = true;
--      continue; 
--    } 
-+      continue;
-+    }
-     // 过去的状态是活的
-     else {
-       // 如果现在被delete就直接搬tuple过来
-       if (current_is_deleted) {
-         current_tuple = log.tuple_;
--        current_is_deleted = false; 
--      } 
-+        current_is_deleted = false;
-+      }
-       // 手里是活的，过去也是活的，修改部分tuple
-       else {
-         const std::vector<bool> &modified_fields = log.modified_fields_;
-@@ -129,20 +129,20 @@
-         std::vector<Column> partial_columns;
-         for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
-           if (modified_fields[i]) {
--              partial_columns.push_back(schema->GetColumn(i));
-+            partial_columns.push_back(schema->GetColumn(i));
-           }
-         }
-         Schema partial_schema(partial_columns);
-         std::vector<Value> reconstructed_values;
--        uint32_t log_tuple_idx = 0; 
-+        uint32_t log_tuple_idx = 0;
-         for (uint32_t col_idx = 0; col_idx < schema->GetColumnCount(); col_idx++) {
-           if (modified_fields[col_idx]) {
--             Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
--             reconstructed_values.push_back(old_value);
--             log_tuple_idx++;
-+            Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
-+            reconstructed_values.push_back(old_value);
-+            log_tuple_idx++;
-           } else {
--             Value current_value = current_tuple.GetValue(schema, col_idx);
--             reconstructed_values.push_back(current_value);
-+            Value current_value = current_tuple.GetValue(schema, col_idx);
-+            reconstructed_values.push_back(current_value);
-           }
-         }
-         current_tuple = Tuple(reconstructed_values, schema);
-@@ -178,7 +178,7 @@
-   // 这就是终点判断，如果满足说明当前的日志已经够用了
-   if (current_ts == txn->GetTransactionTempTs() || current_ts <= txn->GetReadTs()) {
-     // 既然直接可见，就不需要时光倒流了，直接返回一个空的日志数组！
--    return res; 
-+    return res;
-   }
-   if (!undo_link.has_value()) {
-     return std::nullopt;
-@@ -207,7 +207,7 @@
-     // 没有到达终点继续跑link指针
-     current_link = log.prev_version_;
-   }
--  return std::nullopt;                
-+  return std::nullopt;
- }
- 
- /**
-@@ -290,7 +290,8 @@
-     // 重构最古老的tuple，事务开始之前
-     auto original_tuple = ReconstructTuple(schema, *base_tuple, TupleMeta{0, false}, {log});
-     // 返回一条modified_fields全为true日志
--    return UndoLog{false, std::vector<bool>(schema->GetColumnCount(), true), original_tuple.value(), log.ts_, log.prev_version_};
-+    return UndoLog{false, std::vector<bool>(schema->GetColumnCount(), true), original_tuple.value(), log.ts_,
-+                   log.prev_version_};
-   }
-   std::vector<bool> new_modified_fields = log.modified_fields_;
-   std::vector<Value> merged_values;
-@@ -307,7 +308,6 @@
-   uint32_t old_log_idx = 0;
-   // 逐列对比
-   for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
--    
-     if (log.modified_fields_[i]) {
-       // 这个字段/ 列被改过
-       // 保留老tuple，因为我们是还原成事务前的样子，老tuple就是事务执行前的value
-@@ -319,7 +319,7 @@
-       // 之前没有被改，比较一下，有没有被update到
-       Value base_val = base_tuple->GetValue(schema, i);
-       Value target_val = target_tuple->GetValue(schema, i);
--      
-+
-       if (!base_val.CompareExactlyEquals(target_val)) {
-         // 发现被修改了
-         // basetuple这次才被搞到，所以装的就是事务执行前的数据，记得更新fileds
-@@ -363,9 +363,9 @@
-   // RID=0/3 ts=txn6 <del marker> tuple=(<NULL>, <NULL>, <NULL>)
-   //   txn6@0 (6, <NULL>, <NULL>) ts=2
-   //   txn3@1 (7, _, _) ts=1
--  // 
-+  //
-   auto it = table_heap->MakeIterator();
--  
-+
-   while (!it.IsEnd()) {
-     RID rid = it.GetRID();
-     // 拿到基线数据的元信息和本体
-@@ -375,16 +375,16 @@
-     // 打印基线数据 (Base Tuple)
-     // 格式: RID=页号/槽号 ts=时间戳 tuple=(字段1, 字段2...)
-     if (meta.is_deleted_) {
--      fmt::println(stderr, "RID={}/{} ts={} <del marker> tuple={}", 
--                   rid.GetPageId(), rid.GetSlotNum(), meta.ts_, tuple.ToString(&table_info->schema_));
-+      fmt::println(stderr, "RID={}/{} ts={} <del marker> tuple={}", rid.GetPageId(), rid.GetSlotNum(), meta.ts_,
-+                   tuple.ToString(&table_info->schema_));
-     } else {
--      fmt::println(stderr, "RID={}/{} ts={} tuple={}", 
--                   rid.GetPageId(), rid.GetSlotNum(), meta.ts_, tuple.ToString(&table_info->schema_));
-+      fmt::println(stderr, "RID={}/{} ts={} tuple={}", rid.GetPageId(), rid.GetSlotNum(), meta.ts_,
-+                   tuple.ToString(&table_info->schema_));
-     }
- 
-     // 打印这条数据的 UndoLog 版本链
-     auto opt_current_link = txn_mgr->GetUndoLink(rid);
--    if(!opt_current_link.has_value()){
-+    if (!opt_current_link.has_value()) {
-       ++it;
-       continue;
-     }
-@@ -394,14 +394,13 @@
-       auto log_opt = txn_mgr->GetUndoLogOptional(current_link);
-       // 日志丢失或已被垃圾回收，直接截断
-       if (!log_opt.has_value()) {
--        break; 
-+        break;
-       }
-       UndoLog log = log_opt.value();
-       // 打印这一条历史日志的信息
-       if (log.is_deleted_) {
-         // Delete日志，说明历史状态不存在
--        fmt::println(stderr, "  txn{}@{} <del> ts={}", 
--                     current_link.prev_txn_, current_link.prev_log_idx_, log.ts_);
-+        fmt::println(stderr, "  txn{}@{} <del> ts={}", current_link.prev_txn_, current_link.prev_log_idx_, log.ts_);
-       } else {
-         // Update日志搓一个partial_schema，同时打印他
-         std::vector<Column> partial_columns;
-@@ -411,15 +410,14 @@
-           }
-         }
-         Schema partial_schema(partial_columns);
--        fmt::println(stderr, "  txn{}@{} {} ts={}", 
--                     current_link.prev_txn_, current_link.prev_log_idx_, 
-+        fmt::println(stderr, "  txn{}@{} {} ts={}", current_link.prev_txn_, current_link.prev_log_idx_,
-                      log.tuple_.ToString(&partial_schema), log.ts_);
-       }
--      
-+
-       // 指针后移，继续看更古老的历史
-       current_link = log.prev_version_;
-     }
--    
-+
-     // 看下一行物理数据
-     ++it;
-   }
---- /autograder/source/bustub/src/execution/external_merge_sort_executor.cpp
-+++ /autograder/source/bustub/src/execution/external_merge_sort_executor.cpp (after clang format)
-@@ -21,29 +21,29 @@
- namespace bustub {
- 
- template <size_t K>
--ExternalMergeSortExecutor<K>::ExternalMergeSortExecutor(
--    ExecutorContext *exec_ctx, const SortPlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&child_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan), cmp_(plan->GetOrderBy()),
--      child_executor_(std::move(child_executor)) {
-+ExternalMergeSortExecutor<K>::ExternalMergeSortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan,
-+                                                        std::unique_ptr<AbstractExecutor> &&child_executor)
-+    : AbstractExecutor(exec_ctx), plan_(plan), cmp_(plan->GetOrderBy()), child_executor_(std::move(child_executor)) {
-   // UNIMPLEMENTED("TODO(P3): Add implementation.");
- }
- 
--template <size_t K> ExternalMergeSortExecutor<K>::~ExternalMergeSortExecutor() {
-+template <size_t K>
-+ExternalMergeSortExecutor<K>::~ExternalMergeSortExecutor() {
-   // 如果执行器被销毁时，runs_ 里还有没删干净的页面（比如最终结果页）
-   // 必须全部清空，把磁盘空间还给系统！
-   final_iter_ = std::nullopt;
-   auto bpm = exec_ctx_->GetBufferPoolManager();
- 
-   for (auto &run : runs_) {
--    for (auto page_id : run.GetPages()) { // 用你之前加的那个 Getter 方法
-+    for (auto page_id : run.GetPages()) {  // 用你之前加的那个 Getter 方法
-       bpm->DeletePage(page_id);
-     }
-   }
- }
- 
- /** Initialize the external merge sort */
--template <size_t K> void ExternalMergeSortExecutor<K>::Init() {
-+template <size_t K>
-+void ExternalMergeSortExecutor<K>::Init() {
-   child_executor_->Init();
-   runs_.clear();
-   final_iter_ = std::nullopt;
-@@ -101,7 +101,7 @@
-     }
-     // 删除guard
-     guard.Drop();
--    runs_.emplace_back(run_pages, bpm); // 生成了一个数据块
-+    runs_.emplace_back(run_pages, bpm);  // 生成了一个数据块
-     chunk.clear();
-     current_chunk_bytes = 0;
-   };
-@@ -155,9 +155,7 @@
- 
- // merge过程
- template <size_t K>
--auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1,
--                                                MergeSortRun &run2)
--    -> MergeSortRun {
-+auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1, MergeSortRun &run2) -> MergeSortRun {
-   auto it1 = run1.Begin();
-   auto it2 = run2.Begin();
-   const auto &schema = child_executor_->GetOutputSchema();
-@@ -211,7 +209,7 @@
-   }
-   it1 = run1.End();
-   it2 = run2.End();
--  guard.Drop(); // 释放最后一页
-+  guard.Drop();  // 释放最后一页
-   // 旧的全部放转转回收了
-   for (auto page_id : run1.GetPages()) {
-     bpm->DeletePage(page_id);
-@@ -233,8 +231,7 @@
-  * @return `true` if a tuple was produced, `false` if there are no more tuples
-  */
- template <size_t K>
--auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch,
--                                        std::vector<bustub::RID> *rid_batch,
-+auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                                         size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -249,10 +246,10 @@
-   while (tuple_batch->size() < batch_size && it != end) {
-     tuple_batch->push_back(*it);
-     rid_batch->push_back(RID{});
--    ++it; // 迭代器继续往前滚
-+    ++it;  // 迭代器继续往前滚
-   }
-   if (it == end) {
--    final_iter_ = std::nullopt; // 销毁迭代器释放读锁
-+    final_iter_ = std::nullopt;  // 销毁迭代器释放读锁
-     auto bpm = exec_ctx_->GetBufferPoolManager();
-     for (auto &run : runs_) {
-       for (auto page_id : run.GetPages()) {
-@@ -266,4 +263,4 @@
- 
- template class ExternalMergeSortExecutor<2>;
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/filter_executor.cpp
-+++ /autograder/source/bustub/src/execution/filter_executor.cpp (after clang format)
-@@ -22,11 +22,9 @@
-  * @param plan The filter plan to be executed
-  * @param child_executor The child executor that feeds the filter
-  */
--FilterExecutor::FilterExecutor(
--    ExecutorContext *exec_ctx, const FilterPlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&child_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan),
--      child_executor_(std::move(child_executor)) {}
-+FilterExecutor::FilterExecutor(ExecutorContext *exec_ctx, const FilterPlanNode *plan,
-+                               std::unique_ptr<AbstractExecutor> &&child_executor)
-+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
- 
- /** Initialize the filter */
- void FilterExecutor::Init() {
-@@ -42,8 +40,7 @@
-  * BUSTUB_BATCH_SIZE)
-  * @return `true` if a tuple was produced, `false` if there are no more tuples
-  */
--auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                          std::vector<bustub::RID> *rid_batch,
-+auto FilterExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                           size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -58,10 +55,8 @@
-         auto &tuple = child_tuples_[i];
-         auto &rid = child_rids_[i];
-         // Evaluate the filter predicate
--        auto value =
--            filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
--        if (filter_expr == nullptr ||
--            (!value.IsNull() && value.GetAs<bool>())) {
-+        auto value = filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
-+        if (filter_expr == nullptr || (!value.IsNull() && value.GetAs<bool>())) {
-           tuple_batch->push_back(tuple);
-           rid_batch->push_back(rid);
-         }
-@@ -71,8 +66,7 @@
-     child_offset_ = 0;
- 
-     // Get the next tuple batch from the child executor
--    const auto status =
--        child_executor_->Next(&child_tuples_, &child_rids_, batch_size);
-+    const auto status = child_executor_->Next(&child_tuples_, &child_rids_, batch_size);
- 
-     // If no more tuples and output batch is empty, return false
-     if (!status && tuple_batch->empty()) {
-@@ -88,8 +82,7 @@
-       auto &tuple = child_tuples_[i];
-       auto &rid = child_rids_[i];
-       // Evaluate the filter predicate
--      auto value =
--          filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
-+      auto value = filter_expr->Evaluate(&tuple, child_executor_->GetOutputSchema());
-       if (filter_expr == nullptr || (!value.IsNull() && value.GetAs<bool>())) {
-         tuple_batch->push_back(tuple);
-         rid_batch->push_back(rid);
-@@ -109,4 +102,4 @@
-   }
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/hash_join_executor.cpp
-+++ /autograder/source/bustub/src/execution/hash_join_executor.cpp (after clang format)
-@@ -25,18 +25,17 @@
-  * @param right_child The child executor that produces tuples for the right side
-  * of join
-  */
--HashJoinExecutor::HashJoinExecutor(
--    ExecutorContext *exec_ctx, const HashJoinPlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&left_child,
--    std::unique_ptr<AbstractExecutor> &&right_child)
--    : AbstractExecutor(exec_ctx), plan_(plan),
--      left_child_(std::move(left_child)), right_child_(std::move(right_child)) {
--  if (plan->GetJoinType() != JoinType::LEFT &&
--      plan->GetJoinType() != JoinType::INNER) {
-+HashJoinExecutor::HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan,
-+                                   std::unique_ptr<AbstractExecutor> &&left_child,
-+                                   std::unique_ptr<AbstractExecutor> &&right_child)
-+    : AbstractExecutor(exec_ctx),
-+      plan_(plan),
-+      left_child_(std::move(left_child)),
-+      right_child_(std::move(right_child)) {
-+  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
-     // Note for Spring 2025: You ONLY need to implement left join and inner
-     // join.
--    throw bustub::NotImplementedException(
--        fmt::format("join type {} not supported", plan->GetJoinType()));
-+    throw bustub::NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
-   }
-   // UNIMPLEMENTED("TODO(P3): Add implementation.");
- }
-@@ -66,8 +65,7 @@
-       // 提取这行数据用来Join的列，算Hash的Key
-       std::vector<Value> join_keys;
-       for (const auto &expr : plan_->RightJoinKeyExpressions()) {
--        join_keys.push_back(
--            expr->Evaluate(&tuple, right_child_->GetOutputSchema()));
-+        join_keys.push_back(expr->Evaluate(&tuple, right_child_->GetOutputSchema()));
-       }
- 
-       // 包装成我们自定义的 HashJoinKey
-@@ -90,8 +88,7 @@
-  * BUSTUB_BATCH_SIZE)
-  * @return `true` if a tuple was produced, `false` if there are no more tuples
-  */
--auto HashJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                            std::vector<bustub::RID> *rid_batch,
-+auto HashJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                             size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -100,8 +97,7 @@
-   const auto &right_schema = right_child_->GetOutputSchema();
- 
-   // 只要没装满，且左表还没扫完，就继续循环
--  while (tuple_batch->size() < batch_size &&
--         (!is_left_done_ || right_match_idx_ < current_right_matches_.size())) {
-+  while (tuple_batch->size() < batch_size && (!is_left_done_ || right_match_idx_ < current_right_matches_.size())) {
-     // 情况1：我们手里刚好还有上一轮没吐完的匹配项！
-     // 比如左表一条数据匹配了10条右表数据，上一轮只吐了5条就被 batch_size 截断了
-     if (right_match_idx_ < current_right_matches_.size()) {
-@@ -122,13 +118,12 @@
- 
-       right_match_idx_++;
-       is_current_left_matched_ = true;
--      continue; // 直接进入下一次 while 判断是否满载
-+      continue;  // 直接进入下一次 while 判断是否满载
-     }
- 
-     // 走到这里，说明当前左表数据的匹配项已经全部吐完了，我们该处理下一条左表数据了
-     // 如果左表本批次游标到底了，去拉取下一批左表数据
--    if (left_tuple_batch_.empty() ||
--        left_idx_ >= left_tuple_batch_.size() - 1) {
-+    if (left_tuple_batch_.empty() || left_idx_ >= left_tuple_batch_.size() - 1) {
-       // 但如果是第一轮，还没拉取过，left_tuple_batch_ 是空的，特殊处理一下
-       if (!left_tuple_batch_.empty()) {
-         left_tuple_batch_.clear();
-@@ -144,13 +139,13 @@
-       }
- 
-       if (!has_data) {
--        is_left_done_ = true; // 左表彻底被榨干了
--        break;                // 结束死循环
-+        is_left_done_ = true;  // 左表彻底被榨干了
-+        break;                 // 结束死循环
-       }
- 
--      left_idx_ = 0; // 重置游标
-+      left_idx_ = 0;  // 重置游标
-     } else {
--      left_idx_++; // 正常推进到下一条
-+      left_idx_++;  // 正常推进到下一条
-     }
-     // 还没有匹配上时
-     is_current_left_matched_ = false;
-@@ -182,8 +177,7 @@
-       }
- 
-       for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
--        values.push_back(ValueFactory::GetNullValueByType(
--            right_schema.GetColumn(i).GetType()));
-+        values.push_back(ValueFactory::GetNullValueByType(right_schema.GetColumn(i).GetType()));
-       }
-       tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
-       rid_batch->emplace_back(RID{});
-@@ -193,4 +187,4 @@
-   return !tuple_batch->empty();
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/index_scan_executor.cpp
-+++ /autograder/source/bustub/src/execution/index_scan_executor.cpp (after clang format)
-@@ -12,9 +12,9 @@
- 
- #include "execution/executors/index_scan_executor.h"
- #include "common/macros.h"
-+#include "concurrency/transaction_manager.h"
-+#include "execution/execution_common.h"
- #include "storage/index/b_plus_tree_index.h"
--#include "execution/execution_common.h"
--#include "concurrency/transaction_manager.h"
- 
- namespace bustub {
- 
-@@ -23,8 +23,7 @@
-  * @param exec_ctx the executor context
-  * @param plan the index scan plan to be executed
-  */
--IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx,
--                                     const[...(truncated)...]-75,13 +76,11 @@
-   // void Getlock();
-   // void Releaselock();
+-  auto operator()(const SortEntry &entry_a, const SortEntry &entry_b) const
+-      -> bool;
++  auto operator()(const SortEntry &entry_a, const SortEntry &entry_b) const -> bool;
  
 -private:
 + private:
-   /** @brief Only the buffer pool manager is allowed to construct a valid
-    * `ReadPageGuard.` */
--  explicit ReadPageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
--                         std::shared_ptr<ArcReplacer> replacer,
--                         std::shared_ptr<std::mutex> bpm_latch,
--                         std::shared_ptr<DiskScheduler> disk_scheduler);
-+  explicit ReadPageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame, std::shared_ptr<ArcReplacer> replacer,
-+                         std::shared_ptr<std::mutex> bpm_latch, std::shared_ptr<DiskScheduler> disk_scheduler);
+   std::vector<OrderBy> order_bys_;
+ };
  
-   /** @brief The page ID of the page we are guarding. */
-   page_id_t page_id_;
-@@ -161,7 +160,7 @@
-    * `WritePageGuard.` */
-   friend class BufferPoolManager;
+-auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys,
+-                     const Schema &schema) -> SortKey;
++auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys, const Schema &schema) -> SortKey;
  
+ /**
+  * Above are all you need for P3.
+  * You can ignore the remaining part of this file until P4.
+  */
+ 
+-auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple,
+-                      const TupleMeta &base_meta,
+-                      const std::vector<UndoLog> &undo_logs)
+-    -> std::optional<Tuple>;
++auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const TupleMeta &base_meta,
++                      const std::vector<UndoLog> &undo_logs) -> std::optional<Tuple>;
+ 
+-auto CollectUndoLogs(RID rid, const TupleMeta &base_meta,
+-                     const Tuple &base_tuple, std::optional<UndoLink> undo_link,
+-                     Transaction *txn, TransactionManager *txn_mgr)
+-    -> std::optional<std::vector<UndoLog>>;
++auto CollectUndoLogs(RID rid, const TupleMeta &base_meta, const Tuple &base_tuple, std::optional<UndoLink> undo_link,
++                     Transaction *txn, TransactionManager *txn_mgr) -> std::optional<std::vector<UndoLog>>;
+ 
+-auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple,
+-                        const Tuple *target_tuple, timestamp_t ts,
++auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple, timestamp_t ts,
+                         UndoLink prev_version) -> UndoLog;
+ 
+-auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple,
+-                            const Tuple *target_tuple, const UndoLog &log)
+-    -> UndoLog;
++auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple,
++                            const UndoLog &log) -> UndoLog;
+ 
+-void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr,
+-               const TableInfo *table_info, TableHeap *table_heap);
++void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr, const TableInfo *table_info,
++               TableHeap *table_heap);
+ 
+ // TODO(P4): Add new functions as needed... You are likely need to define some
+ // more functions.
+@@ -90,4 +82,4 @@
+ // your own ones as necessary so that you do not need to write the same code
+ // everywhere.
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/aggregation_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/aggregation_executor.h (after clang format)
+@@ -33,15 +33,14 @@
+  */
+ // 聚合操作真正发生数学计算的地方
+ class SimpleAggregationHashTable {
 -public:
 + public:
    /**
-    * @brief The default constructor for a `WritePageGuard`.
+    * Construct a new SimpleAggregationHashTable instance.
+    * @param agg_exprs the aggregation expressions
+    * @param agg_types the types of aggregations
+    */
+-  SimpleAggregationHashTable(
+-      const std::vector<AbstractExpressionRef> &agg_exprs,
+-      const std::vector<AggregationType> &agg_types)
++  SimpleAggregationHashTable(const std::vector<AbstractExpressionRef> &agg_exprs,
++                             const std::vector<AggregationType> &agg_types)
+       : agg_exprs_{agg_exprs}, agg_types_{agg_types} {}
+ 
+   /** @return The initial aggregate value for this aggregation executor */
+@@ -49,17 +48,17 @@
+     std::vector<Value> values{};
+     for (const auto &agg_type : agg_types_) {
+       switch (agg_type) {
+-      case AggregationType::CountStarAggregate:
+-        // 根据样例，只有 CountStar 初始值为 0
+-        values.emplace_back(ValueFactory::GetIntegerValue(0));
+-        break;
+-      case AggregationType::CountAggregate:
+-      case AggregationType::SumAggregate:
+-      case AggregationType::MinAggregate:
+-      case AggregationType::MaxAggregate:
+-        // 其他所有聚合类型初始值必须为 INTEGERNULL
+-        values.emplace_back(ValueFactory::GetNullValueByType(TypeId::INTEGER));
+-        break;
++        case AggregationType::CountStarAggregate:
++          // 根据样例，只有 CountStar 初始值为 0
++          values.emplace_back(ValueFactory::GetIntegerValue(0));
++          break;
++        case AggregationType::CountAggregate:
++        case AggregationType::SumAggregate:
++        case AggregationType::MinAggregate:
++        case AggregationType::MaxAggregate:
++          // 其他所有聚合类型初始值必须为 INTEGERNULL
++          values.emplace_back(ValueFactory::GetNullValueByType(TypeId::INTEGER));
++          break;
+       }
+       // case AggregationType::CountStarAggregate:
+       // case AggregationType::CountAggregate:
+@@ -84,55 +83,49 @@
     *
-@@ -185,11 +184,13 @@
-   auto GetData() const -> const char *;
-   // void Getlock();
-   // void Releaselock();
--  template <class T> auto As() const -> const T * {
-+  template <class T>
-+  auto As() const -> const T * {
-     return reinterpret_cast<const T *>(GetData());
+    * 每次从 Child Executor 读到一行数据，调用 aht_.InsertCombine 时触发。
+    */
+-  void CombineAggregateValues(AggregateValue *result,
+-                              const AggregateValue &input) {
++  void CombineAggregateValues(AggregateValue *result, const AggregateValue &input) {
+     for (uint32_t i = 0; i < agg_exprs_.size(); i++) {
+       switch (agg_types_[i]) {
+-      case AggregationType::CountStarAggregate:
+-        // coutstar count(*) 就是数行数，不管你是不是null都要算
+-        result->aggregates_[i] =
+-            result->aggregates_[i].Add(ValueFactory::GetIntegerValue(1));
+-        break;
+-      case AggregationType::CountAggregate:
+-        if (!input.aggregates_[i].IsNull()) {
+-          if (result->aggregates_[i].IsNull()) {
+-            // 遇到第一条有效数据，将结果从 NULL 初始化为 1
+-            result->aggregates_[i] = ValueFactory::GetIntegerValue(1);
+-          } else {
+-            // 否则，在原有基础上 +1
+-            result->aggregates_[i] =
+-                result->aggregates_[i].Add(ValueFactory::GetIntegerValue(1));
+-          }
+-        }
+-        break;
+-      case AggregationType::SumAggregate:
+-        if (!input.aggregates_[i].IsNull()) {
+-          if (result->aggregates_[i].IsNull()) {
+-            result->aggregates_[i] = input.aggregates_[i];
+-          } else {
+-            result->aggregates_[i] =
+-                result->aggregates_[i].Add(input.aggregates_[i]);
+-          }
+-        }
+-        break;
+-      case AggregationType::MinAggregate:
+-        if (!input.aggregates_[i].IsNull()) {
+-          if (result->aggregates_[i].IsNull() ||
+-              input.aggregates_[i].CompareLessThan(result->aggregates_[i]) ==
+-                  CmpBool::CmpTrue) {
+-            result->aggregates_[i] = input.aggregates_[i];
+-          }
+-        }
+-        break;
+-      case AggregationType::MaxAggregate:
+-        if (!input.aggregates_[i].IsNull()) {
+-          if (result->aggregates_[i].IsNull() ||
+-              input.aggregates_[i].CompareGreaterThan(result->aggregates_[i]) ==
+-                  CmpBool::CmpTrue) {
+-            result->aggregates_[i] = input.aggregates_[i];
+-          }
+-        }
+-        break;
++        case AggregationType::CountStarAggregate:
++          // coutstar count(*) 就是数行数，不管你是不是null都要算
++          result->aggregates_[i] = result->aggregates_[i].Add(ValueFactory::GetIntegerValue(1));
++          break;
++        case AggregationType::CountAggregate:
++          if (!input.aggregates_[i].IsNull()) {
++            if (result->aggregates_[i].IsNull()) {
++              // 遇到第一条有效数据，将结果从 NULL 初始化为 1
++              result->aggregates_[i] = ValueFactory::GetIntegerValue(1);
++            } else {
++              // 否则，在原有基础上 +1
++              result->aggregates_[i] = result->aggregates_[i].Add(ValueFactory::GetIntegerValue(1));
++            }
++          }
++          break;
++        case AggregationType::SumAggregate:
++          if (!input.aggregates_[i].IsNull()) {
++            if (result->aggregates_[i].IsNull()) {
++              result->aggregates_[i] = input.aggregates_[i];
++            } else {
++              result->aggregates_[i] = result->aggregates_[i].Add(input.aggregates_[i]);
++            }
++          }
++          break;
++        case AggregationType::MinAggregate:
++          if (!input.aggregates_[i].IsNull()) {
++            if (result->aggregates_[i].IsNull() ||
++                input.aggregates_[i].CompareLessThan(result->aggregates_[i]) == CmpBool::CmpTrue) {
++              result->aggregates_[i] = input.aggregates_[i];
++            }
++          }
++          break;
++        case AggregationType::MaxAggregate:
++          if (!input.aggregates_[i].IsNull()) {
++            if (result->aggregates_[i].IsNull() ||
++                input.aggregates_[i].CompareGreaterThan(result->aggregates_[i]) == CmpBool::CmpTrue) {
++              result->aggregates_[i] = input.aggregates_[i];
++            }
++          }
++          break;
+       }
+     }
+ 
+@@ -145,8 +138,7 @@
+    * @param agg_key the key to be inserted
+    * @param agg_val the value to be inserted
+    */
+-  void InsertCombine(const AggregateKey &agg_key,
+-                     const AggregateValue &agg_val) {
++  void InsertCombine(const AggregateKey &agg_key, const AggregateValue &agg_val) {
+     if (ht_.count(agg_key) == 0) {
+       ht_.insert({agg_key, GenerateInitialAggregateValue()});
+     }
+@@ -165,11 +157,9 @@
    }
-   auto GetDataMut() -> char *;
--  template <class T> auto AsMut() -> T * {
-+  template <class T>
-+  auto AsMut() -> T * {
-     return reinterpret_cast<T *>(GetDataMut());
-   }
-   auto IsDirty() const -> bool;
-@@ -197,13 +198,11 @@
-   void Drop();
-   ~WritePageGuard();
+   /** An iterator over the aggregation hash table */
+   class Iterator {
+-  public:
++   public:
+     /** Creates an iterator for the aggregate map. */
+-    explicit Iterator(
+-        std::unordered_map<AggregateKey, AggregateValue>::const_iterator iter)
+-        : iter_{iter} {}
++    explicit Iterator(std::unordered_map<AggregateKey, AggregateValue>::const_iterator iter) : iter_{iter} {}
+ 
+     /** @return The key of the iterator */
+     auto Key() -> const AggregateKey & { return iter_->first; }
+@@ -184,16 +174,12 @@
+     }
+ 
+     /** @return `true` if both iterators are identical */
+-    auto operator==(const Iterator &other) -> bool {
+-      return this->iter_ == other.iter_;
+-    }
++    auto operator==(const Iterator &other) -> bool { return this->iter_ == other.iter_; }
+ 
+     /** @return `true` if both iterators are different */
+-    auto operator!=(const Iterator &other) -> bool {
+-      return this->iter_ != other.iter_;
+-    }
+-
+-  private:
++    auto operator!=(const Iterator &other) -> bool { return this->iter_ != other.iter_; }
++
++   private:
+     /** Aggregates map */
+     std::unordered_map<AggregateKey, AggregateValue>::const_iterator iter_;
+   };
+@@ -204,7 +190,7 @@
+   /** @return Iterator to the end of the hash table */
+   auto End() -> Iterator { return Iterator{ht_.cend()}; }
  
 -private:
 + private:
-   /** @brief Only the buffer pool manager is allowed to construct a valid
-    * `WritePageGuard.` */
--  explicit WritePageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
--                          std::shared_ptr<ArcReplacer> replacer,
--                          std::shared_ptr<std::mutex> bpm_latch,
--                          std::shared_ptr<DiskScheduler> disk_scheduler);
-+  explicit WritePageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame, std::shared_ptr<ArcReplacer> replacer,
-+                          std::shared_ptr<std::mutex> bpm_latch, std::shared_ptr<DiskScheduler> disk_scheduler);
+   /** The hash table is just a map from aggregate keys to aggregate values */
+   std::unordered_map<AggregateKey, AggregateValue> ht_{};
+   /** The aggregate expressions that we have */
+@@ -218,31 +204,26 @@
+  * MAX) over the tuples produced by a child executor.
+  */
+ class AggregationExecutor : public AbstractExecutor {
+-public:
+-  AggregationExecutor(ExecutorContext *exec_ctx,
+-                      const AggregationPlanNode *plan,
++ public:
++  AggregationExecutor(ExecutorContext *exec_ctx, const AggregationPlanNode *plan,
+                       std::unique_ptr<AbstractExecutor> &&child_executor);
  
-   /** @brief The page ID of the page we are guarding. */
-   page_id_t page_id_;
-@@ -264,4 +263,4 @@
-    */
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the aggregation */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  };
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+ 
+   auto GetChildExecutor() const -> const AbstractExecutor *;
+ 
+-private:
++ private:
+   /** @return The tuple as an AggregateKey */
+   auto MakeAggregateKey(const Tuple *tuple) -> AggregateKey {
+     std::vector<Value> keys;
+     for (const auto &expr : plan_->GetGroupBys()) {
+-      keys.emplace_back(
+-          expr->Evaluate(tuple, child_executor_->GetOutputSchema()));
++      keys.emplace_back(expr->Evaluate(tuple, child_executor_->GetOutputSchema()));
+     }
+     return {keys};
+   }
+@@ -251,13 +232,12 @@
+   auto MakeAggregateValue(const Tuple *tuple) -> AggregateValue {
+     std::vector<Value> vals;
+     for (const auto &expr : plan_->GetAggregates()) {
+-      vals.emplace_back(
+-          expr->Evaluate(tuple, child_executor_->GetOutputSchema()));
++      vals.emplace_back(expr->Evaluate(tuple, child_executor_->GetOutputSchema()));
+     }
+     return {vals};
+   }
+   // 一定要严格按照这个顺序初始化！！！！
+-private:
++ private:
+   /** The aggregation plan node */
+   const AggregationPlanNode *plan_;
+ 
+@@ -272,4 +252,4 @@
+   // TODO(Student): Uncomment
+   SimpleAggregationHashTable::Iterator aht_iterator_;
  };
- 
 -} // namespace bustub
 +}  // namespace bustub
---- /autograder/source/bustub/src/optimizer/column_pruning.cpp
-+++ /autograder/source/bustub/src/optimizer/column_pruning.cpp (after clang format)
-@@ -20,10 +20,9 @@
-  * @return the new plan with column pruning
-  * @note You may use this function to implement column pruning optimization.
+--- /autograder/source/bustub/src/include/execution/executors/delete_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/delete_executor.h (after clang format)
+@@ -28,22 +28,19 @@
+  * Deleted values are always pulled from a child.
   */
--auto Optimizer::OptimizeColumnPruning(const bustub::AbstractPlanNodeRef &plan)
--    -> AbstractPlanNodeRef {
-+auto Optimizer::OptimizeColumnPruning(const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
-   // Your code here
-   return plan;
- }
+ class DeleteExecutor : public AbstractExecutor {
+-public:
++ public:
+   DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
+                  std::unique_ptr<AbstractExecutor> &&child_executor);
  
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the delete */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  };
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+ 
+-private:
++ private:
+   /** The delete plan node to be executed */
+   const DeletePlanNode *plan_;
+ 
+@@ -55,4 +52,4 @@
+   std::vector<std::shared_ptr<IndexInfo>> table_indexes_;
+   bool has_deleted_{false};
+ };
 -} // namespace bustub
 +}  // namespace bustub
---- /autograder/source/bustub/src/optimizer/nlj_as_hash_join.cpp
-+++ /autograder/source/bustub/src/optimizer/nlj_as_hash_join.cpp (after clang format)
-@@ -36,8 +36,7 @@
-  * In the starter code, we will check NLJs with exactly one equal condition. You
-  * can further support optimizing joins with multiple eq conditions.
-  */
--auto Optimizer::OptimizeNLJAsHashJoin(const AbstractPlanNodeRef &plan)
--    -> AbstractPlanNodeRef {
-+auto Optimizer::OptimizeNLJAsHashJoin(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
-   // TODO(student): implement NestedLoopJoin -> HashJoin optimizer rule
-   // Note for Spring 2025: You should support join keys of any number of
-   // conjunction of equi-conditions: E.g. <column expr> = <column expr> AND
-@@ -55,8 +54,7 @@
-   }
+--- /autograder/source/bustub/src/include/execution/executors/external_merge_sort_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/external_merge_sort_executor.h (after clang format)
+@@ -13,6 +13,10 @@
  
-   // 3. 强转成 NestedLoopJoin 图纸，准备开刀
--  const auto &nlj_plan =
--      dynamic_cast<const NestedLoopJoinPlanNode &>(*optimized_plan);
-+  const auto &nlj_plan = dynamic_cast<const NestedLoopJoinPlanNode &>(*optimized_plan);
-   auto predicate = nlj_plan.Predicate();
+ #pragma once
  
-   // 如果根本没有条件 (比如 CROSS JOIN 笛卡尔积)，那绝不能用 Hash Join
-@@ -71,27 +69,22 @@
-   std::function<bool(const AbstractExpressionRef &)> extract_equi_keys =
-       [&](const AbstractExpressionRef &expr) -> bool {
-     // 遇到了 AND 逻辑符，那就左右两边都要继续拆！
--    if (auto logic_expr = dynamic_cast<const LogicExpression *>(expr.get());
--        logic_expr != nullptr) {
-+    if (auto logic_expr = dynamic_cast<const LogicExpression *>(expr.get()); logic_expr != nullptr) {
-       if (logic_expr->logic_type_ == LogicType::And) {
--        return extract_equi_keys(logic_expr->GetChildAt(0)) &&
--               extract_equi_keys(logic_expr->GetChildAt(1));
-+        return extract_equi_keys(logic_expr->GetChildAt(0)) && extract_equi_keys(logic_expr->GetChildAt(1));
-       }
--      return false; // 如果是 OR，Hash Join 搞不定，放弃治疗
-+      return false;  // 如果是 OR，Hash Join 搞不定，放弃治疗
-     }
- 
-     // 遇到了比较符，必须是等于号 (=)
--    if (auto cmp_expr = dynamic_cast<const ComparisonExpression *>(expr.get());
--        cmp_expr != nullptr) {
-+    if (auto cmp_expr = dynamic_cast<const ComparisonExpression *>(expr.get()); cmp_expr != nullptr) {
-       if (cmp_expr->comp_type_ == ComparisonType::Equal) {
-         auto left_child = cmp_expr->GetChildAt(0);
-         auto right_child = cmp_expr->GetChildAt(1);
- 
-         // 强转成列名表达式 (比如 t1.id)，join一定是两个表相互连接，不会有常量
--        auto left_col =
--            dynamic_cast<const ColumnValueExpression *>(left_child.get());
--        auto right_col =
--            dynamic_cast<const ColumnValueExpression *>(right_child.get());
-+        auto left_col = dynamic_cast<const ColumnValueExpression *>(left_child.get());
-+        auto right_col = dynamic_cast<const ColumnValueExpression *>(right_child.get());
- 
-         if (left_col != nullptr && right_col != nullptr) {
-           // 判断谁是左表 (TupleIdx == 0)，谁是右表 (TupleIdx == 1)
-@@ -116,13 +109,11 @@
-   // 如果条件全部符合“纯等值连接”的要求
-   if (extract_equi_keys(predicate)) {
-     // 换上我们的 HashJoin 机器图纸
--    return std::make_shared<HashJoinPlanNode>(
--        nlj_plan.output_schema_, nlj_plan.GetLeftPlan(),
--        nlj_plan.GetRightPlan(), left_key_exprs, right_key_exprs,
--        nlj_plan.GetJoinType());
-+    return std::make_shared<HashJoinPlanNode>(nlj_plan.output_schema_, nlj_plan.GetLeftPlan(), nlj_plan.GetRightPlan(),
-+                                              left_key_exprs, right_key_exprs, nlj_plan.GetJoinType());
-   }
- 
-   return optimized_plan;
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/optimizer/optimizer_custom_rules.cpp
-+++ /autograder/source/bustub/src/optimizer/optimizer_custom_rules.cpp (after clang format)
-@@ -21,8 +21,7 @@
- 
- namespace bustub {
- 
--auto Optimizer::OptimizeCustom(const AbstractPlanNodeRef &plan)
--    -> AbstractPlanNodeRef {
-+auto Optimizer::OptimizeCustom(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
-   auto p = plan;
-   p = OptimizeMergeProjection(p);
-   p = OptimizeMergeFilterNLJ(p);
-@@ -34,4 +33,4 @@
-   return p;
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/optimizer/optimizer_internal.cpp
-+++ /autograder/source/bustub/src/optimizer/optimizer_internal.cpp (after clang format)
-@@ -14,4 +14,4 @@
- 
- void OptimizerHelperFunction() {}
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/optimizer/seqscan_as_indexscan.cpp
-+++ /autograder/source/bustub/src/optimizer/seqscan_as_indexscan.cpp (after clang format)
-@@ -31,7 +31,7 @@
-   }
-   for (const auto &child : expr->GetChildren()) {
-     if (auto res = GetColIdx(child)) {
--      return res; // 只要找到一个列，就赶紧汇报
-+      return res;  // 只要找到一个列，就赶紧汇报
-     }
-   }
-   return std::nullopt;
-@@ -39,30 +39,24 @@
- 
- // 辅助函数：只对最简单的 "单点等值查询" 提取常量狙击子弹
- // xxx or xxx 会被认为复杂类型，所以无法通过单点等值查询
--auto GetConstantFromEqual(const AbstractExpressionRef &expr)
--    -> std::optional<AbstractExpressionRef> {
-+auto GetConstantFromEqual(const AbstractExpressionRef &expr) -> std::optional<AbstractExpressionRef> {
-   auto cmp_expr = dynamic_cast<const ComparisonExpression *>(expr.get());
-   if (cmp_expr != nullptr && cmp_expr->comp_type_ == ComparisonType::Equal) {
--    auto left_col = dynamic_cast<const ColumnValueExpression *>(
--        cmp_expr->GetChildAt(0).get());
--    auto right_const = dynamic_cast<const ConstantValueExpression *>(
--        cmp_expr->GetChildAt(1).get());
-+    auto left_col = dynamic_cast<const ColumnValueExpression *>(cmp_expr->GetChildAt(0).get());
-+    auto right_const = dynamic_cast<const ConstantValueExpression *>(cmp_expr->GetChildAt(1).get());
-     if (left_col != nullptr && right_const != nullptr) {
-       return cmp_expr->GetChildAt(1);
-     }
- 
--    auto left_const = dynamic_cast<const ConstantValueExpression *>(
--        cmp_expr->GetChildAt(0).get());
--    auto right_col = dynamic_cast<const ColumnValueExpression *>(
--        cmp_expr->GetChildAt(1).get());
-+    auto left_const = dynamic_cast<const ConstantValueExpression *>(cmp_expr->GetChildAt(0).get());
-+    auto right_col = dynamic_cast<const ColumnValueExpression *>(cmp_expr->GetChildAt(1).get());
-     if (left_const != nullptr && right_col != nullptr) {
-       return cmp_expr->GetChildAt(0);
-     }
-   }
-   return std::nullopt;
- }
--auto Optimizer::OptimizeSeqScanAsIndexScan(
--    const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
-+auto Optimizer::OptimizeSeqScanAsIndexScan(const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
-   // TODO(P3): implement seq scan with predicate -> index scan optimizer rule
-   // The Filter Predicate Pushdown has been enabled for you in optimizer.cpp
-   // when forcing starter rule 谓词下推
-@@ -75,8 +69,7 @@
-   // 开始判断能不能转换了
-   // 判断类型
-   if (optimized_plan->GetType() == PlanType::SeqScan) {
--    const auto &seq_scan =
--        dynamic_cast<const SeqScanPlanNode &>(*optimized_plan);
-+    const auto &seq_scan = dynamic_cast<const SeqScanPlanNode &>(*optimized_plan);
-     // 判断是否存在where子句
-     if (seq_scan.filter_predicate_ != nullptr) {
-       // !如果遇到了 xx or xx，会被漏掉
-@@ -142,16 +135,14 @@
-           // 保证是单列，并且是表中的这一列
-           if (attrs.size() == 1 && attrs[0] == col_index) {
-             std::vector<AbstractExpressionRef> pred_keys;
--            auto constant_opt =
--                GetConstantFromEqual(seq_scan.filter_predicate_);
-+            auto constant_opt = GetConstantFromEqual(seq_scan.filter_predicate_);
- 
-             if (constant_opt.has_value()) {
-               pred_keys.push_back(constant_opt.value());
-             }
- 
--            return std::make_shared<IndexScanPlanNode>(
--                seq_scan.output_schema_, seq_scan.table_oid_, index->index_oid_,
--                seq_scan.filter_predicate_, pred_keys);
-+            return std::make_shared<IndexScanPlanNode>(seq_scan.output_schema_, seq_scan.table_oid_, index->index_oid_,
-+                                                       seq_scan.filter_predicate_, pred_keys);
-           }
-         }
-       }
-@@ -160,4 +151,4 @@
-   return optimized_plan;
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/storage/disk/disk_scheduler.cpp
-+++ /autograder/source/bustub/src/storage/disk/disk_scheduler.cpp (after clang format)
-@@ -11,14 +11,13 @@
- //===----------------------------------------------------------------------===//
- 
- #include "storage/disk/disk_scheduler.h"
++#include <cstddef>
++#include <memory>
++#include <utility>
 +#include <vector>
+ #include "common/config.h"
  #include "common/macros.h"
- #include "storage/disk/disk_manager.h"
+ #include "execution/execution_common.h"
+@@ -20,10 +24,6 @@
+ #include "execution/plans/sort_plan.h"
+ #include "storage/page/intermediate_result_page.h"
+ #include "storage/table/tuple.h"
+-#include <cstddef>
+-#include <memory>
+-#include <utility>
 -#include <vector>
  
  namespace bustub {
  
--DiskScheduler::DiskScheduler(DiskManager *disk_manager)
--    : disk_manager_(disk_manager) {
-+DiskScheduler::DiskScheduler(DiskManager *disk_manager) : disk_manager_(disk_manager) {
-   // UNIMPLEMENTED("TODO(P1): Add implementation.");
-   // Spawn the background thread
-   background_thread_.emplace([&] { StartWorkerThread(); });
-@@ -33,8 +32,7 @@
- DiskScheduler::~DiskScheduler() {
-   // Put a `std::nullopt` in the queue to signal to exit the loop
-   request_queue_.Put(std::nullopt);
--  if (background_thread_
--          .has_value()) { // 检测 background_thread_是否持有有效的 thread 对象
-+  if (background_thread_.has_value()) {  // 检测 background_thread_是否持有有效的 thread 对象
-     background_thread_->join();
-     // 1. 析构线程（用于触发对象销毁的已有线程，独立于后台线程）执行此join函数
-     // 2. 析构线程进入阻塞状态，等待 background_thread_
-@@ -56,7 +54,7 @@
- void DiskScheduler::Schedule(std::vector<DiskRequest> &requests) {
-   for (auto &request : requests) {
-     request_queue_.Put(std::make_optional(std::move(request)));
--  } // request包含promise不可拷贝，所以要移动
-+  }  // request包含promise不可拷贝，所以要移动
- }
+@@ -33,10 +33,9 @@
+  * within one page and across pages.
+  */
+ class MergeSortRun {
+-public:
++ public:
+   MergeSortRun() = default;
+-  MergeSortRun(std::vector<page_id_t> pages, BufferPoolManager *bpm)
+-      : pages_(std::move(pages)), bpm_(bpm) {}
++  MergeSortRun(std::vector<page_id_t> pages, BufferPoolManager *bpm) : pages_(std::move(pages)), bpm_(bpm) {}
  
- /**
-@@ -88,4 +86,4 @@
+   auto GetPageCount() -> size_t { return pages_.size(); }
+   auto GetPages() const -> const std::vector<page_id_t> & { return pages_; }
+@@ -45,7 +44,7 @@
+   class Iterator {
+     friend class MergeSortRun;
+ 
+-  public:
++   public:
+     Iterator() = default;
+ 
+     /**
+@@ -78,8 +77,7 @@
+      * the iterator is pointing to.
+      */
+     auto operator*() -> Tuple {
+-      BUSTUB_ASSERT(current_ir_page_ != nullptr,
+-                    "Iterator is dereferencing a null page!");
++      BUSTUB_ASSERT(current_ir_page_ != nullptr, "Iterator is dereferencing a null page!");
+       Tuple tuple;
+       current_ir_page_->GetTuple(tuple_idx_, &tuple);
+       return tuple;
+@@ -90,19 +88,16 @@
+      * sorted run.
+      */
+     auto operator==(const Iterator &other) const -> bool {
+-      return run_ == other.run_ && page_idx_ == other.page_idx_ &&
+-             tuple_idx_ == other.tuple_idx_;
++      return run_ == other.run_ && page_idx_ == other.page_idx_ && tuple_idx_ == other.tuple_idx_;
+     }
+ 
+     /**
+      * Checks whether two iterators are pointing to different tuples in a sorted
+      * run or iterating on different sorted runs.
+      */
+-    auto operator!=(const Iterator &other) const -> bool {
+-      return !(*this == other);
+-    }
++    auto operator!=(const Iterator &other) const -> bool { return !(*this == other); }
+ 
+-  private:
++   private:
+     explicit Iterator(const MergeSortRun *run) : run_(run) {}
+ 
+     Iterator(const MergeSortRun *run, size_t page_idx, uint32_t tuple_idx)
+@@ -150,7 +145,7 @@
+     return {this, pages_.size(), 0};
    }
- }
- // 磁盘处理可能会报错，所以我们必须做报错的准备，promise就是对策
+ 
+-private:
++ private:
+   /** The page IDs of the sort pages that store the sorted tuples. */
+   std::vector<page_id_t> pages_;
+   /**
+@@ -165,23 +160,21 @@
+  *
+  * In Spring 2025, only 2-way external merge sort is required.
+  */
+-template <size_t K> class ExternalMergeSortExecutor : public AbstractExecutor {
+-public:
++template <size_t K>
++class ExternalMergeSortExecutor : public AbstractExecutor {
++ public:
+   ExternalMergeSortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan,
+                             std::unique_ptr<AbstractExecutor> &&child_executor);
+   ~ExternalMergeSortExecutor() override;
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the external merge sort */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+-private:
++ private:
+   /** The sort plan node to be executed */
+   const SortPlanNode *plan_;
+ 
+@@ -201,4 +194,4 @@
+   auto MergeTwoRuns(MergeSortRun &run1, MergeSortRun &run2) -> MergeSortRun;
+ };
+ 
 -} // namespace bustub
 +}  // namespace bustub
---- /autograder/source/bustub/src/storage/index/b_plus_tree.cpp
-+++ /autograder/source/bustub/src/storage/index/b_plus_tree.cpp (after clang format)
-@@ -17,13 +17,13 @@
- namespace bustub {
+--- /autograder/source/bustub/src/include/execution/executors/filter_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/filter_executor.h (after clang format)
+@@ -27,22 +27,19 @@
+  * The FilterExecutor executor executes a filter.
+  */
+ class FilterExecutor : public AbstractExecutor {
+-public:
++ public:
+   FilterExecutor(ExecutorContext *exec_ctx, const FilterPlanNode *plan,
+                  std::unique_ptr<AbstractExecutor> &&child_executor);
  
- FULL_INDEX_TEMPLATE_ARGUMENTS
--BPLUSTREE_TYPE::BPlusTree(std::string name, page_id_t header_page_id,
--                          BufferPoolManager *buffer_pool_manager,
--                          const KeyComparator &comparator, int leaf_max_size,
--                          int internal_max_size)
-+BPLUSTREE_TYPE::BPlusTree(std::string name, page_id_t header_page_id, BufferPoolManager *buffer_pool_manager,
-+                          const KeyComparator &comparator, int leaf_max_size, int internal_max_size)
-     : bpm_(std::make_shared<TracedBufferPoolManager>(buffer_pool_manager)),
--      index_name_(std::move(name)), comparator_(std::move(comparator)),
--      leaf_max_size_(leaf_max_size), internal_max_size_(internal_max_size),
-+      index_name_(std::move(name)),
-+      comparator_(std::move(comparator)),
-+      leaf_max_size_(leaf_max_size),
-+      internal_max_size_(internal_max_size),
-       header_page_id_(header_page_id) {
-   WritePageGuard guard = bpm_->WritePage(header_page_id_);
-   auto root_page = guard.AsMut<BPlusTreeHeaderPage>();
-@@ -56,8 +56,7 @@
-  */
- // 返回与输入键有关的唯一的值，用于点查询
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto BPLUSTREE_TYPE::GetValue(const KeyType &key,
--                              std::vector<ValueType> *result) -> bool {
-+auto BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result) -> bool {
-   // UNIMPLEMENTED("TODO(P2): Add implementation.");
-   // Declaration of context instance. Using the Context is not necessary but
-   // advised.
-@@ -70,8 +69,7 @@
-   // KeyIndex 通过二分获得正确索引
-   int index = leaf_page->KeyIndex(key, comparator_);
-   // 再次检查索引是否对应键值
--  if (index >= 0 && index < leaf_page->GetSize() &&
--      comparator_(leaf_page->KeyAt(index), key) == 0) {
-+  if (index >= 0 && index < leaf_page->GetSize() && comparator_(leaf_page->KeyAt(index), key) == 0) {
-     // 检查墓碑机制
-     if (!leaf_page->IsTombstone(index)) {
-       result->emplace_back(leaf_page->ValueAt(index));
-@@ -82,8 +80,7 @@
- }
- // 实现一个寻找叶子节点页面的函数--
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto BPLUSTREE_TYPE::FindLeafForRead(const KeyType &key, Context *context) const
--    -> const LeafPage * {
-+auto BPLUSTREE_TYPE::FindLeafForRead(const KeyType &key, Context *context) const -> const LeafPage * {
-   // 因为getrootpageid不能保证是一个只读的函数，拥有更改内容的风险。不符合上面const定义
-   // 这里会context。emplace，所以就算没有成功，也需要pop_back
-   page_id_t root_page_id = GetRootPageIdForRead(context);
-@@ -141,8 +138,7 @@
-  * keys return false; otherwise, return true.
-  */
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value)
--    -> bool {
-+auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value) -> bool {
-   // 乐观锁
-   // 经典掏header_page
-   {
-@@ -230,8 +226,7 @@
-   // 两种失败：已经有了这个key，size == maxsize
-   // 验证是不是第一种
-   int index = leaf_page->KeyIndex(key, comparator_);
--  if (index < leaf_page->GetSize() &&
--      comparator_(leaf_page->KeyAt(index), key) == 0) {
-+  if (index < leaf_page->GetSize() && comparator_(leaf_page->KeyAt(index), key) == 0) {
-     if (!leaf_page->IsTombstone(index)) {
-       ctx.Clear();
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the filter plan */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+-private:
++ private:
+   /** The filter plan node to be executed */
+   const FilterPlanNode *plan_;
+ 
+@@ -56,4 +53,4 @@
+   /** child tuple batch offset */
+   size_t child_offset_ = 0;
+ };
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/hash_join_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/hash_join_executor.h (after clang format)
+@@ -30,55 +30,50 @@
        return false;
-@@ -260,8 +255,7 @@
-   return true;
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto BPLUSTREE_TYPE::FindLeafForWrite(const KeyType &key, Context *ctx)
--    -> WritePageGuard {
-+auto BPLUSTREE_TYPE::FindLeafForWrite(const KeyType &key, Context *ctx) -> WritePageGuard {
-   auto head_guard = bpm_->WritePage(header_page_id_);
-   auto head_page = head_guard.AsMut<BPlusTreeHeaderPage>();
-   ctx->root_page_id_ = head_page->root_page_id_;
-@@ -309,8 +303,7 @@
- }
- 
- FULL_INDEX_TEMPLATE_ARGUMENTS
--void BPLUSTREE_TYPE::InsertIntoParent(page_id_t old_page_id, const KeyType &key,
--                                      page_id_t new_page_id, Context *ctx) {
-+void BPLUSTREE_TYPE::InsertIntoParent(page_id_t old_page_id, const KeyType &key, page_id_t new_page_id, Context *ctx) {
-   page_id_t current_old_page_id = old_page_id;
-   KeyType current_split_key = key;
-   page_id_t current_new_page_id = new_page_id;
-@@ -331,8 +324,7 @@
-       new_root_page->Init(internal_max_size_);
- 
-       // 给newroot赋值
--      new_root_page->PopulateNewRoot(current_old_page_id, current_split_key,
--                                     current_new_page_id);
-+      new_root_page->PopulateNewRoot(current_old_page_id, current_split_key, current_new_page_id);
-       // DEBUG
-       // std::cout << "DEBUG: New Root Created (PageID=" << new_root_id << ")"
-       //           << std::endl;
-@@ -357,8 +349,7 @@
-     auto parent_page = parent_guard.template AsMut<InternalPage>();
- 
-     // insert
--    parent_page->InsertNodeAfter(current_old_page_id, current_split_key,
--                                 current_new_page_id);
-+    parent_page->InsertNodeAfter(current_old_page_id, current_split_key, current_new_page_id);
-     // 检测当前parent page是否安全，安全就直接结束
-     if (parent_page->GetSize() <= parent_page->GetMaxSize()) {
-       guards_to_keep_alive.push_back(std::move(parent_guard));
-@@ -478,12 +469,9 @@
      }
-     return (page->GetMaxSize() + 1) / 2;
-   };
--  auto get_effective_size = [](BPlusTreePage *page) -> int {
--    return page->GetSize();
--  };
-+  auto get_effective_size = [](BPlusTreePage *page) -> int { return page->GetSize(); };
-   // 一直向上找，直到根或者不在需要分裂
--  while (current_page_id != ctx.root_page_id_ &&
--         get_effective_size(current_page) < get_min_size(current_page)) {
-+  while (current_page_id != ctx.root_page_id_ && get_effective_size(current_page) < get_min_size(current_page)) {
-     // 经典连招，找出父亲节点所有信息，和找一个准备使用的兄弟
-     auto parent_guard = std::move(ctx.write_set_.back());
-     ctx.write_set_.pop_back();
-@@ -492,8 +480,7 @@
-     int my_index = parent_page->ValueIndex(current_page_id);
-     int sibling_index = my_index > 0 ? my_index - 1 : my_index + 1;
-     //
--    assert(sibling_index < parent_page->GetSize() &&
--           "ERROR: Sibling index out of bounds! Tree is corrupted!");
-+    assert(sibling_index < parent_page->GetSize() && "ERROR: Sibling index out of bounds! Tree is corrupted!");
-     //
-     page_id_t sibling_page_id = parent_page->ValueAt(sibling_index);
-     auto sibling_guard = bpm_->WritePage(sibling_page_id);
-@@ -512,8 +499,7 @@
-                get_effective_size(sibling_leaf) > get_min_size(sibling_leaf)) {
-           // 唯一需要的保护：防止一直搬运墓碑把叶子节点的 tombstones_ 数组撑爆
-           // 满了就踢掉最老的一个，绝对不调用 Compact() 清场
--          while (LEAF_PAGE_TOMB_CNT > 0 &&
--                 leaf->GetTombstonesNum() >= LEAF_PAGE_TOMB_CNT) {
-+          while (LEAF_PAGE_TOMB_CNT > 0 && leaf->GetTombstonesNum() >= LEAF_PAGE_TOMB_CNT) {
-             leaf->RemoveOldestTombstone();
-           }
- 
-@@ -535,14 +521,12 @@
-           // 兄弟在左边:更新兄弟大小，更新父亲条目的key值
-           int last_index = (sibling_internal->GetSize()) - 1;
-           // pushfront会改leaf的大小
--          internal->PushFront(parent_page->KeyAt(my_index),
--                              sibling_internal->ValueAt(last_index));
-+          internal->PushFront(parent_page->KeyAt(my_index), sibling_internal->ValueAt(last_index));
-           parent_page->SetKeyAt(my_index, sibling_internal->KeyAt(last_index));
-           sibling_internal->SetSize(sibling_internal->GetSize() - 1);
-         } else {
-           // 兄弟在右边
--          internal->PushBack(parent_page->KeyAt(sibling_index),
--                             sibling_internal->ValueAt(0));
-+          internal->PushBack(parent_page->KeyAt(sibling_index), sibling_internal->ValueAt(0));
-           // 兄弟在左边不用，因为最后一个键值对被送走，改size就相当于删了
-           parent_page->SetKeyAt(sibling_index, sibling_internal->KeyAt(1));
-           sibling_internal->Remove(0);
-@@ -580,8 +564,7 @@
-         auto *left_internal = static_cast<InternalPage *>(left_page);
-         auto *right_internal = static_cast<InternalPage *>(right_page);
-         // 因为key[0]无效，因此我们可以从父亲拿键值用
--        right_internal->MoveAllTo(left_internal,
--                                  parent_page->KeyAt(right_parent_index));
-+        right_internal->MoveAllTo(left_internal, parent_page->KeyAt(right_parent_index));
+     for (size_t i = 0; i < join_keys_.size(); i++) {
+-      if (join_keys_[i].CompareEquals(other.join_keys_[i]) !=
+-          CmpBool::CmpTrue) {
++      if (join_keys_[i].CompareEquals(other.join_keys_[i]) != CmpBool::CmpTrue) {
+         return false;
        }
-       // 物理删除右节点
-       if (sibling_index < my_index) {
-@@ -604,8 +587,7 @@
-     // root是叶子,并且被删空了
-     if (current_page->IsLeafPage() && current_page->GetSize() == 0) {
-       // 全部清空
--      auto header_page =
--          ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
-+      auto header_page = ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
-       header_page->root_page_id_ = INVALID_PAGE_ID;
-       current_guard.Drop();
-       bpm_->DeletePage(current_page_id);
-@@ -615,8 +597,7 @@
-       auto *root_internal = static_cast<InternalPage *>(current_page);
-       // 换他的儿子上来，替代他
-       page_id_t new_root_id = root_internal->ValueAt(0);
--      auto header_page =
--          ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
-+      auto header_page = ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
-       header_page->root_page_id_ = new_root_id;
+     }
+     return true;
+   }
+ };
+-} // namespace bustub
++}  // namespace bustub
  
-       // deletepage之前要drop掉锁
-@@ -628,8 +609,7 @@
- }
+ namespace std {
  
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto BPLUSTREE_TYPE::FindLeafForRemove(const KeyType &key, Context *ctx)
--    -> WritePageGuard {
-+auto BPLUSTREE_TYPE::FindLeafForRemove(const KeyType &key, Context *ctx) -> WritePageGuard {
-   auto head_guard = bpm_->WritePage(header_page_id_);
-   auto head_page = head_guard.AsMut<BPlusTreeHeaderPage>();
-   ctx->root_page_id_ = head_page->root_page_id_;
-@@ -765,8 +745,7 @@
+-template <> struct hash<bustub::HashJoinKey> {
++template <>
++struct hash<bustub::HashJoinKey> {
+   auto operator()(const bustub::HashJoinKey &key) const -> std::size_t {
+     size_t curr_hash = 0;
+     for (const auto &v : key.join_keys_) {
+       if (!v.IsNull()) {
+         // 使用 BusTub 底层提供的哈希工具，把每一列的哈希值揉在一起
+-        curr_hash = bustub::HashUtil::CombineHashes(
+-            curr_hash, bustub::HashUtil::HashValue(&v));
++        curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&v));
+       }
+     }
+     return curr_hash;
+   }
+ };
+-} // namespace std
+-  // namespace std
++}  // namespace std
++   // namespace std
+ namespace bustub {
+ /**
+  * HashJoinExecutor executes a nested-loop JOIN on two tables.
+  */
+ class HashJoinExecutor : public AbstractExecutor {
+-public:
++ public:
+   HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan,
+-                   std::unique_ptr<AbstractExecutor> &&left_child,
+-                   std::unique_ptr<AbstractExecutor> &&right_child);
++                   std::unique_ptr<AbstractExecutor> &&left_child, std::unique_ptr<AbstractExecutor> &&right_child);
  
-   int index = leaf_page->KeyIndex(key, comparator_);
-   page_id_t page_id = current_guard.GetPageId();
--  return INDEXITERATOR_TYPE((bpm_.get()), page_id, index,
--                            std::move(current_guard));
-+  return INDEXITERATOR_TYPE((bpm_.get()), page_id, index, std::move(current_guard));
- }
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the join */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  };
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+ 
+-private:
++ private:
+   /** The HashJoin plan node to be executed. */
+   const HashJoinPlanNode *plan_;
+   // 保存左右两个子执行器机器搬运工
+@@ -100,4 +95,4 @@
+   bool is_current_left_matched_{false};
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/index_scan_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/index_scan_executor.h (after clang format)
+@@ -27,20 +27,17 @@
+  */
+ 
+ class IndexScanExecutor : public AbstractExecutor {
+-public:
++ public:
+   IndexScanExecutor(ExecutorContext *exec_ctx, const IndexScanPlanNode *plan);
+ 
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+-private:
++ private:
+   /** The index scan plan node to be executed. */
+   const IndexScanPlanNode *plan_;
+ 
+@@ -52,4 +49,4 @@
+   // 无法一次性处理所有rids_，所以用cursor_来记录处理到谁了
+   size_t cursor_{0};
+ };
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/insert_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/insert_executor.h (after clang format)
+@@ -27,22 +27,19 @@
+  * Inserted values are always pulled from a child executor.
+  */
+ class InsertExecutor : public AbstractExecutor {
+-public:
++ public:
+   InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *plan,
+                  std::unique_ptr<AbstractExecutor> &&child_executor);
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the insert */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  };
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+ 
+-private:
++ private:
+   /** The insert plan node to be executed*/
+   const InsertPlanNode *plan_;
+   std::unique_ptr<AbstractExecutor> child_executor_;
+@@ -52,4 +49,4 @@
+   bool has_inserted_{false};
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/limit_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/limit_executor.h (after clang format)
+@@ -26,22 +26,19 @@
+  * operator.
+  */
+ class LimitExecutor : public AbstractExecutor {
+-public:
++ public:
+   LimitExecutor(ExecutorContext *exec_ctx, const LimitPlanNode *plan,
+                 std::unique_ptr<AbstractExecutor> &&child_executor);
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the limit */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  };
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+ 
+-private:
++ private:
+   /** The limit plan node to be executed */
+   const LimitPlanNode *plan_;
+ 
+@@ -50,4 +47,4 @@
+ 
+   size_t count_{0};
+ };
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/nested_index_join_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/nested_index_join_executor.h (after clang format)
+@@ -26,23 +26,19 @@
+  * NestedIndexJoinExecutor executes index join operations.
+  */
+ class NestedIndexJoinExecutor : public AbstractExecutor {
+-public:
+-  NestedIndexJoinExecutor(ExecutorContext *exec_ctx,
+-                          const NestedIndexJoinPlanNode *plan,
++ public:
++  NestedIndexJoinExecutor(ExecutorContext *exec_ctx, const NestedIndexJoinPlanNode *plan,
+                           std::unique_ptr<AbstractExecutor> &&child_executor);
+ 
+   /** @return The output schema for the nested index join */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+-private:
++ private:
+   /** The nested index join plan node. */
+   const NestedIndexJoinPlanNode *plan_;
+ 
+@@ -68,4 +64,4 @@
+   size_t match_idx_{0};
+   bool is_current_left_matched_{false};
+ };
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/nested_loop_join_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/nested_loop_join_executor.h (after clang format)
+@@ -26,24 +26,20 @@
+  * NestedLoopJoinExecutor executes a nested-loop JOIN on two tables.
+  */
+ class NestedLoopJoinExecutor : public AbstractExecutor {
+-public:
+-  NestedLoopJoinExecutor(ExecutorContext *exec_ctx,
+-                         const NestedLoopJoinPlanNode *plan,
++ public:
++  NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const NestedLoopJoinPlanNode *plan,
+                          std::unique_ptr<AbstractExecutor> &&left_executor,
+                          std::unique_ptr<AbstractExecutor> &&right_executor);
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the insert */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  };
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+ 
+-private:
++ private:
+   /** The NestedLoopJoin plan node to be executed. */
+   const NestedLoopJoinPlanNode *plan_;
+ 
+@@ -64,13 +60,13 @@
+   // 左表（外表）的状态缓存
+   // 是什么：保存从底层一次性拉取上来的左表数据批次，以及当前遍历到的索引。
+   std::vector<Tuple> left_tuple_batch_;
+-  size_t left_idx_{0}; // 当前正在处理 left_tuple_batch_ 中的第几个元组
+-  bool is_left_done_{false}; // 左表是否已经彻底查到底了
++  size_t left_idx_{0};        // 当前正在处理 left_tuple_batch_ 中的第几个元组
++  bool is_left_done_{false};  // 左表是否已经彻底查到底了
+ 
+   // 右表（内表）的状态缓存
+   // 保存从底层拉取上来的右表数据批次，以及当前遍历到的索引。
+   std::vector<Tuple> right_tuple_batch_;
+-  size_t right_idx_{0}; // 当前正在处理 right_tuple_batch_ 中的第几个元组
++  size_t right_idx_{0};  // 当前正在处理 right_tuple_batch_ 中的第几个元组
+ 
+   // Left Join 专用匹配标记
+   // 记录当前的左表元组在遍历整个右表的过程中，是否至少匹配成功过一次。
+@@ -79,4 +75,4 @@
+   bool is_current_left_matched_{false};
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/seq_scan_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/seq_scan_executor.h (after clang format)
+@@ -85,21 +85,18 @@
+ 
+  */
+ class SeqScanExecutor : public AbstractExecutor {
+-public:
++ public:
+   SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan);
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the sequential scan */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+-private:
++ private:
+   /** The sequential scan plan node to be executed */
+   const SeqScanPlanNode *plan_;
+   // executorcontext含有catalog，catalog中含有table
+@@ -110,4 +107,4 @@
+   // 因为tableiterator没有默认构造函数，所以构造seqscanexecutor时，为了避免他调用不存在的默认构造，我们用optional装
+   std::optional<TableIterator> iter_;
+ };
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/update_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/update_executor.h (after clang format)
+@@ -29,22 +29,19 @@
+ class UpdateExecutor : public AbstractExecutor {
+   friend class UpdatePlanNode;
+ 
+-public:
++ public:
+   UpdateExecutor(ExecutorContext *exec_ctx, const UpdatePlanNode *plan,
+                  std::unique_ptr<AbstractExecutor> &&child_executor);
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the update */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+-private:
++ private:
+   /** The update plan node to be executed */
+   const UpdatePlanNode *plan_;
+ 
+@@ -59,4 +56,4 @@
+   // 只允许更新一次，无论成功失败，都不能有第二次
+   bool has_updated_{false};
+ };
+-} //  namespace bustub
++}  //  namespace bustub
+--- /autograder/source/bustub/src/include/execution/executors/window_function_executor.h
++++ /autograder/source/bustub/src/include/execution/executors/window_function_executor.h (after clang format)
+@@ -65,23 +65,19 @@
+  *
+  */
+ class WindowFunctionExecutor : public AbstractExecutor {
+-public:
+-  WindowFunctionExecutor(ExecutorContext *exec_ctx,
+-                         const WindowFunctionPlanNode *plan,
++ public:
++  WindowFunctionExecutor(ExecutorContext *exec_ctx, const WindowFunctionPlanNode *plan,
+                          std::unique_ptr<AbstractExecutor> &&child_executor);
+ 
+   void Init() override;
+ 
+-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
++  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+       -> bool override;
+ 
+   /** @return The output schema for the window aggregation plan */
+-  auto GetOutputSchema() const -> const Schema & override {
+-    return plan_->OutputSchema();
+-  }
++  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+ 
+-private:
++ private:
+   /** The window aggregation plan node to be executed */
+   const WindowFunctionPlanNode *plan_;
+ 
+@@ -92,4 +88,4 @@
+ 
+   size_t cursor_{0};
+ };
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/execution/plans/aggregation_plan.h
++++ /autograder/source/bustub/src/include/execution/plans/aggregation_plan.h (after clang format)
+@@ -27,13 +27,7 @@
+ 
+ /** AggregationType enumerates all the possible aggregation functions in our
+  * system */
+-enum class AggregationType {
+-  CountStarAggregate,
+-  CountAggregate,
+-  SumAggregate,
+-  MinAggregate,
+-  MaxAggregate
+-};
++enum class AggregationType { CountStarAggregate, CountAggregate, SumAggregate, MinAggregate, MaxAggregate };
  
  /**
-@@ -775,9 +754,7 @@
-  * @return : index iterator
+  * AggregationPlanNode represents the various SQL aggregation functions.
+@@ -43,7 +37,7 @@
+  * one child.
   */
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto BPLUSTREE_TYPE::End() -> INDEXITERATOR_TYPE {
--  return INDEXITERATOR_TYPE();
--}
-+auto BPLUSTREE_TYPE::End() -> INDEXITERATOR_TYPE { return INDEXITERATOR_TYPE(); }
+ class AggregationPlanNode : public AbstractPlanNode {
+-public:
++ public:
+   /**
+    * Construct a new AggregationPlanNode.
+    * @param output_schema The output format of this plan node
+@@ -52,12 +46,11 @@
+    * @param aggregates The expressions that we are aggregating
+    * @param agg_types The types that we are aggregating
+    */
+-  AggregationPlanNode(SchemaRef output_schema, AbstractPlanNodeRef child,
+-                      std::vector<AbstractExpressionRef> group_bys,
+-                      std::vector<AbstractExpressionRef> aggregates,
+-                      std::vector<AggregationType> agg_types)
++  AggregationPlanNode(SchemaRef output_schema, AbstractPlanNodeRef child, std::vector<AbstractExpressionRef> group_bys,
++                      std::vector<AbstractExpressionRef> aggregates, std::vector<AggregationType> agg_types)
+       : AbstractPlanNode(std::move(output_schema), {std::move(child)}),
+-        group_bys_(std::move(group_bys)), aggregates_(std::move(aggregates)),
++        group_bys_(std::move(group_bys)),
++        aggregates_(std::move(aggregates)),
+         agg_types_(std::move(agg_types)) {}
  
- /**
-  * @return Page id of the root of this tree
-@@ -805,4 +782,4 @@
+   /** @return The type of the plan node */
+@@ -65,40 +58,28 @@
  
- template class BPlusTree<GenericKey<64>, RID, GenericComparator<64>>;
+   /** @return the child of this aggregation plan node */
+   auto GetChildPlan() const -> AbstractPlanNodeRef {
+-    BUSTUB_ASSERT(GetChildren().size() == 1,
+-                  "Aggregation expected to only have one child.");
++    BUSTUB_ASSERT(GetChildren().size() == 1, "Aggregation expected to only have one child.");
+     return GetChildAt(0);
+   }
  
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/storage/index/index_iterator.cpp
-+++ /autograder/source/bustub/src/storage/index/index_iterator.cpp (after clang format)
-@@ -24,35 +24,27 @@
-  * set your own input parameters
-  */
- FULL_INDEX_TEMPLATE_ARGUMENTS
--INDEXITERATOR_TYPE::IndexIterator(TracedBufferPoolManager *buffer_pool_manager,
--                                  page_id_t page_id, int index,
-+INDEXITERATOR_TYPE::IndexIterator(TracedBufferPoolManager *buffer_pool_manager, page_id_t page_id, int index,
-                                   ReadPageGuard &&guard)
--    : bpm_(buffer_pool_manager), current_page_id_(page_id),
--      current_index_(index), guard_(std::move(guard)) {
-+    : bpm_(buffer_pool_manager), current_page_id_(page_id), current_index_(index), guard_(std::move(guard)) {
-   if (current_page_id_ != INVALID_PAGE_ID) {
-     // 是不是有效index
--    auto leaf_page = guard_.template As<
--        BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
--    if (current_index_ >= leaf_page->GetSize() ||
--        leaf_page->IsTombstone(current_index_)) {
-+    auto leaf_page = guard_.template As<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
-+    if (current_index_ >= leaf_page->GetSize() || leaf_page->IsTombstone(current_index_)) {
-       operator++();
+   /** @return The idx'th group by expression */
+-  auto GetGroupByAt(uint32_t idx) const -> const AbstractExpressionRef & {
+-    return group_bys_[idx];
+-  }
++  auto GetGroupByAt(uint32_t idx) const -> const AbstractExpressionRef & { return group_bys_[idx]; }
+ 
+   /** @return The group by expressions */
+-  auto GetGroupBys() const -> const std::vector<AbstractExpressionRef> & {
+-    return group_bys_;
+-  }
++  auto GetGroupBys() const -> const std::vector<AbstractExpressionRef> & { return group_bys_; }
+ 
+   /** @return The idx'th aggregate expression */
+-  auto GetAggregateAt(uint32_t idx) const -> const AbstractExpressionRef & {
+-    return aggregates_[idx];
+-  }
++  auto GetAggregateAt(uint32_t idx) const -> const AbstractExpressionRef & { return aggregates_[idx]; }
+ 
+   /** @return The aggregate expressions */
+-  auto GetAggregates() const -> const std::vector<AbstractExpressionRef> & {
+-    return aggregates_;
+-  }
++  auto GetAggregates() const -> const std::vector<AbstractExpressionRef> & { return aggregates_; }
+ 
+   /** @return The aggregate types */
+-  auto GetAggregateTypes() const -> const std::vector<AggregationType> & {
+-    return agg_types_;
+-  }
++  auto GetAggregateTypes() const -> const std::vector<AggregationType> & { return agg_types_; }
+ 
+-  static auto
+-  InferAggSchema(const std::vector<AbstractExpressionRef> &group_bys,
+-                 const std::vector<AbstractExpressionRef> &aggregates,
+-                 const std::vector<AggregationType> &agg_types) -> Schema;
++  static auto InferAggSchema(const std::vector<AbstractExpressionRef> &group_bys,
++                             const std::vector<AbstractExpressionRef> &aggregates,
++                             const std::vector<AggregationType> &agg_types) -> Schema;
+ 
+   BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(AggregationPlanNode);
+ 
+@@ -109,7 +90,7 @@
+   /** The aggregation types */
+   std::vector<AggregationType> agg_types_;
+ 
+-protected:
++ protected:
+   auto PlanNodeToString() const -> std::string override;
+ };
+ 
+@@ -131,15 +112,14 @@
+       // 虽然sql中 null == null 应该是cmpnull而不是true
+       // 但是在group by中null全被化成同一组，所以针对分组操作，认为是相同
+       if (group_bys_[i].IsNull() && other.group_bys_[i].IsNull()) {
+-        continue; // 这一列两边都是 NULL，视为相等，继续检查下一列
++        continue;  // 这一列两边都是 NULL，视为相等，继续检查下一列
+       }
+       if (group_bys_[i].IsNull() || other.group_bys_[i].IsNull()) {
+         return false;
+       }
+       // 只有当两者都不是 NULL 时，才调用 BusTub 原生的 CompareEquals。
+       // 如果原生判断它们不相等 != CmpBool::CmpTrue，说明属于不同的组。
+-      if (group_bys_[i].CompareEquals(other.group_bys_[i]) !=
+-          CmpBool::CmpTrue) {
++      if (group_bys_[i].CompareEquals(other.group_bys_[i]) != CmpBool::CmpTrue) {
+         return false;
+       }
      }
-   }
- }
- 
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto INDEXITERATOR_TYPE::IsEnd() -> bool {
--  return current_page_id_ == INVALID_PAGE_ID;
--}
-+auto INDEXITERATOR_TYPE::IsEnd() -> bool { return current_page_id_ == INVALID_PAGE_ID; }
- 
- FULL_INDEX_TEMPLATE_ARGUMENTS
--INDEXITERATOR_TYPE::~IndexIterator() = default; // NOLINT
-+INDEXITERATOR_TYPE::~IndexIterator() = default;  // NOLINT
- 
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto INDEXITERATOR_TYPE::operator*()
--    -> std::pair<const KeyType, const ValueType> {
--  auto leaf_page = guard_.template As<
--      BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
-+auto INDEXITERATOR_TYPE::operator*() -> std::pair<const KeyType, const ValueType> {
-+  auto leaf_page = guard_.template As<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
-   return {leaf_page->KeyAt(current_index_), leaf_page->ValueAt(current_index_)};
- }
- 
-@@ -64,8 +56,7 @@
-   current_index_++;
-   // 遇到正常数据break，没路可以走了break
-   while (!IsEnd()) {
--    auto leaf_page = guard_.template As<
--        BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
-+    auto leaf_page = guard_.template As<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
-     // 走出当前页面
-     // std::cout<<leaf_page->GetSize()<<'\n';
- 
-@@ -98,10 +89,8 @@
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
- void INDEXITERATOR_TYPE::Page() {
--  std::cout << "PAGE!!!!!!!!!\n"
--            << current_page_id_ << ' ' << current_index_ << '\n';
--  auto page = guard_.template As<
--      BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
-+  std::cout << "PAGE!!!!!!!!!\n" << current_page_id_ << ' ' << current_index_ << '\n';
-+  auto page = guard_.template As<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>>();
-   std::cout << page->KeyAt(0) << ' ' << page->ValueAt(0) << '\n';
-   std::cout << page->KeyAt(1) << ' ' << page->ValueAt(1) << '\n';
- 
-@@ -121,4 +110,4 @@
- 
- template class IndexIterator<GenericKey<64>, RID, GenericComparator<64>>;
+@@ -153,25 +133,25 @@
+   std::vector<Value> aggregates_;
+ };
  
 -} // namespace bustub
 +}  // namespace bustub
---- /autograder/source/bustub/src/storage/page/b_plus_tree_internal_page.cpp
-+++ /autograder/source/bustub/src/storage/page/b_plus_tree_internal_page.cpp (after clang format)
-@@ -86,18 +86,12 @@
-  */
- // 索引对应的值
- INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType {
--  return page_id_array_[index];
--}
--INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index,
--                                                const ValueType &value) {
--  page_id_array_[index] = value;
--}
-+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType { return page_id_array_[index]; }
-+INDEX_TEMPLATE_ARGUMENTS
-+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index, const ValueType &value) { page_id_array_[index] = value; }
- // ValueType :page id
- INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(
--    const KeyType &key, const KeyComparator &comparator) const -> ValueType {
-+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const -> ValueType {
-   // 第一位无效，因此范围如下
-   auto start = key_array_ + 1;
-   auto end = start + GetSize() - 1;
-@@ -108,19 +102,15 @@
-   // <= 20,20 <... <=30可以用lower直接求 但是反着来设置最小值 <10,10<= ... < 20
-   // , 20<=........，
-   //  再这么求就会某些情况跑偏，届时还要判断是否-1很麻烦。因此upper - 1为最优解
--  auto target = std::upper_bound(start, end, key,
--                                 [&](const KeyType &k1, const KeyType &k2) {
--                                   return comparator(k1, k2) < 0;
--                                 });
-+  auto target =
-+      std::upper_bound(start, end, key, [&](const KeyType &k1, const KeyType &k2) { return comparator(k1, k2) < 0; });
-   int index = std::distance(key_array_, target);
-   return ValueAt(index - 1);
- }
- // 下层的page，分裂出一个新的page，添加给父亲
- INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter(const ValueType &old_value,
--                                                     const KeyType &new_key,
--                                                     const ValueType &new_value)
--    -> int {
-+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter(const ValueType &old_value, const KeyType &new_key,
-+                                                     const ValueType &new_value) -> int {
-   // old page 的索引位置
-   int old_index = ValueIndex(old_value);
-   if (old_index == -1) {
-@@ -139,9 +129,8 @@
- }
- // 根分裂后有两个分支，对应两个路标
- INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PopulateNewRoot(
--    const ValueType &old_value, const KeyType &new_key,
--    const ValueType &new_value) {
-+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PopulateNewRoot(const ValueType &old_value, const KeyType &new_key,
-+                                                     const ValueType &new_value) {
-   // key 0 是无效的，不需要赋值
-   SetValueAt(0, old_value);
-   SetKeyAt(1, new_key);
-@@ -151,8 +140,7 @@
- }
- // 内部节点分裂
- INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Split(
--    B_PLUS_TREE_INTERNAL_PAGE_TYPE *recipient, KeyType *split_key) {
-+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Split(B_PLUS_TREE_INTERNAL_PAGE_TYPE *recipient, KeyType *split_key) {
-   int split_idx = GetSize() / 2;
-   // 传给父亲的新键
-   *split_key = KeyAt(split_idx);
-@@ -167,8 +155,7 @@
-   SetSize(split_idx);
- }
- INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex(const ValueType &value) const
--    -> int {
-+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex(const ValueType &value) const -> int {
-   for (int i = 0; i < GetSize(); i++) {
-     if (page_id_array_[i] == value) {
-       return i;
-@@ -178,8 +165,7 @@
- }
  
- INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushFront(const KeyType &key,
--                                               const ValueType &value) {
-+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushFront(const KeyType &key, const ValueType &value) {
-   for (int i = GetSize(); i >= 1; i--) {
-     key_array_[i] = key_array_[i - 1];
-     page_id_array_[i] = page_id_array_[i - 1];
-@@ -189,15 +175,13 @@
-   SetSize(GetSize() + 1);
- }
- INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushBack(const KeyType &key,
--                                              const ValueType &value) {
-+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushBack(const KeyType &key, const ValueType &value) {
-   key_array_[GetSize()] = key;
-   page_id_array_[GetSize()] = value;
-   SetSize(GetSize() + 1);
- }
- INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveAllTo(BPlusTreeInternalPage *recipient,
--                                               const KeyType &middle_key) {
-+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveAllTo(BPlusTreeInternalPage *recipient, const KeyType &middle_key) {
-   // recipient 是左儿子
-   int index = recipient->GetSize();
-   recipient->key_array_[index] = middle_key;
-@@ -218,14 +202,9 @@
-   SetSize(GetSize() - 1);
- }
- // valuetype for internalNode should be page id_t
--template class BPlusTreeInternalPage<GenericKey<4>, page_id_t,
--                                     GenericComparator<4>>;
--template class BPlusTreeInternalPage<GenericKey<8>, page_id_t,
--                                     GenericComparator<8>>;
--template class BPlusTreeInternalPage<GenericKey<16>, page_id_t,
--                                     GenericComparator<16>>;
--template class BPlusTreeInternalPage<GenericKey<32>, page_id_t,
--                                     GenericComparator<32>>;
--template class BPlusTreeInternalPage<GenericKey<64>, page_id_t,
--                                     GenericComparator<64>>;
--} // namespace bustub
-+template class BPlusTreeInternalPage<GenericKey<4>, page_id_t, GenericComparator<4>>;
-+template class BPlusTreeInternalPage<GenericKey<8>, page_id_t, GenericComparator<8>>;
-+template class BPlusTreeInternalPage<GenericKey<16>, page_id_t, GenericComparator<16>>;
-+template class BPlusTreeInternalPage<GenericKey<32>, page_id_t, GenericComparator<32>>;
-+template class BPlusTreeInternalPage<GenericKey<64>, page_id_t, GenericComparator<64>>;
-+}  // namespace bustub
---- /autograder/source/bustub/src/storage/page/b_plus_tree_leaf_page.cpp
-+++ /autograder/source/bustub/src/storage/page/b_plus_tree_leaf_page.cpp (after clang format)
-@@ -68,14 +68,10 @@
-  * Helper methods to set/get next page id
-  */
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_LEAF_PAGE_TYPE::GetNextPageId() const -> page_id_t {
--  return next_page_id_;
--}
--
--FULL_INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_LEAF_PAGE_TYPE::SetNextPageId(page_id_t next_page_id) {
--  next_page_id_ = next_page_id;
--}
-+auto B_PLUS_TREE_LEAF_PAGE_TYPE::GetNextPageId() const -> page_id_t { return next_page_id_; }
-+
-+FULL_INDEX_TEMPLATE_ARGUMENTS
-+void B_PLUS_TREE_LEAF_PAGE_TYPE::SetNextPageId(page_id_t next_page_id) { next_page_id_ = next_page_id; }
+ namespace std {
  
- /*
-  * Helper method to find and return the key associated with input "index" (a.k.a
-@@ -89,16 +85,12 @@
- 
- // add
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key,
--                                          const KeyComparator &comparator) const
--    -> int {
-+auto B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int {
-   auto start = key_array_;
-   auto end = key_array_ + GetSize();
-   // 都是类似一个个点，直接lower
--  auto target = std::lower_bound(start, end, key,
--                                 [&](const KeyType &k1, const KeyType &k2) {
--                                   return comparator(k1, k2) < 0;
--                                 });
-+  auto target =
-+      std::lower_bound(start, end, key, [&](const KeyType &k1, const KeyType &k2) { return comparator(k1, k2) < 0; });
-   int index = std::distance(key_array_, target);
-   return index;
- }
-@@ -141,9 +133,7 @@
-   num_tombstones_ = 0;
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key,
--                                        const ValueType &value,
--                                        const KeyComparator &comparator)
-+auto B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator)
-     -> bool {
-   // 首先检查是否存在相同的key
-   int index = KeyIndex(key, comparator);
-@@ -197,10 +187,8 @@
-   return true;
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_LEAF_PAGE_TYPE::Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient,
--                                       const KeyType &key,
--                                       const ValueType &value,
--                                       const KeyComparator &comparator) {
-+void B_PLUS_TREE_LEAF_PAGE_TYPE::Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient, const KeyType &key,
-+                                       const ValueType &value, const KeyComparator &comparator) {
-   // leaf insert 如果页面满载就会compact，保险起见这里再来一次
-   Compact();
-   // 先把所有条目统一存放在一起
-@@ -237,8 +225,7 @@
-   // std::cout << "]" << std::endl;
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_LEAF_PAGE_TYPE::RemoveAndDeleteRecord(
--    const KeyType &key, const KeyComparator &comparator) -> bool {
-+auto B_PLUS_TREE_LEAF_PAGE_TYPE::RemoveAndDeleteRecord(const KeyType &key, const KeyComparator &comparator) -> bool {
-   int index = KeyIndex(key, comparator);
-   if (index < 0 || index >= GetSize() || comparator(KeyAt(index), key) != 0) {
-     return false;
-@@ -269,8 +256,7 @@
-   return true;
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_LEAF_PAGE_TYPE::PushFront(const KeyType &key,
--                                           const ValueType &value) {
-+void B_PLUS_TREE_LEAF_PAGE_TYPE::PushFront(const KeyType &key, const ValueType &value) {
-   for (int i = GetSize(); i >= 1; i--) {
-     key_array_[i] = key_array_[i - 1];
-     rid_array_[i] = rid_array_[i - 1];
-@@ -280,16 +266,14 @@
-   SetSize(GetSize() + 1);
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_LEAF_PAGE_TYPE::PushBack(const KeyType &key,
--                                          const ValueType &value) {
-+void B_PLUS_TREE_LEAF_PAGE_TYPE::PushBack(const KeyType &key, const ValueType &value) {
-   key_array_[GetSize()] = key;
-   rid_array_[GetSize()] = value;
-   SetSize(GetSize() + 1);
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
- void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveAllTo(BPlusTreeLeafPage *recipient) {
--  while (LEAF_PAGE_TOMB_CNT > 0 &&
--         recipient->GetTombstonesNum() + num_tombstones_ > LEAF_PAGE_TOMB_CNT) {
-+  while (LEAF_PAGE_TOMB_CNT > 0 && recipient->GetTombstonesNum() + num_tombstones_ > LEAF_PAGE_TOMB_CNT) {
-     if (recipient->GetTombstonesNum() > 0) {
-       // 优先踢掉左节点（recipient）里最老的墓碑
-       recipient->RemoveOldestTombstone();
-@@ -298,7 +282,7 @@
+ /** Implements std::hash on AggregateKey */
+-template <> struct hash<bustub::AggregateKey> {
++template <>
++struct hash<bustub::AggregateKey> {
+   auto operator()(const bustub::AggregateKey &agg_key) const -> std::size_t {
+     size_t curr_hash = 0;
+     for (const auto &key : agg_key.group_bys_) {
+       if (!key.IsNull()) {
+-        curr_hash = bustub::HashUtil::CombineHashes(
+-            curr_hash, bustub::HashUtil::HashValue(&key));
++        curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&key));
+       }
      }
+     return curr_hash;
    }
+ };
  
--  int r_size = recipient->GetSize(); // 拿到的绝对是稳定且准确的 size
-+  int r_size = recipient->GetSize();  // 拿到的绝对是稳定且准确的 size
-   for (int i = 0; i < GetSize(); i++) {
-     recipient->key_array_[i + r_size] = key_array_[i];
-     recipient->rid_array_[i + r_size] = rid_array_[i];
-@@ -308,8 +292,7 @@
-   // 搬运墓碑数据
-   for (int i = 0; i < static_cast<int>(num_tombstones_); i++) {
-     // 此时绝对有空位，且 r_size 绝对精准，不会有任何错位
--    recipient->tombstones_[recipient->GetTombstonesNum()] =
--        tombstones_[i] + r_size;
-+    recipient->tombstones_[recipient->GetTombstonesNum()] = tombstones_[i] + r_size;
-     recipient->num_tombstones_++;
-   }
+-} // namespace std
++}  // namespace std
  
-@@ -322,8 +305,7 @@
-   SetNextPageId(INVALID_PAGE_ID);
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(
--    BPlusTreeLeafPage *recipient) {
-+void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveFirstToEndOf(BPlusTreeLeafPage *recipient) {
-   // 右移左
-   int first_index = 0;
-   KeyType key = KeyAt(first_index);
-@@ -349,7 +331,7 @@
-   int new_tomb_cnt = 0;
-   for (size_t i = 0; i < num_tombstones_; i++) {
-     if (tombstones_[i] == 0) {
--      continue; // 这是被借走的那个，不要了
-+      continue;  // 这是被借走的那个，不要了
+ template <>
+ struct fmt::formatter<bustub::AggregationType> : formatter<std::string> {
+@@ -180,21 +160,21 @@
+     using bustub::AggregationType;
+     std::string name = "unknown";
+     switch (c) {
+-    case AggregationType::CountStarAggregate:
+-      name = "count_star";
+-      break;
+-    case AggregationType::CountAggregate:
+-      name = "count";
+-      break;
+-    case AggregationType::SumAggregate:
+-      name = "sum";
+-      break;
+-    case AggregationType::MinAggregate:
+-      name = "min";
+-      break;
+-    case AggregationType::MaxAggregate:
+-      name = "max";
+-      break;
++      case AggregationType::CountStarAggregate:
++        name = "count_star";
++        break;
++      case AggregationType::CountAggregate:
++        name = "count";
++        break;
++      case AggregationType::SumAggregate:
++        name = "sum";
++        break;
++      case AggregationType::MinAggregate:
++        name = "min";
++        break;
++      case AggregationType::MaxAggregate:
++        name = "max";
++        break;
      }
-     tombstones_[new_tomb_cnt] = tombstones_[i] - 1;
-     new_tomb_cnt++;
-@@ -359,8 +341,7 @@
- }
- 
- FULL_INDEX_TEMPLATE_ARGUMENTS
--void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(
--    BPlusTreeLeafPage *recipient) {
-+void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveLastToFrontOf(BPlusTreeLeafPage *recipient) {
-   int last_index = GetSize() - 1;
-   KeyType key = KeyAt(last_index);
-   ValueType value = ValueAt(last_index);
-@@ -379,8 +360,7 @@
+     return formatter<std::string>::format(name, ctx);
    }
-   if (is_tomb) {
-     // 按照加入时间来算新旧,这算新的
--    recipient->tombstones_[recipient->num_tombstones_] =
--        0; // 新墓碑放在墓碑数组的第一个
-+    recipient->tombstones_[recipient->num_tombstones_] = 0;  // 新墓碑放在墓碑数组的第一个
-     recipient->num_tombstones_++;
-   }
+--- /autograder/source/bustub/src/include/optimizer/optimizer.h
++++ /autograder/source/bustub/src/include/optimizer/optimizer.h (after clang format)
+@@ -31,7 +31,7 @@
+  * `AbstractPlanNode`.
+  */
+ class Optimizer {
+-public:
++ public:
+   explicit Optimizer(const Catalog &catalog, bool force_starter_rule)
+       : catalog_(catalog), force_starter_rule_(force_starter_rule) {}
  
-@@ -402,9 +382,7 @@
-   SetSize(GetSize() - 1);
- }
- FULL_INDEX_TEMPLATE_ARGUMENTS
--auto B_PLUS_TREE_LEAF_PAGE_TYPE::RealRemove(const KeyType &key,
--                                            const KeyComparator &comparator)
--    -> bool {
-+auto B_PLUS_TREE_LEAF_PAGE_TYPE::RealRemove(const KeyType &key, const KeyComparator &comparator) -> bool {
-   int index = KeyIndex(key, comparator);
-   if (index < 0 || index >= GetSize() || comparator(KeyAt(index), key) != 0) {
-     return false;
-@@ -461,4 +439,4 @@
- template class BPlusTreeLeafPage<GenericKey<32>, RID, GenericComparator<32>>;
+@@ -39,48 +39,36 @@
  
- template class BPlusTreeLeafPage<GenericKey<64>, RID, GenericComparator<64>>;
+   auto OptimizeCustom(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-private:
+-  auto OptimizeMergeProjection(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++ private:
++  auto OptimizeMergeProjection(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto OptimizeMergeFilterNLJ(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeMergeFilterNLJ(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto OptimizeNLJAsHashJoin(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeNLJAsHashJoin(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto OptimizeNLJAsIndexJoin(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeNLJAsIndexJoin(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto OptimizeEliminateTrueFilter(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeEliminateTrueFilter(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto OptimizeMergeFilterScan(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeMergeFilterScan(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto RewriteExpressionForJoin(const AbstractExpressionRef &expr,
+-                                size_t left_column_cnt, size_t right_column_cnt)
++  auto RewriteExpressionForJoin(const AbstractExpressionRef &expr, size_t left_column_cnt, size_t right_column_cnt)
+       -> AbstractExpressionRef;
+ 
+   auto IsPredicateTrue(const AbstractExpressionRef &expr) -> bool;
+ 
+-  auto OptimizeOrderByAsIndexScan(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeOrderByAsIndexScan(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+   auto MatchIndex(const std::string &table_name, uint32_t index_key_idx)
+       -> std::optional<std::tuple<index_oid_t, std::string>>;
+ 
+-  auto OptimizeColumnPruning(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeColumnPruning(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto OptimizeSortLimitAsTopN(const AbstractPlanNodeRef &plan)
+-      -> AbstractPlanNodeRef;
++  auto OptimizeSortLimitAsTopN(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+ 
+-  auto EstimatedCardinality(const std::string &table_name)
+-      -> std::optional<size_t>;
++  auto EstimatedCardinality(const std::string &table_name) -> std::optional<size_t>;
+ 
+   /** Catalog will be used during the planning process. USERS SHOULD ENSURE IT
+    * OUTLIVES OPTIMIZER; otherwise, it's a dangling reference.
+@@ -90,4 +78,4 @@
+   const bool force_starter_rule_;
+ };
+ 
 -} // namespace bustub
 +}  // namespace bustub
---- /autograder/source/bustub/src/storage/page/b_plus_tree_page.cpp
-+++ /autograder/source/bustub/src/storage/page/b_plus_tree_page.cpp (after clang format)
-@@ -18,12 +18,8 @@
-  * Helper methods to get/set page type
-  * Page type enum class is defined in b_plus_tree_page.h
-  */
--auto BPlusTreePage::IsLeafPage() const -> bool {
--  return page_type_ == IndexPageType::LEAF_PAGE;
--}
--void BPlusTreePage::SetPageType(IndexPageType page_type) {
--  page_type_ = page_type;
--}
-+auto BPlusTreePage::IsLeafPage() const -> bool { return page_type_ == IndexPageType::LEAF_PAGE; }
-+void BPlusTreePage::SetPageType(IndexPageType page_type) { page_type_ = page_type; }
- 
- /*
-  * Helper methods to get/set size (number of key/value pairs stored in that
-@@ -46,4 +42,4 @@
-  */
- auto BPlusTreePage::GetMinSize() const -> int { return max_size_ / 2; }
+--- /autograder/source/bustub/src/include/optimizer/optimizer_internal.h
++++ /autograder/source/bustub/src/include/optimizer/optimizer_internal.h (after clang format)
+@@ -17,4 +17,4 @@
+ // Note: You can define your optimizer helper functions here
+ void OptimizerHelperFunction();
  
 -} // namespace bustub
 +}  // namespace bustub
---- /autograder/source/bustub/src/storage/page/page_guard.cpp
-+++ /autograder/source/bustub/src/storage/page/page_guard.cpp (after clang format)
-@@ -11,9 +11,9 @@
- //===----------------------------------------------------------------------===//
+--- /autograder/source/bustub/src/include/storage/disk/disk_scheduler.h
++++ /autograder/source/bustub/src/include/storage/disk/disk_scheduler.h (after clang format)
+@@ -12,9 +12,9 @@
  
- #include "storage/page/page_guard.h"
-+#include <memory>
- #include "buffer/arc_replacer.h"
+ #pragma once
+ 
+-#include <future> // NOLINT
++#include <future>  // NOLINT
+ #include <optional>
+-#include <thread> // NOLINT
++#include <thread>  // NOLINT
+ #include <vector>
+ 
+ #include "common/channel.h"
+@@ -54,7 +54,7 @@
+  * its destructor.
+  */
+ class DiskScheduler {
+-public:
++ public:
+   explicit DiskScheduler(DiskManager *disk_manager);
+   ~DiskScheduler();
+ 
+@@ -83,10 +83,9 @@
+    */
+   void DeallocatePage(page_id_t page_id) { disk_manager_->DeletePage(page_id); }
+ 
+-private:
++ private:
+   /** Pointer to the disk manager. */
+-  DiskManager *disk_manager_
+-      __attribute__((__unused__)); // 执行磁盘操作的成员（指针）
++  DiskManager *disk_manager_ __attribute__((__unused__));  // 执行磁盘操作的成员（指针）
+   //__attribute__((__unused__))表示抑制编译器对该变量可能未被使用的警告
+   /** A shared queue to concurrently schedule and process requests. When the
+    * DiskScheduler's destructor is called, `std::nullopt` is put into the queue
+@@ -98,4 +97,4 @@
+   std::optional<std::thread> background_thread_;
+   // optional包裹的thread，后台线程对象
+ };
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/storage/index/b_plus_tree.h
++++ /autograder/source/bustub/src/include/storage/index/b_plus_tree.h (after clang format)
+@@ -58,7 +58,7 @@
+  */
+ // context帮助你追踪你正在修改或访问的页面
+ class Context {
+-public:
++ public:
+   // When you insert into / remove from the B+ tree, store the write guard of
+   // header page here. Remember to drop the header page guard and set it to
+   // nullopt when you want to unlock all.
+@@ -78,9 +78,7 @@
+   // 当你获取值时，可能需要使用这个，但不是必要的
+   std::deque<ReadPageGuard> read_set_;
+ 
+-  auto IsRootPage(page_id_t page_id) -> bool {
+-    return page_id == root_page_id_;
+-  }
++  auto IsRootPage(page_id_t page_id) -> bool { return page_id == root_page_id_; }
+   void Clear() {
+     header_page_ = std::nullopt;
+     write_set_.clear();
+@@ -94,17 +92,14 @@
+ FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN
+ class BPlusTree {
+   using InternalPage = BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>;
+-  using LeafPage =
+-      BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>;
++  using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>;
+   // using InternalPage = BPlusTreeInternalPage<KeyType, page_id_t,
+   // KeyComparator>; using LeafPage = BPlusTreeLeafPage<KeyType, ValueType,
+   // KeyComparator>;
+ 
+-public:
+-  explicit BPlusTree(std::string name, page_id_t header_page_id,
+-                     BufferPoolManager *buffer_pool_manager,
+-                     const KeyComparator &comparator,
+-                     int leaf_max_size = LEAF_PAGE_SLOT_CNT,
++ public:
++  explicit BPlusTree(std::string name, page_id_t header_page_id, BufferPoolManager *buffer_pool_manager,
++                     const KeyComparator &comparator, int leaf_max_size = LEAF_PAGE_SLOT_CNT,
+                      int internal_max_size = INTERNAL_PAGE_SLOT_CNT);
+ 
+   // Returns true if this B+ tree has no keys and values.
+@@ -148,17 +143,14 @@
+ 
+   // 额外添加：
+   // 给你key，context，去把叶子节点给我找过来
+-  auto FindLeafForRead(const KeyType &key, Context *context) const
+-      -> const LeafPage *;
++  auto FindLeafForRead(const KeyType &key, Context *context) const -> const LeafPage *;
+   auto GetRootPageIdForRead(Context *ctx) const -> page_id_t;
+   auto FindLeafForWrite(const KeyType &key, Context *ctx) -> WritePageGuard;
+-  void InsertIntoParent(page_id_t old_page_id, const KeyType &key,
+-                        page_id_t new_page_id, Context *ctx);
++  void InsertIntoParent(page_id_t old_page_id, const KeyType &key, page_id_t new_page_id, Context *ctx);
+   auto FindLeafForRemove(const KeyType &key, Context *ctx) -> WritePageGuard;
+ 
+-private:
+-  void ToGraph(page_id_t page_id, const BPlusTreePage *page,
+-               std::ofstream &out);
++ private:
++  void ToGraph(page_id_t page_id, const BPlusTreePage *page, std::ofstream &out);
+ 
+   void PrintTree(page_id_t page_id, const BPlusTreePage *page);
+ 
+@@ -167,7 +159,7 @@
+   // member variable
+   std::string index_name_;
+   KeyComparator comparator_;
+-  std::vector<std::string> log; // NOLINT
++  std::vector<std::string> log;  // NOLINT
+   int leaf_max_size_;
+   int internal_max_size_;
+   page_id_t header_page_id_;
+@@ -210,4 +202,4 @@
+   }
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/storage/index/index_iterator.h
++++ /autograder/source/bustub/src/include/storage/index/index_iterator.h (after clang format)
+@@ -15,27 +15,24 @@
+  * For range scan of b+ tree
+  */
+ #pragma once
++#include <utility>
+ #include "buffer/traced_buffer_pool_manager.h"
+ #include "common/config.h"
  #include "common/macros.h"
--#include <memory>
+ #include "storage/page/b_plus_tree_leaf_page.h"
+-#include <utility>
  
  namespace bustub {
  
-@@ -33,13 +33,13 @@
-  * @param disk_scheduler A shared pointer to the buffer pool manager's disk
-  * scheduler.
-  */
--ReadPageGuard::ReadPageGuard(page_id_t page_id,
--                             std::shared_ptr<FrameHeader> frame,
--                             std::shared_ptr<ArcReplacer> replacer,
--                             std::shared_ptr<std::mutex> bpm_latch,
-+ReadPageGuard::ReadPageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
-+                             std::shared_ptr<ArcReplacer> replacer, std::shared_ptr<std::mutex> bpm_latch,
-                              std::shared_ptr<DiskScheduler> disk_scheduler)
--    : page_id_(page_id), frame_(std::move(frame)),
--      replacer_(std::move(replacer)), bpm_latch_(std::move(bpm_latch)),
-+    : page_id_(page_id),
-+      frame_(std::move(frame)),
-+      replacer_(std::move(replacer)),
-+      bpm_latch_(std::move(bpm_latch)),
-       disk_scheduler_(std::move(disk_scheduler)) {
-   is_valid_ = true;
-   // frame_->rwlatch_.lock_shared();
-@@ -79,7 +79,7 @@
-   that.bpm_latch_ = nullptr;
-   that.disk_scheduler_ = nullptr;
+-#define INDEXITERATOR_TYPE                                                     \
+-  IndexIterator<KeyType, ValueType, KeyComparator, NumTombs>
+-#define SHORT_INDEXITERATOR_TYPE                                               \
+-  IndexIterator<KeyType, ValueType, KeyComparator>
++#define INDEXITERATOR_TYPE IndexIterator<KeyType, ValueType, KeyComparator, NumTombs>
++#define SHORT_INDEXITERATOR_TYPE IndexIterator<KeyType, ValueType, KeyComparator>
  
--} // page_id , fram_....都是指针，所以还要置为空
-+}  // page_id , fram_....都是指针，所以还要置为空
+ FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN
+ class IndexIterator {
+-public:
++ public:
+   // you may define your own constructor based on your member variables
+-  IndexIterator(TracedBufferPoolManager *buffer_pool_manager, page_id_t page_id,
+-                int index, ReadPageGuard &&guard);
++  IndexIterator(TracedBufferPoolManager *buffer_pool_manager, page_id_t page_id, int index, ReadPageGuard &&guard);
+   IndexIterator() = default;
+-  ~IndexIterator(); // NOLINT
++  ~IndexIterator();  // NOLINT
  
- /**
-  * @brief The move assignment operator for `ReadPageGuard`.
-@@ -101,8 +101,7 @@
-  * @return ReadPageGuard& The newly valid `ReadPageGuard`.
-  */
- // 移动
--auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept
--    -> ReadPageGuard & {
-+auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & {
-   if (this == &that) {
-     return *this;
+   auto IsEnd() -> bool;
+ 
+@@ -44,20 +41,16 @@
+   auto operator++() -> IndexIterator &;
+ 
+   auto operator==(const IndexIterator &itr) const -> bool {
+-    if (current_page_id_ == INVALID_PAGE_ID &&
+-        itr.current_page_id_ == INVALID_PAGE_ID) {
++    if (current_page_id_ == INVALID_PAGE_ID && itr.current_page_id_ == INVALID_PAGE_ID) {
+       return true;
+     }
+-    return current_page_id_ == itr.current_page_id_ &&
+-           current_index_ == itr.current_index_;
++    return current_page_id_ == itr.current_page_id_ && current_index_ == itr.current_index_;
    }
-@@ -247,13 +246,13 @@
-  * @param disk_scheduler A shared pointer to the buffer pool manager's disk
-  * scheduler.
-  */
--WritePageGuard::WritePageGuard(page_id_t page_id,
--                               std::shared_ptr<FrameHeader> frame,
--                               std::shared_ptr<ArcReplacer> replacer,
--                               std::shared_ptr<std::mutex> bpm_latch,
-+WritePageGuard::WritePageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
-+                               std::shared_ptr<ArcReplacer> replacer, std::shared_ptr<std::mutex> bpm_latch,
-                                std::shared_ptr<DiskScheduler> disk_scheduler)
--    : page_id_(page_id), frame_(std::move(frame)),
--      replacer_(std::move(replacer)), bpm_latch_(std::move(bpm_latch)),
-+    : page_id_(page_id),
-+      frame_(std::move(frame)),
-+      replacer_(std::move(replacer)),
-+      bpm_latch_(std::move(bpm_latch)),
-       disk_scheduler_(std::move(disk_scheduler)) {
-   is_valid_ = true;
-   // Getlock();
-@@ -312,8 +311,7 @@
-  * @param that The other page guard.
-  * @return WritePageGuard& The newly valid `WritePageGuard`.
-  */
--auto WritePageGuard::operator=(WritePageGuard &&that) noexcept
--    -> WritePageGuard & {
-+auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard & {
-   if (this == &that) {
-     return *this;
-   }
-@@ -463,4 +461,4 @@
-  * `Drop()`. */
- WritePageGuard::~WritePageGuard() { Drop(); }
+ 
+-  auto operator!=(const IndexIterator &itr) const -> bool {
+-    return !(*this == itr);
+-  }
++  auto operator!=(const IndexIterator &itr) const -> bool { return !(*this == itr); }
+   void Page();
+ 
+-private:
++ private:
+   // add your own private member variables here
+   TracedBufferPoolManager *bpm_{nullptr};
+   page_id_t current_page_id_{INVALID_PAGE_ID};
+@@ -65,4 +58,4 @@
+   ReadPageGuard guard_;
+ };
  
 -} // namespace bustub
 +}  // namespace bustub
-/autograder/source/bustub/src/buffer/arc_replacer.cpp had clang-format style issues
-/autograder/source/bustub/src/buffer/buffer_pool_manager.cpp had clang-format style issues
-/autograder/source/bustub/src/concurrency/transaction_manager.cpp had clang-format style issues
-/autograder/source/bustub/src/concurrency/watermark.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/aggregation_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/delete_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/execution_common.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/external_merge_sort_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/filter_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/hash_join_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/index_scan_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/insert_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/limit_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/nested_index_join_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/nested_loop_join_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/seq_scan_executor.cpp had clang-format style issues
+--- /autograder/source/bustub/src/include/storage/page/b_plus_tree_internal_page.h
++++ /autograder/source/bustub/src/include/storage/page/b_plus_tree_internal_page.h (after clang format)
+@@ -19,12 +19,10 @@
+ 
+ namespace bustub {
+ 
+-#define B_PLUS_TREE_INTERNAL_PAGE_TYPE                                         \
+-  BPlusTreeInternalPage<KeyType, ValueType, KeyComparator>
++#define B_PLUS_TREE_INTERNAL_PAGE_TYPE BPlusTreeInternalPage<KeyType, ValueType, KeyComparator>
+ #define INTERNAL_PAGE_HEADER_SIZE 12
+-#define INTERNAL_PAGE_SLOT_CNT                                                 \
+-  ((BUSTUB_PAGE_SIZE - INTERNAL_PAGE_HEADER_SIZE) /                            \
+-   ((int)(sizeof(KeyType) + sizeof(ValueType)))) // NOLINT
++#define INTERNAL_PAGE_SLOT_CNT \
++  ((BUSTUB_PAGE_SIZE - INTERNAL_PAGE_HEADER_SIZE) / ((int)(sizeof(KeyType) + sizeof(ValueType))))  // NOLINT
+ 
+ /**
+  * Store `n` indexed keys and `n + 1` child pointers (page_id) within internal
+@@ -48,7 +46,7 @@
+ // 因为k(i) <= k < k(i+1) 所以第一个KEY是无效的，因为第一个人  < k(2) , 没有下界
+ INDEX_TEMPLATE_ARGUMENTS
+ class BPlusTreeInternalPage : public BPlusTreePage {
+-public:
++ public:
+   // Delete all constructor / destructor to ensure memory safety
+   BPlusTreeInternalPage() = delete;
+   BPlusTreeInternalPage(const BPlusTreeInternalPage &other) = delete;
+@@ -70,12 +68,9 @@
+   // 值的类型
+   void SetValueAt(int index, const ValueType &value);
+   //
+-  auto Lookup(const KeyType &key, const KeyComparator &comparator) const
+-      -> ValueType;
+-  auto InsertNodeAfter(const ValueType &old_value, const KeyType &new_key,
+-                       const ValueType &new_value) -> int;
+-  void PopulateNewRoot(const ValueType &old_value, const KeyType &new_key,
+-                       const ValueType &new_value);
++  auto Lookup(const KeyType &key, const KeyComparator &comparator) const -> ValueType;
++  auto InsertNodeAfter(const ValueType &old_value, const KeyType &new_key, const ValueType &new_value) -> int;
++  void PopulateNewRoot(const ValueType &old_value, const KeyType &new_key, const ValueType &new_value);
+   void Split(B_PLUS_TREE_INTERNAL_PAGE_TYPE *recipient, KeyType *split_key);
+   void PushFront(const KeyType &key, const ValueType &value);
+   void PushBack(const KeyType &key, const ValueType &value);
+@@ -108,7 +103,7 @@
+     return kstr;
+   }
+ 
+-private:
++ private:
+   // Array members for page data.
+   // key装的是路标， value装的是子节点对应的page页面
+   KeyType key_array_[INTERNAL_PAGE_SLOT_CNT];
+@@ -117,4 +112,4 @@
+   // needed
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/storage/page/b_plus_tree_leaf_page.h
++++ /autograder/source/bustub/src/include/storage/page/b_plus_tree_leaf_page.h (after clang format)
+@@ -20,16 +20,13 @@
+ 
+ namespace bustub {
+ 
+-#define B_PLUS_TREE_LEAF_PAGE_TYPE                                             \
+-  BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>
++#define B_PLUS_TREE_LEAF_PAGE_TYPE BPlusTreeLeafPage<KeyType, ValueType, KeyComparator, NumTombs>
+ #define LEAF_PAGE_HEADER_SIZE 16
+ #define LEAF_PAGE_DEFAULT_TOMB_CNT 0
+-#define LEAF_PAGE_TOMB_CNT                                                     \
+-  ((NumTombs < 0) ? LEAF_PAGE_DEFAULT_TOMB_CNT : NumTombs)
+-#define LEAF_PAGE_SLOT_CNT                                                     \
+-  ((BUSTUB_PAGE_SIZE - LEAF_PAGE_HEADER_SIZE - sizeof(size_t) -                \
+-    (LEAF_PAGE_TOMB_CNT * sizeof(size_t))) /                                   \
+-   (sizeof(KeyType) + sizeof(ValueType))) // NOLINT
++#define LEAF_PAGE_TOMB_CNT ((NumTombs < 0) ? LEAF_PAGE_DEFAULT_TOMB_CNT : NumTombs)
++#define LEAF_PAGE_SLOT_CNT                                                                               \
++  ((BUSTUB_PAGE_SIZE - LEAF_PAGE_HEADER_SIZE - sizeof(size_t) - (LEAF_PAGE_TOMB_CNT * sizeof(size_t))) / \
++   (sizeof(KeyType) + sizeof(ValueType)))  // NOLINT
+ 
+ /**
+  * Store indexed key and record id(record id = page id combined with slot id,
+@@ -63,7 +60,7 @@
+  */
+ FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN
+ class BPlusTreeLeafPage : public BPlusTreePage {
+-public:
++ public:
+   // Delete all constructor / destructor to ensure memory safety
+   BPlusTreeLeafPage() = delete;
+   BPlusTreeLeafPage(const BPlusTreeLeafPage &other) = delete;
+@@ -79,30 +76,23 @@
+ 
+   // human adding
+   auto ValueAt(int index) const -> ValueType;
+-  auto KeyIndex(const KeyType &key, const KeyComparator &comparator) const
+-      -> int;
++  auto KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int;
+   auto IsTombstone(int index) const -> bool;
+   void Compact();
+-  auto Insert(const KeyType &key, const ValueType &value,
+-              const KeyComparator &comparator) -> bool;
+-  void Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient, const KeyType &key,
+-             const ValueType &value, const KeyComparator &comparator);
+-  auto RemoveAndDeleteRecord(const KeyType &key,
+-                             const KeyComparator &comparator) -> bool;
++  auto Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator) -> bool;
++  void Split(B_PLUS_TREE_LEAF_PAGE_TYPE *recipient, const KeyType &key, const ValueType &value,
++             const KeyComparator &comparator);
++  auto RemoveAndDeleteRecord(const KeyType &key, const KeyComparator &comparator) -> bool;
+   auto RealRemove(const KeyType &key, const KeyComparator &comparator) -> bool;
+   void PushFront(const KeyType &key, const ValueType &value);
+   void PushBack(const KeyType &key, const ValueType &value);
+   void MoveAllTo(BPlusTreeLeafPage *recipient);
+-  auto KeyRefAt(int index) const -> const KeyType & {
+-    return key_array_[index];
+-  }
+-  auto ValueRefAt(int index) const -> const ValueType & {
+-    return rid_array_[index];
+-  }
++  auto KeyRefAt(int index) const -> const KeyType & { return key_array_[index]; }
++  auto ValueRefAt(int index) const -> const ValueType & { return rid_array_[index]; }
+   auto GetTombstonesNum() -> int { return static_cast<int>(num_tombstones_); }
+ 
+-  void MoveFirstToEndOf(BPlusTreeLeafPage *recipient); // 从右兄弟借一个给左兄弟
+-  void MoveLastToFrontOf(BPlusTreeLeafPage *recipient); // 左给右
++  void MoveFirstToEndOf(BPlusTreeLeafPage *recipient);   // 从右兄弟借一个给左兄弟
++  void MoveLastToFrontOf(BPlusTreeLeafPage *recipient);  // 左给右
+   void RemoveOldestTombstone();
+   /**
+    * @brief for test only return a string representing all keys in
+@@ -138,7 +128,7 @@
+     return kstr;
+   }
+ 
+-private:
++ private:
+   page_id_t next_page_id_;
+   size_t num_tombstones_;
+   // Fixed-size tombstone buffer (indexes into key_array_ / rid_array_).
+@@ -151,4 +141,4 @@
+   // needed
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/storage/page/b_plus_tree_page.h
++++ /autograder/source/bustub/src/include/storage/page/b_plus_tree_page.h (after clang format)
+@@ -24,14 +24,11 @@
+ 
+ #define MappingType std::pair<KeyType, ValueType>
+ 
+-#define FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN                                     \
+-  template <typename KeyType, typename ValueType, typename KeyComparator,      \
+-            ssize_t NumTombs = 0>
+-#define FULL_INDEX_TEMPLATE_ARGUMENTS                                          \
+-  template <typename KeyType, typename ValueType, typename KeyComparator,      \
+-            ssize_t NumTombs>
+-#define INDEX_TEMPLATE_ARGUMENTS                                               \
+-  template <typename KeyType, typename ValueType, typename KeyComparator>
++#define FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN \
++  template <typename KeyType, typename ValueType, typename KeyComparator, ssize_t NumTombs = 0>
++#define FULL_INDEX_TEMPLATE_ARGUMENTS \
++  template <typename KeyType, typename ValueType, typename KeyComparator, ssize_t NumTombs>
++#define INDEX_TEMPLATE_ARGUMENTS template <typename KeyType, typename ValueType, typename KeyComparator>
+ 
+ // define page type enum
+ enum class IndexPageType { INVALID_INDEX_PAGE = 0, LEAF_PAGE, INTERNAL_PAGE };
+@@ -48,7 +45,7 @@
+  * ---------------------------------------------------------
+  */
+ class BPlusTreePage {
+-public:
++ public:
+   // Delete all constructor / destructor to ensure memory safety
+   BPlusTreePage() = delete;
+   BPlusTreePage(const BPlusTreePage &other) = delete;
+@@ -70,7 +67,7 @@
+    * fields.
+    */
+   // 如果要用下面的成员变量就把 attribute删了
+-private:
++ private:
+   // Member variables, attributes that both internal and leaf page share
+ 
+   IndexPageType page_type_;
+@@ -82,4 +79,4 @@
+   int max_size_;
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/include/storage/page/intermediate_result_page.h
++++ /autograder/source/bustub/src/include/storage/page/intermediate_result_page.h (after clang format)
+@@ -14,7 +14,7 @@
+  * Supports variable-length tuples.
+  */
+ class IntermediateResultPage {
+-public:
++ public:
+   // 初始化一个全新的空页
+   void Init() {
+     num_tuples_ = 0;
+@@ -36,7 +36,7 @@
+     // header 大小 (8字节) + 现有的所有 slot 大小 + 即将新增的 1 个 slot 大小
+     uint32_t used_header_space = 8 + (num_tuples_ + 1) * sizeof(Slot);
+     if (used_header_space + serialized_size > next_free_ptr_) {
+-      return false; // 空间不够，插入失败
++      return false;  // 空间不够，插入失败
+     }
+ 
+     next_free_ptr_ -= serialized_size;
+@@ -47,10 +47,9 @@
+     tuple.SerializeTo(target_ptr);
+ 
+     // 记录槽位Slot
+-    Slot *slot_array =
+-        reinterpret_cast<Slot *>(reinterpret_cast<char *>(this) + 8);
++    Slot *slot_array = reinterpret_cast<Slot *>(reinterpret_cast<char *>(this) + 8);
+     slot_array[num_tuples_].offset_ = next_free_ptr_;
+-    slot_array[num_tuples_].size_ = serialized_size; // 记录总的物理占用大小
++    slot_array[num_tuples_].size_ = serialized_size;  // 记录总的物理占用大小
+ 
+     num_tuples_++;
+     return true;
+@@ -60,24 +59,21 @@
+     BUSTUB_ASSERT(tuple_index < num_tuples_, "Tuple index out of range");
+ 
+     // 找到对应的 Slot，优雅的找到Slot的数组指针
+-    const Slot *slot_array = reinterpret_cast<const Slot *>(
+-        reinterpret_cast<const char *>(this) + 8);
++    const Slot *slot_array = reinterpret_cast<const Slot *>(reinterpret_cast<const char *>(this) + 8);
+     const Slot &slot = slot_array[tuple_index];
+ 
+     // 找到tuple绝对地址
+-    const char *tuple_data_ptr =
+-        reinterpret_cast<const char *>(this) + slot.offset_;
++    const char *tuple_data_ptr = reinterpret_cast<const char *>(this) + slot.offset_;
+ 
+     // 直接调用 tuple.cpp 里提供的 DeserializeFrom，它会自动读取前 4 个字节作为
+     // size，并拷贝后续数据！
+     tuple->DeserializeFrom(tuple_data_ptr);
+   }
+ 
+-private:
++ private:
+   // 必须严格控制 Header 的大小
+-  uint32_t num_tuples_; // 已经插入了多少个 Tuple
+-  uint32_t
+-      next_free_ptr_; // 数据区域是从后往前长的，这个指针记录数据的"最低水位线"
++  uint32_t num_tuples_;     // 已经插入了多少个 Tuple
++  uint32_t next_free_ptr_;  // 数据区域是从后往前长的，这个指针记录数据的"最低水位线"
+ 
+   // 槽位结构：记录每个 Tuple 在页内的起始位置和大小
+   struct Slot {
+@@ -89,4 +85,4 @@
+   // char page_data_[0];
+ };
+ 
+-} // namespace bustub
++}  // namespace bustub
 /autograder/source/bustub/src/execution/update_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/execution/window_function_executor.cpp had clang-format style issues
-/autograder/source/bustub/src/include/buffer/arc_replacer.h had clang-format style issues
-/autograder/source/bustub/src/include/buffer/buffer_pool_manager.h had clang-format style issues
-/autograder/source/bustub/src/include/concurrency/transaction_manager.h had clang-format style issues
 /autograder/source/bustub/src/include/concurrency/watermark.h had clang-format style issues
 /autograder/source/bustub/src/include/execution/execution_common.h had clang-format style issues
 /autograder/source/bustub/src/include/execution/executors/aggregation_executor.h had clang-format style issues
@@ -2357,25 +1676,12 @@
 /autograder/source/bustub/src/include/storage/page/b_plus_tree_leaf_page.h had clang-format style issues
 /autograder/source/bustub/src/include/storage/page/b_plus_tree_page.h had clang-format style issues
 /autograder/source/bustub/src/include/storage/page/intermediate_result_page.h had clang-format style issues
-/autograder/source/bustub/src/include/storage/page/page_guard.h had clang-format style issues
-/autograder/source/bustub/src/optimizer/column_pruning.cpp had clang-format style issues
-/autograder/source/bustub/src/optimizer/nlj_as_hash_join.cpp had clang-format style issues
-/autograder/source/bustub/src/optimizer/optimizer_custom_rules.cpp had clang-format style issues
-/autograder/source/bustub/src/optimizer/optimizer_internal.cpp had clang-format style issues
-/autograder/source/bustub/src/optimizer/seqscan_as_indexscan.cpp had clang-format style issues
-/autograder/source/bustub/src/storage/disk/disk_scheduler.cpp had clang-format style issues
-/autograder/source/bustub/src/storage/index/b_plus_tree.cpp had clang-format style issues
-/autograder/source/bustub/src/storage/index/index_iterator.cpp had clang-format style issues
-/autograder/source/bustub/src/storage/page/b_plus_tree_internal_page.cpp had clang-format style issues
-/autograder/source/bustub/src/storage/page/b_plus_tree_leaf_page.cpp had clang-format style issues
-/autograder/source/bustub/src/storage/page/b_plus_tree_page.cpp had clang-format style issues
-/autograder/source/bustub/src/storage/page/page_guard.cpp had clang-format style issues
 make[3]: *** [CMakeFiles/check-format.dir/build.make:70: CMakeFiles/check-format] Error 1
 make[2]: *** [CMakeFiles/Makefile2:1034: CMakeFiles/check-format.dir/all] Error 2
 make[1]: *** [CMakeFiles/Makefile2:1041: CMakeFiles/check-format.dir/rule] Error 2
 make: *** [Makefile:212: check-format] Error 2
 
-Program exited with 2 in 6.487s
+Program exited with 2 in 7.085s
 
 
 This step fails, and you'll get zero score for all steps even if you pass.

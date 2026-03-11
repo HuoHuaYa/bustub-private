@@ -10,11 +10,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "common/macros.h"
 #include <memory>
+#include "common/macros.h"
 
-#include "execution/execution_common.h"
 #include "concurrency/transaction_manager.h"
+#include "execution/execution_common.h"
 #include "execution/executors/update_executor.h"
 
 namespace bustub {
@@ -25,11 +25,9 @@ namespace bustub {
  * @param plan The update plan to be executed
  * @param child_executor The child executor that feeds the update
  */
-UpdateExecutor::UpdateExecutor(
-    ExecutorContext *exec_ctx, const UpdatePlanNode *plan,
-    std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), table_info_(nullptr),
-      child_executor_(std::move(child_executor)) {}
+UpdateExecutor::UpdateExecutor(ExecutorContext *exec_ctx, const UpdatePlanNode *plan,
+                               std::unique_ptr<AbstractExecutor> &&child_executor)
+    : AbstractExecutor(exec_ctx), plan_(plan), table_info_(nullptr), child_executor_(std::move(child_executor)) {}
 
 /** Initialize the update */
 void UpdateExecutor::Init() {
@@ -57,13 +55,14 @@ void UpdateExecutor::Init() {
  * NOTE: UpdateExecutor::Next() returns true with the number of updated rows
  * produced only once.
  */
-auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
-                          std::vector<bustub::RID> *rid_batch,
+auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                           size_t batch_size) -> bool {
   tuple_batch->clear();
   rid_batch->clear();
 
-  if (has_updated_) { return false; }
+  if (has_updated_) {
+    return false;
+  }
   has_updated_ = true;
 
   auto *txn = exec_ctx_->GetTransaction();
@@ -103,29 +102,32 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
 
     bool changed = false;
     for (const auto &index_info : table_indexes_) {
-      Tuple old_key = buffered_tuples[i].KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
-      Tuple new_key = new_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
-      
+      Tuple old_key = buffered_tuples[i].KeyFromTuple(table_info_->schema_, index_info->key_schema_,
+                                                      index_info->index_->GetKeyAttrs());
+      Tuple new_key =
+          new_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
+
       for (uint32_t col_idx = 0; col_idx < index_info->key_schema_.GetColumnCount(); col_idx++) {
-        if (old_key.GetValue(&index_info->key_schema_, col_idx).CompareNotEquals(new_key.GetValue(&index_info->key_schema_, col_idx)) == CmpBool::CmpTrue) {
+        if (old_key.GetValue(&index_info->key_schema_, col_idx)
+                .CompareNotEquals(new_key.GetValue(&index_info->key_schema_, col_idx)) == CmpBool::CmpTrue) {
           changed = true;
           break;
         }
       }
-      if (changed) break;
+      if (changed) {
+        break;
+      }
     }
     pk_changed[i] = changed;
   }
 
-  // =========================================================================
-  // 阶段 1：把所有【主键改变】的老坑位，统统砸成墓碑！
-  // =========================================================================
+  // 把所有主键改变的老坑位，统统砸成墓碑
   for (size_t i = 0; i < buffered_tuples.size(); i++) {
     if (pk_changed[i]) {
       RID old_rid = buffered_rids[i];
       auto [old_meta, old_tuple] = table_info_->table_->GetTuple(old_rid);
-      
-      // 🛡️ W-W 检测 1
+
+      // W-W 检测
       if (old_meta.ts_ > txn->GetReadTs() && old_meta.ts_ != txn->GetTransactionTempTs()) {
         txn->SetTainted();
         throw ExecutionException("Write-Write Conflict");
@@ -142,9 +144,9 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
         del_link_to_use = old_link;
       } else {
         UndoLink prev_link = old_link.has_value() ? *old_link : UndoLink{};
-        // 🎯 修复点 1：打墓碑时，必须强制记录所有的老数据 (all_modified = true)！绝不使用 GenerateNewUndoLog！
+        // 打墓碑时，必须强制记录所有的老数据 (all_modified = true),绝不使用 GenerateNewUndoLog
         std::vector<bool> all_modified(table_info_->schema_.GetColumnCount(), true);
-        UndoLog del_log{false, all_modified, old_tuple, old_meta.ts_, prev_link};
+        UndoLog del_log{old_meta.is_deleted_, all_modified, old_tuple, old_meta.ts_, prev_link};
         del_link_to_use = txn->AppendUndoLog(del_log);
       }
 
@@ -161,19 +163,15 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
     }
   }
 
-  // =========================================================================
-  // 阶段 2：对于没变主键的执行原地更新；对于变了主键的去抢新坑位
-  // =========================================================================
+  // 对于没变主键的执行原地更新,对于变了主键的去抢新坑位
   for (size_t i = 0; i < buffered_tuples.size(); i++) {
     RID old_rid = buffered_rids[i];
-    
+
     if (!pk_changed[i]) {
-      // ------------------------------------------
-      // 分支 A：原地更新 (包含日志融合逻辑)
-      // ------------------------------------------
-      auto [old_meta, old_tuple] = table_info_->table_->GetTuple(old_rid); 
-      
-      //  W-W 检测 2
+      // 原地更新.日志融合
+      auto [old_meta, old_tuple] = table_info_->table_->GetTuple(old_rid);
+
+      //  W-W 检测
       if (old_meta.ts_ > txn->GetReadTs() && old_meta.ts_ != txn->GetTransactionTempTs()) {
         txn->SetTainted();
         throw ExecutionException("Write-Write Conflict");
@@ -191,7 +189,8 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
             std::vector<bool> merged_fields = old_log.modified_fields_;
             for (uint32_t c = 0; c < table_info_->schema_.GetColumnCount(); c++) {
               if (!merged_fields[c]) {
-                if (old_tuple.GetValue(&table_info_->schema_, c).CompareNotEquals(new_tuples[i].GetValue(&table_info_->schema_, c)) == CmpBool::CmpTrue) {
+                if (old_tuple.GetValue(&table_info_->schema_, c)
+                        .CompareNotEquals(new_tuples[i].GetValue(&table_info_->schema_, c)) == CmpBool::CmpTrue) {
                   merged_fields[c] = true;
                 }
               }
@@ -213,7 +212,8 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
         }
       } else {
         UndoLink prev_link = old_link.has_value() ? *old_link : UndoLink{};
-        UndoLog new_log = GenerateNewUndoLog(&table_info_->schema_, &old_tuple, &new_tuples[i], old_meta.ts_, prev_link);
+        UndoLog new_log =
+            GenerateNewUndoLog(&table_info_->schema_, &old_tuple, &new_tuples[i], old_meta.ts_, prev_link);
         link_to_use = txn->AppendUndoLog(new_log);
       }
 
@@ -232,12 +232,11 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       txn->AppendWriteSet(table_info_->oid_, old_rid);
 
     } else {
-      // ------------------------------------------
-      // 分支 B：拿着新主键找新坑位落户
-      // ------------------------------------------
+      // 拿着新主键找新坑位RID
       auto index_info = table_indexes_[0];
-      Tuple new_key = new_tuples[i].KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
-      
+      Tuple new_key =
+          new_tuples[i].KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
+
       std::vector<RID> result_rids;
       index_info->index_->ScanKey(new_key, &result_rids, txn);
 
@@ -270,7 +269,7 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
             res_link_to_use = tgt_link;
           } else {
             UndoLink tgt_prev = tgt_link.has_value() ? *tgt_link : UndoLink{};
-            // 🎯 修复点 2：复活墓碑时，旧状态一定是“死”的，强制记录 is_deleted=true 且不需要任何数据 (no_modified)！
+            // 复活墓碑时，旧状态一定是“死”的，强制记录is_deleted=true且不需要任何数据 (no_modified)
             std::vector<bool> no_modified(table_info_->schema_.GetColumnCount(), false);
             UndoLog res_log{true, no_modified, Tuple{}, target_meta.ts_, tgt_prev};
             res_link_to_use = txn->AppendUndoLog(res_log);
@@ -293,7 +292,8 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       } else {
         // 全新插入坑位
         TupleMeta new_insert_meta = {txn->GetTransactionTempTs(), false};
-        auto new_rid_opt = table_info_->table_->InsertTuple(new_insert_meta, new_tuples[i], exec_ctx_->GetLockManager(), txn, table_info_->oid_);
+        auto new_rid_opt = table_info_->table_->InsertTuple(new_insert_meta, new_tuples[i], exec_ctx_->GetLockManager(),
+                                                            txn, table_info_->oid_);
         if (new_rid_opt.has_value()) {
           txn->AppendWriteSet(table_info_->oid_, *new_rid_opt);
           index_info->index_->InsertEntry(new_key, *new_rid_opt, txn);
@@ -301,10 +301,10 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
       }
     }
   }
-  
+
   std::vector<Value> result_values{{TypeId::INTEGER, static_cast<int32_t>(buffered_tuples.size())}};
   tuple_batch->push_back(Tuple{result_values, &GetOutputSchema()});
   return true;
 }
 
-} // namespace bustub
+}  // namespace bustub

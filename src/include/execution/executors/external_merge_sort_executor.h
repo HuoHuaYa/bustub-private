@@ -13,6 +13,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <memory>
+#include <utility>
+#include <vector>
 #include "common/config.h"
 #include "common/macros.h"
 #include "execution/execution_common.h"
@@ -20,10 +24,6 @@
 #include "execution/plans/sort_plan.h"
 #include "storage/page/intermediate_result_page.h"
 #include "storage/table/tuple.h"
-#include <cstddef>
-#include <memory>
-#include <utility>
-#include <vector>
 
 namespace bustub {
 
@@ -33,10 +33,9 @@ namespace bustub {
  * within one page and across pages.
  */
 class MergeSortRun {
-public:
+ public:
   MergeSortRun() = default;
-  MergeSortRun(std::vector<page_id_t> pages, BufferPoolManager *bpm)
-      : pages_(std::move(pages)), bpm_(bpm) {}
+  MergeSortRun(std::vector<page_id_t> pages, BufferPoolManager *bpm) : pages_(std::move(pages)), bpm_(bpm) {}
 
   auto GetPageCount() -> size_t { return pages_.size(); }
   auto GetPages() const -> const std::vector<page_id_t> & { return pages_; }
@@ -45,7 +44,7 @@ public:
   class Iterator {
     friend class MergeSortRun;
 
-  public:
+   public:
     Iterator() = default;
 
     /**
@@ -78,8 +77,7 @@ public:
      * the iterator is pointing to.
      */
     auto operator*() -> Tuple {
-      BUSTUB_ASSERT(current_ir_page_ != nullptr,
-                    "Iterator is dereferencing a null page!");
+      BUSTUB_ASSERT(current_ir_page_ != nullptr, "Iterator is dereferencing a null page!");
       Tuple tuple;
       current_ir_page_->GetTuple(tuple_idx_, &tuple);
       return tuple;
@@ -90,19 +88,16 @@ public:
      * sorted run.
      */
     auto operator==(const Iterator &other) const -> bool {
-      return run_ == other.run_ && page_idx_ == other.page_idx_ &&
-             tuple_idx_ == other.tuple_idx_;
+      return run_ == other.run_ && page_idx_ == other.page_idx_ && tuple_idx_ == other.tuple_idx_;
     }
 
     /**
      * Checks whether two iterators are pointing to different tuples in a sorted
      * run or iterating on different sorted runs.
      */
-    auto operator!=(const Iterator &other) const -> bool {
-      return !(*this == other);
-    }
+    auto operator!=(const Iterator &other) const -> bool { return !(*this == other); }
 
-  private:
+   private:
     explicit Iterator(const MergeSortRun *run) : run_(run) {}
 
     Iterator(const MergeSortRun *run, size_t page_idx, uint32_t tuple_idx)
@@ -150,7 +145,7 @@ public:
     return {this, pages_.size(), 0};
   }
 
-private:
+ private:
   /** The page IDs of the sort pages that store the sorted tuples. */
   std::vector<page_id_t> pages_;
   /**
@@ -165,23 +160,21 @@ private:
  *
  * In Spring 2025, only 2-way external merge sort is required.
  */
-template <size_t K> class ExternalMergeSortExecutor : public AbstractExecutor {
-public:
+template <size_t K>
+class ExternalMergeSortExecutor : public AbstractExecutor {
+ public:
   ExternalMergeSortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan,
                             std::unique_ptr<AbstractExecutor> &&child_executor);
   ~ExternalMergeSortExecutor() override;
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch,
-            std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the external merge sort */
-  auto GetOutputSchema() const -> const Schema & override {
-    return plan_->OutputSchema();
-  }
+  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
-private:
+ private:
   /** The sort plan node to be executed */
   const SortPlanNode *plan_;
 
@@ -201,4 +194,4 @@ private:
   auto MergeTwoRuns(MergeSortRun &run1, MergeSortRun &run2) -> MergeSortRun;
 };
 
-} // namespace bustub
+}  // namespace bustub

@@ -69,10 +69,10 @@ class FrameHeader {
   friend class ReadPageGuard;
   friend class WritePageGuard;
 
-public:
+ public:
   explicit FrameHeader(frame_id_t frame_id);
 
-private:
+ private:
   auto GetData() const -> const char *;
   auto GetDataMut() -> char *;
   void Reset();
@@ -121,25 +121,18 @@ private:
  * of both the `ArcReplacer` and `DiskManager` classes.
  */
 class BufferPoolManager {
-public:
-  BufferPoolManager(size_t num_frames, DiskManager *disk_manager,
-                    LogManager *log_manager = nullptr);
+ public:
+  BufferPoolManager(size_t num_frames, DiskManager *disk_manager, LogManager *log_manager = nullptr);
   ~BufferPoolManager();
 
   auto Size() const -> size_t;
   auto NewPage() -> page_id_t;
   auto DeletePage(page_id_t page_id) -> bool;
-  auto CheckedWritePage(page_id_t page_id,
-                        AccessType access_type = AccessType::Unknown)
+  auto CheckedWritePage(page_id_t page_id, AccessType access_type = AccessType::Unknown)
       -> std::optional<WritePageGuard>;
-  auto CheckedReadPage(page_id_t page_id,
-                       AccessType access_type = AccessType::Unknown)
-      -> std::optional<ReadPageGuard>;
-  auto WritePage(page_id_t page_id,
-                 AccessType access_type = AccessType::Unknown)
-      -> WritePageGuard;
-  auto ReadPage(page_id_t page_id, AccessType access_type = AccessType::Unknown)
-      -> ReadPageGuard;
+  auto CheckedReadPage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> std::optional<ReadPageGuard>;
+  auto WritePage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> WritePageGuard;
+  auto ReadPage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> ReadPageGuard;
   auto FlushPageUnsafe(page_id_t page_id) -> bool;
   auto FlushPage(page_id_t page_id) -> bool;
   void FlushAllPagesUnsafe();
@@ -150,7 +143,7 @@ public:
   // std::shared_ptr<FrameHeader>; void ScheduleAndWait(const
   // std::shared_ptr<DiskScheduler> &disk_scheduler, DiskRequest req);
 
-private:
+ private:
   /** @brief The number of frames in the buffer pool. */
   const size_t num_frames_;
 
@@ -206,4 +199,4 @@ private:
   std::unordered_map<frame_id_t, page_id_t> frame_table_;
   // DiskManager *disk_manager_;
 };
-} // namespace bustub
+}  // namespace bustub

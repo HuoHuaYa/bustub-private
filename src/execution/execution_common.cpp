@@ -116,38 +116,35 @@ auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const Tuple
       continue;
     }
     // 过去的状态是活的
-    else {
-      // 如果现在被delete就直接搬tuple过来
-      if (current_is_deleted) {
-        current_tuple = log.tuple_;
-        current_is_deleted = false;
-      }
-      // 手里是活的，过去也是活的，修改部分tuple
-      else {
-        const std::vector<bool> &modified_fields = log.modified_fields_;
-        // 通过column构造对应的partial schema
-        std::vector<Column> partial_columns;
-        for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
-          if (modified_fields[i]) {
-            partial_columns.push_back(schema->GetColumn(i));
-          }
-        }
-        Schema partial_schema(partial_columns);
-        std::vector<Value> reconstructed_values;
-        uint32_t log_tuple_idx = 0;
-        for (uint32_t col_idx = 0; col_idx < schema->GetColumnCount(); col_idx++) {
-          if (modified_fields[col_idx]) {
-            Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
-            reconstructed_values.push_back(old_value);
-            log_tuple_idx++;
-          } else {
-            Value current_value = current_tuple.GetValue(schema, col_idx);
-            reconstructed_values.push_back(current_value);
-          }
-        }
-        current_tuple = Tuple(reconstructed_values, schema);
+    // 如果现在被delete就直接搬tuple过来
+    if (current_is_deleted) {
+      current_tuple = log.tuple_;
+      current_is_deleted = false;
+    }
+    // 手里是活的，过去也是活的，修改部分tuple
+
+    const std::vector<bool> &modified_fields = log.modified_fields_;
+    // 通过column构造对应的partial schema
+    std::vector<Column> partial_columns;
+    for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
+      if (modified_fields[i]) {
+        partial_columns.push_back(schema->GetColumn(i));
       }
     }
+    Schema partial_schema(partial_columns);
+    std::vector<Value> reconstructed_values;
+    uint32_t log_tuple_idx = 0;
+    for (uint32_t col_idx = 0; col_idx < schema->GetColumnCount(); col_idx++) {
+      if (modified_fields[col_idx]) {
+        Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
+        reconstructed_values.push_back(old_value);
+        log_tuple_idx++;
+      } else {
+        Value current_value = current_tuple.GetValue(schema, col_idx);
+        reconstructed_values.push_back(current_value);
+      }
+    }
+    current_tuple = Tuple(reconstructed_values, schema);
   }
   if (current_is_deleted) {
     return std::nullopt;

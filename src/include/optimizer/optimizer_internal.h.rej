@@ -1,0 +1,8 @@
+--- src/include/optimizer/optimizer_internal.h
++++ src/include/optimizer/optimizer_internal.h (after clang format)
+@@ -17,4 +17,4 @@
+ // Note: You can define your optimizer helper functions here
+ void OptimizerHelperFunction();
+ 
+-} // namespace bustub
++}  // namespace bustub

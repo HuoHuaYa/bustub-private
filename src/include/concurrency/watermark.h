@@ -26,9 +26,8 @@ namespace bustub {
  *
  */
 class Watermark {
-public:
-  explicit Watermark(timestamp_t commit_ts)
-      : commit_ts_(commit_ts), watermark_(commit_ts) {}
+ public:
+  explicit Watermark(timestamp_t commit_ts) : commit_ts_(commit_ts), watermark_(commit_ts) {}
 
   auto AddTxn(timestamp_t read_ts) -> void;
 
@@ -51,9 +50,7 @@ public:
   // 有多少事务在用这些时间戳
   std::unordered_map<timestamp_t, int> current_reads_;
   // 时间戳自增，直接找最小值就行了
-  std::priority_queue<timestamp_t, std::vector<timestamp_t>,
-                      std::greater<timestamp_t>>
-      min_heap_;
+  std::priority_queue<timestamp_t, std::vector<timestamp_t>, std::greater<>> min_heap_;
 };
 
-}; // namespace bustub
+};  // namespace bustub

@@ -1,0 +1,84 @@
+--- src/optimizer/seqscan_as_indexscan.cpp
++++ src/optimizer/seqscan_as_indexscan.cpp (after clang format)
+@@ -31,7 +31,7 @@
+   }
+   for (const auto &child : expr->GetChildren()) {
+     if (auto res = GetColIdx(child)) {
+-      return res; // 只要找到一个列，就赶紧汇报
++      return res;  // 只要找到一个列，就赶紧汇报
+     }
+   }
+   return std::nullopt;
+@@ -39,30 +39,24 @@
+ 
+ // 辅助函数：只对最简单的 "单点等值查询" 提取常量狙击子弹
+ // xxx or xxx 会被认为复杂类型，所以无法通过单点等值查询
+-auto GetConstantFromEqual(const AbstractExpressionRef &expr)
+-    -> std::optional<AbstractExpressionRef> {
++auto GetConstantFromEqual(const AbstractExpressionRef &expr) -> std::optional<AbstractExpressionRef> {
+   auto cmp_expr = dynamic_cast<const ComparisonExpression *>(expr.get());
+   if (cmp_expr != nullptr && cmp_expr->comp_type_ == ComparisonType::Equal) {
+-    auto left_col = dynamic_cast<const ColumnValueExpression *>(
+-        cmp_expr->GetChildAt(0).get());
+-    auto right_const = dynamic_cast<const ConstantValueExpression *>(
+-        cmp_expr->GetChildAt(1).get());
++    auto left_col = dynamic_cast<const ColumnValueExpression *>(cmp_expr->GetChildAt(0).get());
++    auto right_const = dynamic_cast<const ConstantValueExpression *>(cmp_expr->GetChildAt(1).get());
+     if (left_col != nullptr && right_const != nullptr) {
+       return cmp_expr->GetChildAt(1);
+     }
+ 
+-    auto left_const = dynamic_cast<const ConstantValueExpression *>(
+-        cmp_expr->GetChildAt(0).get());
+-    auto right_col = dynamic_cast<const ColumnValueExpression *>(
+-        cmp_expr->GetChildAt(1).get());
++    auto left_const = dynamic_cast<const ConstantValueExpression *>(cmp_expr->GetChildAt(0).get());
++    auto right_col = dynamic_cast<const ColumnValueExpression *>(cmp_expr->GetChildAt(1).get());
+     if (left_const != nullptr && right_col != nullptr) {
+       return cmp_expr->GetChildAt(0);
+     }
+   }
+   return std::nullopt;
+ }
+-auto Optimizer::OptimizeSeqScanAsIndexScan(
+-    const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
++auto Optimizer::OptimizeSeqScanAsIndexScan(const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
+   // TODO(P3): implement seq scan with predicate -> index scan optimizer rule
+   // The Filter Predicate Pushdown has been enabled for you in optimizer.cpp
+   // when forcing starter rule 谓词下推
+@@ -75,8 +69,7 @@
+   // 开始判断能不能转换了
+   // 判断类型
+   if (optimized_plan->GetType() == PlanType::SeqScan) {
+-    const auto &seq_scan =
+-        dynamic_cast<const SeqScanPlanNode &>(*optimized_plan);
++    const auto &seq_scan = dynamic_cast<const SeqScanPlanNode &>(*optimized_plan);
+     // 判断是否存在where子句
+     if (seq_scan.filter_predicate_ != nullptr) {
+       // !如果遇到了 xx or xx，会被漏掉
+@@ -142,16 +135,14 @@
+           // 保证是单列，并且是表中的这一列
+           if (attrs.size() == 1 && attrs[0] == col_index) {
+             std::vector<AbstractExpressionRef> pred_keys;
+-            auto constant_opt =
+-                GetConstantFromEqual(seq_scan.filter_predicate_);
++            auto constant_opt = GetConstantFromEqual(seq_scan.filter_predicate_);
+ 
+             if (constant_opt.has_value()) {
+               pred_keys.push_back(constant_opt.value());
+             }
+ 
+-            return std::make_shared<IndexScanPlanNode>(
+-                seq_scan.output_schema_, seq_scan.table_oid_, index->index_oid_,
+-                seq_scan.filter_predicate_, pred_keys);
++            return std::make_shared<IndexScanPlanNode>(seq_scan.output_schema_, seq_scan.table_oid_, index->index_oid_,
++                                                       seq_scan.filter_predicate_, pred_keys);
+           }
+         }
+       }
+@@ -160,4 +151,4 @@
+   return optimized_plan;
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

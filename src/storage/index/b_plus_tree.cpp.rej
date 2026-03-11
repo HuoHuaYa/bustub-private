@@ -1,0 +1,231 @@
+--- src/storage/index/b_plus_tree.cpp
++++ src/storage/index/b_plus_tree.cpp (after clang format)
+@@ -17,13 +17,13 @@
+ namespace bustub {
+ 
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-BPLUSTREE_TYPE::BPlusTree(std::string name, page_id_t header_page_id,
+-                          BufferPoolManager *buffer_pool_manager,
+-                          const KeyComparator &comparator, int leaf_max_size,
+-                          int internal_max_size)
++BPLUSTREE_TYPE::BPlusTree(std::string name, page_id_t header_page_id, BufferPoolManager *buffer_pool_manager,
++                          const KeyComparator &comparator, int leaf_max_size, int internal_max_size)
+     : bpm_(std::make_shared<TracedBufferPoolManager>(buffer_pool_manager)),
+-      index_name_(std::move(name)), comparator_(std::move(comparator)),
+-      leaf_max_size_(leaf_max_size), internal_max_size_(internal_max_size),
++      index_name_(std::move(name)),
++      comparator_(std::move(comparator)),
++      leaf_max_size_(leaf_max_size),
++      internal_max_size_(internal_max_size),
+       header_page_id_(header_page_id) {
+   WritePageGuard guard = bpm_->WritePage(header_page_id_);
+   auto root_page = guard.AsMut<BPlusTreeHeaderPage>();
+@@ -56,8 +56,7 @@
+  */
+ // 返回与输入键有关的唯一的值，用于点查询
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-auto BPLUSTREE_TYPE::GetValue(const KeyType &key,
+-                              std::vector<ValueType> *result) -> bool {
++auto BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result) -> bool {
+   // UNIMPLEMENTED("TODO(P2): Add implementation.");
+   // Declaration of context instance. Using the Context is not necessary but
+   // advised.
+@@ -70,8 +69,7 @@
+   // KeyIndex 通过二分获得正确索引
+   int index = leaf_page->KeyIndex(key, comparator_);
+   // 再次检查索引是否对应键值
+-  if (index >= 0 && index < leaf_page->GetSize() &&
+-      comparator_(leaf_page->KeyAt(index), key) == 0) {
++  if (index >= 0 && index < leaf_page->GetSize() && comparator_(leaf_page->KeyAt(index), key) == 0) {
+     // 检查墓碑机制
+     if (!leaf_page->IsTombstone(index)) {
+       result->emplace_back(leaf_page->ValueAt(index));
+@@ -82,8 +80,7 @@
+ }
+ // 实现一个寻找叶子节点页面的函数--
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-auto BPLUSTREE_TYPE::FindLeafForRead(const KeyType &key, Context *context) const
+-    -> const LeafPage * {
++auto BPLUSTREE_TYPE::FindLeafForRead(const KeyType &key, Context *context) const -> const LeafPage * {
+   // 因为getrootpageid不能保证是一个只读的函数，拥有更改内容的风险。不符合上面const定义
+   // 这里会context。emplace，所以就算没有成功，也需要pop_back
+   page_id_t root_page_id = GetRootPageIdForRead(context);
+@@ -141,8 +138,7 @@
+  * keys return false; otherwise, return true.
+  */
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value)
+-    -> bool {
++auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value) -> bool {
+   // 乐观锁
+   // 经典掏header_page
+   {
+@@ -230,8 +226,7 @@
+   // 两种失败：已经有了这个key，size == maxsize
+   // 验证是不是第一种
+   int index = leaf_page->KeyIndex(key, comparator_);
+-  if (index < leaf_page->GetSize() &&
+-      comparator_(leaf_page->KeyAt(index), key) == 0) {
++  if (index < leaf_page->GetSize() && comparator_(leaf_page->KeyAt(index), key) == 0) {
+     if (!leaf_page->IsTombstone(index)) {
+       ctx.Clear();
+       return false;
+@@ -260,8 +255,7 @@
+   return true;
+ }
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-auto BPLUSTREE_TYPE::FindLeafForWrite(const KeyType &key, Context *ctx)
+-    -> WritePageGuard {
++auto BPLUSTREE_TYPE::FindLeafForWrite(const KeyType &key, Context *ctx) -> WritePageGuard {
+   auto head_guard = bpm_->WritePage(header_page_id_);
+   auto head_page = head_guard.AsMut<BPlusTreeHeaderPage>();
+   ctx->root_page_id_ = head_page->root_page_id_;
+@@ -309,8 +303,7 @@
+ }
+ 
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-void BPLUSTREE_TYPE::InsertIntoParent(page_id_t old_page_id, const KeyType &key,
+-                                      page_id_t new_page_id, Context *ctx) {
++void BPLUSTREE_TYPE::InsertIntoParent(page_id_t old_page_id, const KeyType &key, page_id_t new_page_id, Context *ctx) {
+   page_id_t current_old_page_id = old_page_id;
+   KeyType current_split_key = key;
+   page_id_t current_new_page_id = new_page_id;
+@@ -331,8 +324,7 @@
+       new_root_page->Init(internal_max_size_);
+ 
+       // 给newroot赋值
+-      new_root_page->PopulateNewRoot(current_old_page_id, current_split_key,
+-                                     current_new_page_id);
++      new_root_page->PopulateNewRoot(current_old_page_id, current_split_key, current_new_page_id);
+       // DEBUG
+       // std::cout << "DEBUG: New Root Created (PageID=" << new_root_id << ")"
+       //           << std::endl;
+@@ -357,8 +349,7 @@
+     auto parent_page = parent_guard.template AsMut<InternalPage>();
+ 
+     // insert
+-    parent_page->InsertNodeAfter(current_old_page_id, current_split_key,
+-                                 current_new_page_id);
++    parent_page->InsertNodeAfter(current_old_page_id, current_split_key, current_new_page_id);
+     // 检测当前parent page是否安全，安全就直接结束
+     if (parent_page->GetSize() <= parent_page->GetMaxSize()) {
+       guards_to_keep_alive.push_back(std::move(parent_guard));
+@@ -478,12 +469,9 @@
+     }
+     return (page->GetMaxSize() + 1) / 2;
+   };
+-  auto get_effective_size = [](BPlusTreePage *page) -> int {
+-    return page->GetSize();
+-  };
++  auto get_effective_size = [](BPlusTreePage *page) -> int { return page->GetSize(); };
+   // 一直向上找，直到根或者不在需要分裂
+-  while (current_page_id != ctx.root_page_id_ &&
+-         get_effective_size(current_page) < get_min_size(current_page)) {
++  while (current_page_id != ctx.root_page_id_ && get_effective_size(current_page) < get_min_size(current_page)) {
+     // 经典连招，找出父亲节点所有信息，和找一个准备使用的兄弟
+     auto parent_guard = std::move(ctx.write_set_.back());
+     ctx.write_set_.pop_back();
+@@ -492,8 +480,7 @@
+     int my_index = parent_page->ValueIndex(current_page_id);
+     int sibling_index = my_index > 0 ? my_index - 1 : my_index + 1;
+     //
+-    assert(sibling_index < parent_page->GetSize() &&
+-           "ERROR: Sibling index out of bounds! Tree is corrupted!");
++    assert(sibling_index < parent_page->GetSize() && "ERROR: Sibling index out of bounds! Tree is corrupted!");
+     //
+     page_id_t sibling_page_id = parent_page->ValueAt(sibling_index);
+     auto sibling_guard = bpm_->WritePage(sibling_page_id);
+@@ -512,8 +499,7 @@
+                get_effective_size(sibling_leaf) > get_min_size(sibling_leaf)) {
+           // 唯一需要的保护：防止一直搬运墓碑把叶子节点的 tombstones_ 数组撑爆
+           // 满了就踢掉最老的一个，绝对不调用 Compact() 清场
+-          while (LEAF_PAGE_TOMB_CNT > 0 &&
+-                 leaf->GetTombstonesNum() >= LEAF_PAGE_TOMB_CNT) {
++          while (LEAF_PAGE_TOMB_CNT > 0 && leaf->GetTombstonesNum() >= LEAF_PAGE_TOMB_CNT) {
+             leaf->RemoveOldestTombstone();
+           }
+ 
+@@ -535,14 +521,12 @@
+           // 兄弟在左边:更新兄弟大小，更新父亲条目的key值
+           int last_index = (sibling_internal->GetSize()) - 1;
+           // pushfront会改leaf的大小
+-          internal->PushFront(parent_page->KeyAt(my_index),
+-                              sibling_internal->ValueAt(last_index));
++          internal->PushFront(parent_page->KeyAt(my_index), sibling_internal->ValueAt(last_index));
+           parent_page->SetKeyAt(my_index, sibling_internal->KeyAt(last_index));
+           sibling_internal->SetSize(sibling_internal->GetSize() - 1);
+         } else {
+           // 兄弟在右边
+-          internal->PushBack(parent_page->KeyAt(sibling_index),
+-                             sibling_internal->ValueAt(0));
++          internal->PushBack(parent_page->KeyAt(sibling_index), sibling_internal->ValueAt(0));
+           // 兄弟在左边不用，因为最后一个键值对被送走，改size就相当于删了
+           parent_page->SetKeyAt(sibling_index, sibling_internal->KeyAt(1));
+           sibling_internal->Remove(0);
+@@ -580,8 +564,7 @@
+         auto *left_internal = static_cast<InternalPage *>(left_page);
+         auto *right_internal = static_cast<InternalPage *>(right_page);
+         // 因为key[0]无效，因此我们可以从父亲拿键值用
+-        right_internal->MoveAllTo(left_internal,
+-                                  parent_page->KeyAt(right_parent_index));
++        right_internal->MoveAllTo(left_internal, parent_page->KeyAt(right_parent_index));
+       }
+       // 物理删除右节点
+       if (sibling_index < my_index) {
+@@ -604,8 +587,7 @@
+     // root是叶子,并且被删空了
+     if (current_page->IsLeafPage() && current_page->GetSize() == 0) {
+       // 全部清空
+-      auto header_page =
+-          ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
++      auto header_page = ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
+       header_page->root_page_id_ = INVALID_PAGE_ID;
+       current_guard.Drop();
+       bpm_->DeletePage(current_page_id);
+@@ -615,8 +597,7 @@
+       auto *root_internal = static_cast<InternalPage *>(current_page);
+       // 换他的儿子上来，替代他
+       page_id_t new_root_id = root_internal->ValueAt(0);
+-      auto header_page =
+-          ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
++      auto header_page = ctx.header_page_->template AsMut<BPlusTreeHeaderPage>();
+       header_page->root_page_id_ = new_root_id;
+ 
+       // deletepage之前要drop掉锁
+@@ -628,8 +609,7 @@
+ }
+ 
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-auto BPLUSTREE_TYPE::FindLeafForRemove(const KeyType &key, Context *ctx)
+-    -> WritePageGuard {
++auto BPLUSTREE_TYPE::FindLeafForRemove(const KeyType &key, Context *ctx) -> WritePageGuard {
+   auto head_guard = bpm_->WritePage(header_page_id_);
+   auto head_page = head_guard.AsMut<BPlusTreeHeaderPage>();
+   ctx->root_page_id_ = head_page->root_page_id_;
+@@ -765,8 +745,7 @@
+ 
+   int index = leaf_page->KeyIndex(key, comparator_);
+   page_id_t page_id = current_guard.GetPageId();
+-  return INDEXITERATOR_TYPE((bpm_.get()), page_id, index,
+-                            std::move(current_guard));
++  return INDEXITERATOR_TYPE((bpm_.get()), page_id, index, std::move(current_guard));
+ }
+ 
+ /**
+@@ -775,9 +754,7 @@
+  * @return : index iterator
+  */
+ FULL_INDEX_TEMPLATE_ARGUMENTS
+-auto BPLUSTREE_TYPE::End() -> INDEXITERATOR_TYPE {
+-  return INDEXITERATOR_TYPE();
+-}
++auto BPLUSTREE_TYPE::End() -> INDEXITERATOR_TYPE { return INDEXITERATOR_TYPE(); }
+ 
+ /**
+  * @return Page id of the root of this tree
+@@ -805,4 +782,4 @@
+ 
+ template class BPlusTree<GenericKey<64>, RID, GenericComparator<64>>;
+ 
+-} // namespace bustub
++}  // namespace bustub

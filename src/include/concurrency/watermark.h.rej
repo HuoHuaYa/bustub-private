@@ -1,0 +1,14 @@
+--- src/include/concurrency/watermark.h
++++ src/include/concurrency/watermark.h (after clang format)
+@@ -50,9 +50,7 @@
+   // 有多少事务在用这些时间戳
+   std::unordered_map<timestamp_t, int> current_reads_;
+   // 时间戳自增，直接找最小值就行了
+-  std::priority_queue<timestamp_t, std::vector<timestamp_t>,
+-                      std::greater<>>
+-      min_heap_;
++  std::priority_queue<timestamp_t, std::vector<timestamp_t>, std::greater<>> min_heap_;
+ };
+ 
+-}; // namespace bustub
++};  // namespace bustub

@@ -1,0 +1,8 @@
+--- src/optimizer/optimizer_internal.cpp
++++ src/optimizer/optimizer_internal.cpp (after clang format)
+@@ -14,4 +14,4 @@
+ 
+ void OptimizerHelperFunction() {}
+ 
+-} // namespace bustub
++}  // namespace bustub
