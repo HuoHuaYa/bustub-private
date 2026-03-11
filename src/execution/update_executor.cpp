@@ -73,7 +73,7 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<b
   std::vector<Tuple> buffered_tuples;
   std::vector<RID> buffered_rids;
 
-  // 1. 缓冲所有老数据
+  // 缓冲所有老数据
   while (child_executor_->Next(&child_tuples, &child_rids, batch_size)) {
     for (size_t i = 0; i < child_tuples.size(); i++) {
       buffered_tuples.push_back(child_tuples[i]);
@@ -90,7 +90,7 @@ auto UpdateExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<b
   std::vector<Tuple> new_tuples;
   std::vector<bool> pk_changed(buffered_tuples.size(), false);
 
-  // 2. 预计算所有的新 Tuple，并判断主键是否改变
+  // 预计算所有的新 Tuple，并判断主键是否改变
   for (size_t i = 0; i < buffered_tuples.size(); i++) {
     std::vector<Value> values;
     values.reserve(child_executor_->GetOutputSchema().GetColumnCount());

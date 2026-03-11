@@ -92,19 +92,14 @@ auto TransactionManager::VerifyTxn(Transaction *txn) -> bool {
                 return false;  // 全表扫描的祖宗，别人只要写了表，立刻冲突
               }
 
-              // ==========================================
-              // ⚔️ 绝杀 1：检查“新数据” (防移入幻读)
+
               // 别人把不符合条件的数据，改成了符合我条件的
-              // ==========================================
               auto res_new = predicate->Evaluate(&current_tuple, table_info->schema_);
               if (!res_new.IsNull() && res_new.GetAs<bool>()) {
                 return false;
               }
 
-              // ==========================================
-              // ⚔️ 绝杀 2：检查“老数据” (防移出幻读)
               // 别人把我原本能查到的数据，给改没了或者删了
-              // ==========================================
               auto undo_link = GetUndoLink(rid);
               if (undo_link.has_value()) {
                 auto undo_log = GetUndoLog(*undo_link);
