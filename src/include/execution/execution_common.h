@@ -32,36 +32,44 @@ using SortEntry = std::pair<SortKey, Tuple>;
 
 /** The Tuple Comparator provides a comparison function for SortEntry */
 class TupleComparator {
- public:
+public:
   explicit TupleComparator(std::vector<OrderBy> order_bys);
 
-  auto operator()(const SortEntry &entry_a, const SortEntry &entry_b) const -> bool;
+  auto operator()(const SortEntry &entry_a, const SortEntry &entry_b) const
+      -> bool;
 
- private:
+private:
   std::vector<OrderBy> order_bys_;
 };
 
-auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys, const Schema &schema) -> SortKey;
+auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys,
+                     const Schema &schema) -> SortKey;
 
 /**
  * Above are all you need for P3.
  * You can ignore the remaining part of this file until P4.
  */
 
-auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const TupleMeta &base_meta,
-                      const std::vector<UndoLog> &undo_logs) -> std::optional<Tuple>;
+auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple,
+                      const TupleMeta &base_meta,
+                      const std::vector<UndoLog> &undo_logs)
+    -> std::optional<Tuple>;
 
-auto CollectUndoLogs(RID rid, const TupleMeta &base_meta, const Tuple &base_tuple, std::optional<UndoLink> undo_link,
-                     Transaction *txn, TransactionManager *txn_mgr) -> std::optional<std::vector<UndoLog>>;
+auto CollectUndoLogs(RID rid, const TupleMeta &base_meta,
+                     const Tuple &base_tuple, std::optional<UndoLink> undo_link,
+                     Transaction *txn, TransactionManager *txn_mgr)
+    -> std::optional<std::vector<UndoLog>>;
 
-auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple, timestamp_t ts,
+auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple,
+                        const Tuple *target_tuple, timestamp_t ts,
                         UndoLink prev_version) -> UndoLog;
 
-auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple,
-                            const UndoLog &log) -> UndoLog;
+auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple,
+                            const Tuple *target_tuple, const UndoLog &log)
+    -> UndoLog;
 
-void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr, const TableInfo *table_info,
-               TableHeap *table_heap);
+void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr,
+               const TableInfo *table_info, TableHeap *table_heap);
 
 // TODO(P4): Add new functions as needed... You are likely need to define some
 // more functions.
@@ -82,4 +90,4 @@ void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr, const Table
 // your own ones as necessary so that you do not need to write the same code
 // everywhere.
 
-}  // namespace bustub
+} // namespace bustub

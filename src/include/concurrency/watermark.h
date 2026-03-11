@@ -12,7 +12,9 @@
 
 #pragma once
 
+#include <queue>
 #include <unordered_map>
+#include <vector>
 
 #include "concurrency/transaction.h"
 #include "storage/table/tuple.h"
@@ -42,12 +44,16 @@ public:
     }
     return watermark_;
   }
-
+  // 整个数据库中，最后一次成功提交的事务的时间戳
   timestamp_t commit_ts_;
-
+  // 最老资历，因为我们维护的空间有限
   timestamp_t watermark_;
-
+  // 有多少事务在用这些时间戳
   std::unordered_map<timestamp_t, int> current_reads_;
+  // 时间戳自增，直接找最小值就行了
+  std::priority_queue<timestamp_t, std::vector<timestamp_t>,
+                      std::greater<timestamp_t>>
+      min_heap_;
 };
 
 }; // namespace bustub

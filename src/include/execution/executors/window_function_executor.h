@@ -65,19 +65,23 @@ namespace bustub {
  *
  */
 class WindowFunctionExecutor : public AbstractExecutor {
- public:
-  WindowFunctionExecutor(ExecutorContext *exec_ctx, const WindowFunctionPlanNode *plan,
+public:
+  WindowFunctionExecutor(ExecutorContext *exec_ctx,
+                         const WindowFunctionPlanNode *plan,
                          std::unique_ptr<AbstractExecutor> &&child_executor);
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+            std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the window aggregation plan */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  }
 
- private:
+private:
   /** The window aggregation plan node to be executed */
   const WindowFunctionPlanNode *plan_;
 
@@ -88,4 +92,4 @@ class WindowFunctionExecutor : public AbstractExecutor {
 
   size_t cursor_{0};
 };
-}  // namespace bustub
+} // namespace bustub

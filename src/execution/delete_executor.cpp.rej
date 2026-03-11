@@ -1,0 +1,103 @@
+--- src/execution/delete_executor.cpp
++++ src/execution/delete_executor.cpp (after clang format)
+@@ -10,11 +10,11 @@
+ //
+ //===----------------------------------------------------------------------===//
+ 
++#include <memory>
+ #include "common/macros.h"
+-#include <memory>
+ 
++#include "concurrency/transaction_manager.h"
+ #include "execution/execution_common.h"
+-#include "concurrency/transaction_manager.h"
+ #include "execution/executors/delete_executor.h"
+ 
+ namespace bustub {
+@@ -25,11 +25,9 @@
+  * @param plan The delete plan to be executed
+  * @param child_executor The child executor that feeds the delete
+  */
+-DeleteExecutor::DeleteExecutor(
+-    ExecutorContext *exec_ctx, const DeletePlanNode *plan,
+-    std::unique_ptr<AbstractExecutor> &&child_executor)
+-    : AbstractExecutor(exec_ctx), plan_(plan),
+-      child_executor_(std::move(child_executor)) {}
++DeleteExecutor::DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
++                               std::unique_ptr<AbstractExecutor> &&child_executor)
++    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
+ 
+ /** Initialize the delete */
+ void DeleteExecutor::Init() {
+@@ -58,8 +56,7 @@
+  * NOTE: DeleteExecutor::Next() returns true with the number of deleted rows
+  * produced only once.
+  */
+-auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
+-                          std::vector<bustub::RID> *rid_batch,
++auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
+                           size_t batch_size) -> bool {
+   tuple_batch->clear();
+   rid_batch->clear();
+@@ -100,8 +97,7 @@
+     bool is_self = (meta.ts_ == txn->GetTransactionTempTs());
+ 
+     if (!is_self) {
+-      if (meta.ts_ > txn->GetReadTs() || 
+-         (meta.ts_ > TXN_START_ID && meta.ts_ != txn->GetTransactionTempTs())) {
++      if (meta.ts_ > txn->GetReadTs() || (meta.ts_ > TXN_START_ID && meta.ts_ != txn->GetTransactionTempTs())) {
+         txn->SetTainted();
+         throw ExecutionException("Write-Write Conflict in Delete!");
+       }
+@@ -129,13 +125,14 @@
+       }
+       // 追加到事务内存，拿到新指针
+       link_to_update = txn->AppendUndoLog(new_log);
+-      
++
+     } else {
+       if (old_link.has_value()) {
+         UndoLog old_log = txn->GetUndoLog(old_link->prev_log_idx_);
+         // 说明之前不是insert，而是update
+         if (!old_log.is_deleted_) {
+-          std::optional<Tuple> original_tuple = ReconstructTuple(&child_executor_->GetOutputSchema(), base_tuple, meta, {old_log});
++          std::optional<Tuple> original_tuple =
++              ReconstructTuple(&child_executor_->GetOutputSchema(), base_tuple, meta, {old_log});
+           // 成功构造出了事务之前的tuple，把他刷到物理层
+           if (original_tuple.has_value()) {
+             old_log.tuple_ = original_tuple.value();
+@@ -149,9 +146,8 @@
+         txn_mgr, rid, link_to_update, table_info_->table_.get(), txn, new_meta, base_tuple,
+         // 双重检查锁定
+         [meta = meta](const TupleMeta &fresh_meta, const Tuple &, RID, std::optional<UndoLink>) -> bool {
+-            return fresh_meta.ts_ == meta.ts_ && fresh_meta.is_deleted_ == meta.is_deleted_;
+-        }
+-    );
++          return fresh_meta.ts_ == meta.ts_ && fresh_meta.is_deleted_ == meta.is_deleted_;
++        });
+     // 如果update失败，就是被写写冲突阻拦了
+     if (!is_updated) {
+       txn->SetTainted();
+@@ -164,8 +160,8 @@
+     // 只有当这条数据之前还活着的时候，我们才去删它的索引（防止重复删除索引，出现错误）
+     // if (!meta.is_deleted_) {
+     //   for (const auto &index_info : table_indexes_) {
+-    //     Tuple key = base_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
+-    //     index_info->index_->DeleteEntry(key, rid, txn);
++    //     Tuple key = base_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
++    //     index_info->index_->GetKeyAttrs()); index_info->index_->DeleteEntry(key, rid, txn);
+     //   }
+     // }
+ 
+@@ -174,9 +170,9 @@
+   std::vector<Value> result_values{};
+   result_values.emplace_back(TypeId::INTEGER, delete_count);
+   Tuple result_tuple{result_values, &GetOutputSchema()};
+-  
++
+   tuple_batch->push_back(result_tuple);
+   return true;
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

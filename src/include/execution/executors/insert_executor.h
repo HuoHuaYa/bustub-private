@@ -27,19 +27,22 @@ namespace bustub {
  * Inserted values are always pulled from a child executor.
  */
 class InsertExecutor : public AbstractExecutor {
- public:
+public:
   InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *plan,
                  std::unique_ptr<AbstractExecutor> &&child_executor);
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+            std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the insert */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  };
 
- private:
+private:
   /** The insert plan node to be executed*/
   const InsertPlanNode *plan_;
   std::unique_ptr<AbstractExecutor> child_executor_;
@@ -49,4 +52,4 @@ class InsertExecutor : public AbstractExecutor {
   bool has_inserted_{false};
 };
 
-}  // namespace bustub
+} // namespace bustub

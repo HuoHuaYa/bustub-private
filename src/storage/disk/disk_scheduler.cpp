@@ -11,13 +11,14 @@
 //===----------------------------------------------------------------------===//
 
 #include "storage/disk/disk_scheduler.h"
-#include <vector>
 #include "common/macros.h"
 #include "storage/disk/disk_manager.h"
+#include <vector>
 
 namespace bustub {
 
-DiskScheduler::DiskScheduler(DiskManager *disk_manager) : disk_manager_(disk_manager) {
+DiskScheduler::DiskScheduler(DiskManager *disk_manager)
+    : disk_manager_(disk_manager) {
   // UNIMPLEMENTED("TODO(P1): Add implementation.");
   // Spawn the background thread
   background_thread_.emplace([&] { StartWorkerThread(); });
@@ -32,7 +33,8 @@ DiskScheduler::DiskScheduler(DiskManager *disk_manager) : disk_manager_(disk_man
 DiskScheduler::~DiskScheduler() {
   // Put a `std::nullopt` in the queue to signal to exit the loop
   request_queue_.Put(std::nullopt);
-  if (background_thread_.has_value()) {  // 检测 background_thread_是否持有有效的 thread 对象
+  if (background_thread_
+          .has_value()) { // 检测 background_thread_是否持有有效的 thread 对象
     background_thread_->join();
     // 1. 析构线程（用于触发对象销毁的已有线程，独立于后台线程）执行此join函数
     // 2. 析构线程进入阻塞状态，等待 background_thread_
@@ -54,7 +56,7 @@ DiskScheduler::~DiskScheduler() {
 void DiskScheduler::Schedule(std::vector<DiskRequest> &requests) {
   for (auto &request : requests) {
     request_queue_.Put(std::make_optional(std::move(request)));
-  }  // request包含promise不可拷贝，所以要移动
+  } // request包含promise不可拷贝，所以要移动
 }
 
 /**
@@ -86,4 +88,4 @@ void DiskScheduler::StartWorkerThread() {
   }
 }
 // 磁盘处理可能会报错，所以我们必须做报错的准备，promise就是对策
-}  // namespace bustub
+} // namespace bustub

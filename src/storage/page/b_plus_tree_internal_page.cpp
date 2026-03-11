@@ -86,12 +86,18 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) {
  */
 // 索引对应的值
 INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType { return page_id_array_[index]; }
+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType {
+  return page_id_array_[index];
+}
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index, const ValueType &value) { page_id_array_[index] = value; }
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index,
+                                                const ValueType &value) {
+  page_id_array_[index] = value;
+}
 // ValueType :page id
 INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyComparator &comparator) const -> ValueType {
+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(
+    const KeyType &key, const KeyComparator &comparator) const -> ValueType {
   // 第一位无效，因此范围如下
   auto start = key_array_ + 1;
   auto end = start + GetSize() - 1;
@@ -102,15 +108,19 @@ auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Lookup(const KeyType &key, const KeyCompara
   // <= 20,20 <... <=30可以用lower直接求 但是反着来设置最小值 <10,10<= ... < 20
   // , 20<=........，
   //  再这么求就会某些情况跑偏，届时还要判断是否-1很麻烦。因此upper - 1为最优解
-  auto target =
-      std::upper_bound(start, end, key, [&](const KeyType &k1, const KeyType &k2) { return comparator(k1, k2) < 0; });
+  auto target = std::upper_bound(start, end, key,
+                                 [&](const KeyType &k1, const KeyType &k2) {
+                                   return comparator(k1, k2) < 0;
+                                 });
   int index = std::distance(key_array_, target);
   return ValueAt(index - 1);
 }
 // 下层的page，分裂出一个新的page，添加给父亲
 INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter(const ValueType &old_value, const KeyType &new_key,
-                                                     const ValueType &new_value) -> int {
+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter(const ValueType &old_value,
+                                                     const KeyType &new_key,
+                                                     const ValueType &new_value)
+    -> int {
   // old page 的索引位置
   int old_index = ValueIndex(old_value);
   if (old_index == -1) {
@@ -129,8 +139,9 @@ auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::InsertNodeAfter(const ValueType &old_value,
 }
 // 根分裂后有两个分支，对应两个路标
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PopulateNewRoot(const ValueType &old_value, const KeyType &new_key,
-                                                     const ValueType &new_value) {
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PopulateNewRoot(
+    const ValueType &old_value, const KeyType &new_key,
+    const ValueType &new_value) {
   // key 0 是无效的，不需要赋值
   SetValueAt(0, old_value);
   SetKeyAt(1, new_key);
@@ -140,7 +151,8 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PopulateNewRoot(const ValueType &old_value,
 }
 // 内部节点分裂
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Split(B_PLUS_TREE_INTERNAL_PAGE_TYPE *recipient, KeyType *split_key) {
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Split(
+    B_PLUS_TREE_INTERNAL_PAGE_TYPE *recipient, KeyType *split_key) {
   int split_idx = GetSize() / 2;
   // 传给父亲的新键
   *split_key = KeyAt(split_idx);
@@ -155,7 +167,8 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Split(B_PLUS_TREE_INTERNAL_PAGE_TYPE *recip
   SetSize(split_idx);
 }
 INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex(const ValueType &value) const -> int {
+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex(const ValueType &value) const
+    -> int {
   for (int i = 0; i < GetSize(); i++) {
     if (page_id_array_[i] == value) {
       return i;
@@ -165,7 +178,8 @@ auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueIndex(const ValueType &value) const ->
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushFront(const KeyType &key, const ValueType &value) {
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushFront(const KeyType &key,
+                                               const ValueType &value) {
   for (int i = GetSize(); i >= 1; i--) {
     key_array_[i] = key_array_[i - 1];
     page_id_array_[i] = page_id_array_[i - 1];
@@ -175,13 +189,15 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushFront(const KeyType &key, const ValueTy
   SetSize(GetSize() + 1);
 }
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushBack(const KeyType &key, const ValueType &value) {
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::PushBack(const KeyType &key,
+                                              const ValueType &value) {
   key_array_[GetSize()] = key;
   page_id_array_[GetSize()] = value;
   SetSize(GetSize() + 1);
 }
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveAllTo(BPlusTreeInternalPage *recipient, const KeyType &middle_key) {
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::MoveAllTo(BPlusTreeInternalPage *recipient,
+                                               const KeyType &middle_key) {
   // recipient 是左儿子
   int index = recipient->GetSize();
   recipient->key_array_[index] = middle_key;
@@ -202,9 +218,14 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Remove(int index) {
   SetSize(GetSize() - 1);
 }
 // valuetype for internalNode should be page id_t
-template class BPlusTreeInternalPage<GenericKey<4>, page_id_t, GenericComparator<4>>;
-template class BPlusTreeInternalPage<GenericKey<8>, page_id_t, GenericComparator<8>>;
-template class BPlusTreeInternalPage<GenericKey<16>, page_id_t, GenericComparator<16>>;
-template class BPlusTreeInternalPage<GenericKey<32>, page_id_t, GenericComparator<32>>;
-template class BPlusTreeInternalPage<GenericKey<64>, page_id_t, GenericComparator<64>>;
-}  // namespace bustub
+template class BPlusTreeInternalPage<GenericKey<4>, page_id_t,
+                                     GenericComparator<4>>;
+template class BPlusTreeInternalPage<GenericKey<8>, page_id_t,
+                                     GenericComparator<8>>;
+template class BPlusTreeInternalPage<GenericKey<16>, page_id_t,
+                                     GenericComparator<16>>;
+template class BPlusTreeInternalPage<GenericKey<32>, page_id_t,
+                                     GenericComparator<32>>;
+template class BPlusTreeInternalPage<GenericKey<64>, page_id_t,
+                                     GenericComparator<64>>;
+} // namespace bustub

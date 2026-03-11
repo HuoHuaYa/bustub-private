@@ -1,6 +1,6 @@
 --- src/execution/external_merge_sort_executor.cpp
 +++ src/execution/external_merge_sort_executor.cpp (after clang format)
-@@ -21,28 +21,28 @@
+@@ -21,29 +21,29 @@
  namespace bustub {
  
  template <size_t K>
@@ -20,6 +20,7 @@
 +ExternalMergeSortExecutor<K>::~ExternalMergeSortExecutor() {
    // 如果执行器被销毁时，runs_ 里还有没删干净的页面（比如最终结果页）
    // 必须全部清空，把磁盘空间还给系统！
+   final_iter_ = std::nullopt;
    auto bpm = exec_ctx_->GetBufferPoolManager();
  
    for (auto &run : runs_) {
@@ -37,12 +38,61 @@
    child_executor_->Init();
    runs_.clear();
    final_iter_ = std::nullopt;
-@@ -205,7 +202,7 @@
-     ++it2;
-   }
+@@ -101,7 +101,7 @@
+     }
+     // 删除guard
+     guard.Drop();
+-    runs_.emplace_back(run_pages, bpm); // 生成了一个数据块
++    runs_.emplace_back(run_pages, bpm);  // 生成了一个数据块
+     chunk.clear();
+     current_chunk_bytes = 0;
+   };
+@@ -155,9 +155,7 @@
  
+ // merge过程
+ template <size_t K>
+-auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1,
+-                                                MergeSortRun &run2)
+-    -> MergeSortRun {
++auto ExternalMergeSortExecutor<K>::MergeTwoRuns(MergeSortRun &run1, MergeSortRun &run2) -> MergeSortRun {
+   auto it1 = run1.Begin();
+   auto it2 = run2.Begin();
+   const auto &schema = child_executor_->GetOutputSchema();
+@@ -211,7 +209,7 @@
+   }
+   it1 = run1.End();
+   it2 = run2.End();
 -  guard.Drop(); // 释放最后一页
 +  guard.Drop();  // 释放最后一页
    // 旧的全部放转转回收了
    for (auto page_id : run1.GetPages()) {
      bpm->DeletePage(page_id);
+@@ -233,8 +231,7 @@
+  * @return `true` if a tuple was produced, `false` if there are no more tuples
+  */
+ template <size_t K>
+-auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch,
+-                                        std::vector<bustub::RID> *rid_batch,
++auto ExternalMergeSortExecutor<K>::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
+                                         size_t batch_size) -> bool {
+   tuple_batch->clear();
+   rid_batch->clear();
+@@ -249,10 +246,10 @@
+   while (tuple_batch->size() < batch_size && it != end) {
+     tuple_batch->push_back(*it);
+     rid_batch->push_back(RID{});
+-    ++it; // 迭代器继续往前滚
++    ++it;  // 迭代器继续往前滚
+   }
+   if (it == end) {
+-    final_iter_ = std::nullopt; // 销毁迭代器释放读锁
++    final_iter_ = std::nullopt;  // 销毁迭代器释放读锁
+     auto bpm = exec_ctx_->GetBufferPoolManager();
+     for (auto &run : runs_) {
+       for (auto page_id : run.GetPages()) {
+@@ -266,4 +263,4 @@
+ 
+ template class ExternalMergeSortExecutor<2>;
+ 
+-} // namespace bustub
++}  // namespace bustub

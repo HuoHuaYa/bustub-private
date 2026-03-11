@@ -11,9 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "storage/page/page_guard.h"
-#include <memory>
 #include "buffer/arc_replacer.h"
 #include "common/macros.h"
+#include <memory>
 
 namespace bustub {
 
@@ -33,13 +33,13 @@ namespace bustub {
  * @param disk_scheduler A shared pointer to the buffer pool manager's disk
  * scheduler.
  */
-ReadPageGuard::ReadPageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
-                             std::shared_ptr<ArcReplacer> replacer, std::shared_ptr<std::mutex> bpm_latch,
+ReadPageGuard::ReadPageGuard(page_id_t page_id,
+                             std::shared_ptr<FrameHeader> frame,
+                             std::shared_ptr<ArcReplacer> replacer,
+                             std::shared_ptr<std::mutex> bpm_latch,
                              std::shared_ptr<DiskScheduler> disk_scheduler)
-    : page_id_(page_id),
-      frame_(std::move(frame)),
-      replacer_(std::move(replacer)),
-      bpm_latch_(std::move(bpm_latch)),
+    : page_id_(page_id), frame_(std::move(frame)),
+      replacer_(std::move(replacer)), bpm_latch_(std::move(bpm_latch)),
       disk_scheduler_(std::move(disk_scheduler)) {
   is_valid_ = true;
   // frame_->rwlatch_.lock_shared();
@@ -79,7 +79,7 @@ ReadPageGuard::ReadPageGuard(ReadPageGuard &&that) noexcept {
   that.bpm_latch_ = nullptr;
   that.disk_scheduler_ = nullptr;
 
-}  // page_id , fram_....都是指针，所以还要置为空
+} // page_id , fram_....都是指针，所以还要置为空
 
 /**
  * @brief The move assignment operator for `ReadPageGuard`.
@@ -101,7 +101,8 @@ ReadPageGuard::ReadPageGuard(ReadPageGuard &&that) noexcept {
  * @return ReadPageGuard& The newly valid `ReadPageGuard`.
  */
 // 移动
-auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & {
+auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept
+    -> ReadPageGuard & {
   if (this == &that) {
     return *this;
   }
@@ -246,13 +247,13 @@ ReadPageGuard::~ReadPageGuard() { Drop(); }
  * @param disk_scheduler A shared pointer to the buffer pool manager's disk
  * scheduler.
  */
-WritePageGuard::WritePageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
-                               std::shared_ptr<ArcReplacer> replacer, std::shared_ptr<std::mutex> bpm_latch,
+WritePageGuard::WritePageGuard(page_id_t page_id,
+                               std::shared_ptr<FrameHeader> frame,
+                               std::shared_ptr<ArcReplacer> replacer,
+                               std::shared_ptr<std::mutex> bpm_latch,
                                std::shared_ptr<DiskScheduler> disk_scheduler)
-    : page_id_(page_id),
-      frame_(std::move(frame)),
-      replacer_(std::move(replacer)),
-      bpm_latch_(std::move(bpm_latch)),
+    : page_id_(page_id), frame_(std::move(frame)),
+      replacer_(std::move(replacer)), bpm_latch_(std::move(bpm_latch)),
       disk_scheduler_(std::move(disk_scheduler)) {
   is_valid_ = true;
   // Getlock();
@@ -311,7 +312,8 @@ WritePageGuard::WritePageGuard(WritePageGuard &&that) noexcept {
  * @param that The other page guard.
  * @return WritePageGuard& The newly valid `WritePageGuard`.
  */
-auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard & {
+auto WritePageGuard::operator=(WritePageGuard &&that) noexcept
+    -> WritePageGuard & {
   if (this == &that) {
     return *this;
   }
@@ -461,4 +463,4 @@ void WritePageGuard::Drop() {
  * `Drop()`. */
 WritePageGuard::~WritePageGuard() { Drop(); }
 
-}  // namespace bustub
+} // namespace bustub

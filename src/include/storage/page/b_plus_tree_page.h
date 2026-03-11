@@ -24,11 +24,14 @@ namespace bustub {
 
 #define MappingType std::pair<KeyType, ValueType>
 
-#define FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN \
-  template <typename KeyType, typename ValueType, typename KeyComparator, ssize_t NumTombs = 0>
-#define FULL_INDEX_TEMPLATE_ARGUMENTS \
-  template <typename KeyType, typename ValueType, typename KeyComparator, ssize_t NumTombs>
-#define INDEX_TEMPLATE_ARGUMENTS template <typename KeyType, typename ValueType, typename KeyComparator>
+#define FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN                                     \
+  template <typename KeyType, typename ValueType, typename KeyComparator,      \
+            ssize_t NumTombs = 0>
+#define FULL_INDEX_TEMPLATE_ARGUMENTS                                          \
+  template <typename KeyType, typename ValueType, typename KeyComparator,      \
+            ssize_t NumTombs>
+#define INDEX_TEMPLATE_ARGUMENTS                                               \
+  template <typename KeyType, typename ValueType, typename KeyComparator>
 
 // define page type enum
 enum class IndexPageType { INVALID_INDEX_PAGE = 0, LEAF_PAGE, INTERNAL_PAGE };
@@ -45,7 +48,7 @@ enum class IndexPageType { INVALID_INDEX_PAGE = 0, LEAF_PAGE, INTERNAL_PAGE };
  * ---------------------------------------------------------
  */
 class BPlusTreePage {
- public:
+public:
   // Delete all constructor / destructor to ensure memory safety
   BPlusTreePage() = delete;
   BPlusTreePage(const BPlusTreePage &other) = delete;
@@ -67,7 +70,7 @@ class BPlusTreePage {
    * fields.
    */
   // 如果要用下面的成员变量就把 attribute删了
- private:
+private:
   // Member variables, attributes that both internal and leaf page share
 
   IndexPageType page_type_;
@@ -79,4 +82,4 @@ class BPlusTreePage {
   int max_size_;
 };
 
-}  // namespace bustub
+} // namespace bustub

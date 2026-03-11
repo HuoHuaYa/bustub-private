@@ -1,0 +1,110 @@
+--- src/execution/hash_join_executor.cpp
++++ src/execution/hash_join_executor.cpp (after clang format)
+@@ -25,18 +25,17 @@
+  * @param right_child The child executor that produces tuples for the right side
+  * of join
+  */
+-HashJoinExecutor::HashJoinExecutor(
+-    ExecutorContext *exec_ctx, const HashJoinPlanNode *plan,
+-    std::unique_ptr<AbstractExecutor> &&left_child,
+-    std::unique_ptr<AbstractExecutor> &&right_child)
+-    : AbstractExecutor(exec_ctx), plan_(plan),
+-      left_child_(std::move(left_child)), right_child_(std::move(right_child)) {
+-  if (plan->GetJoinType() != JoinType::LEFT &&
+-      plan->GetJoinType() != JoinType::INNER) {
++HashJoinExecutor::HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan,
++                                   std::unique_ptr<AbstractExecutor> &&left_child,
++                                   std::unique_ptr<AbstractExecutor> &&right_child)
++    : AbstractExecutor(exec_ctx),
++      plan_(plan),
++      left_child_(std::move(left_child)),
++      right_child_(std::move(right_child)) {
++  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
+     // Note for Spring 2025: You ONLY need to implement left join and inner
+     // join.
+-    throw bustub::NotImplementedException(
+-        fmt::format("join type {} not supported", plan->GetJoinType()));
++    throw bustub::NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
+   }
+   // UNIMPLEMENTED("TODO(P3): Add implementation.");
+ }
+@@ -66,8 +65,7 @@
+       // 提取这行数据用来Join的列，算Hash的Key
+       std::vector<Value> join_keys;
+       for (const auto &expr : plan_->RightJoinKeyExpressions()) {
+-        join_keys.push_back(
+-            expr->Evaluate(&tuple, right_child_->GetOutputSchema()));
++        join_keys.push_back(expr->Evaluate(&tuple, right_child_->GetOutputSchema()));
+       }
+ 
+       // 包装成我们自定义的 HashJoinKey
+@@ -90,8 +88,7 @@
+  * BUSTUB_BATCH_SIZE)
+  * @return `true` if a tuple was produced, `false` if there are no more tuples
+  */
+-auto HashJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
+-                            std::vector<bustub::RID> *rid_batch,
++auto HashJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
+                             size_t batch_size) -> bool {
+   tuple_batch->clear();
+   rid_batch->clear();
+@@ -100,8 +97,7 @@
+   const auto &right_schema = right_child_->GetOutputSchema();
+ 
+   // 只要没装满，且左表还没扫完，就继续循环
+-  while (tuple_batch->size() < batch_size &&
+-         (!is_left_done_ || right_match_idx_ < current_right_matches_.size())) {
++  while (tuple_batch->size() < batch_size && (!is_left_done_ || right_match_idx_ < current_right_matches_.size())) {
+     // 情况1：我们手里刚好还有上一轮没吐完的匹配项！
+     // 比如左表一条数据匹配了10条右表数据，上一轮只吐了5条就被 batch_size 截断了
+     if (right_match_idx_ < current_right_matches_.size()) {
+@@ -122,13 +118,12 @@
+ 
+       right_match_idx_++;
+       is_current_left_matched_ = true;
+-      continue; // 直接进入下一次 while 判断是否满载
++      continue;  // 直接进入下一次 while 判断是否满载
+     }
+ 
+     // 走到这里，说明当前左表数据的匹配项已经全部吐完了，我们该处理下一条左表数据了
+     // 如果左表本批次游标到底了，去拉取下一批左表数据
+-    if (left_tuple_batch_.empty() ||
+-        left_idx_ >= left_tuple_batch_.size() - 1) {
++    if (left_tuple_batch_.empty() || left_idx_ >= left_tuple_batch_.size() - 1) {
+       // 但如果是第一轮，还没拉取过，left_tuple_batch_ 是空的，特殊处理一下
+       if (!left_tuple_batch_.empty()) {
+         left_tuple_batch_.clear();
+@@ -144,13 +139,13 @@
+       }
+ 
+       if (!has_data) {
+-        is_left_done_ = true; // 左表彻底被榨干了
+-        break;                // 结束死循环
++        is_left_done_ = true;  // 左表彻底被榨干了
++        break;                 // 结束死循环
+       }
+ 
+-      left_idx_ = 0; // 重置游标
++      left_idx_ = 0;  // 重置游标
+     } else {
+-      left_idx_++; // 正常推进到下一条
++      left_idx_++;  // 正常推进到下一条
+     }
+     // 还没有匹配上时
+     is_current_left_matched_ = false;
+@@ -182,8 +177,7 @@
+       }
+ 
+       for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
+-        values.push_back(ValueFactory::GetNullValueByType(
+-            right_schema.GetColumn(i).GetType()));
++        values.push_back(ValueFactory::GetNullValueByType(right_schema.GetColumn(i).GetType()));
+       }
+       tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
+       rid_batch->emplace_back(RID{});
+@@ -193,4 +187,4 @@
+   return !tuple_batch->empty();
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

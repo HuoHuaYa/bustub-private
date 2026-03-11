@@ -47,6 +47,7 @@ auto TransactionManager::UpdateUndoLink(
   std::unique_lock<std::shared_mutex> lck(version_info_mutex_);
   std::shared_ptr<PageVersionInfo> pg_ver_info = nullptr;
   auto iter = version_info_.find(rid.GetPageId());
+  // 如果在umap中找不到，就构建一个，并加入umap中
   if (iter == version_info_.end()) {
     pg_ver_info = std::make_shared<PageVersionInfo>();
     version_info_[rid.GetPageId()] = pg_ver_info;
@@ -55,7 +56,9 @@ auto TransactionManager::UpdateUndoLink(
   }
   std::unique_lock<std::shared_mutex> lck2(pg_ver_info->mutex_);
   lck.unlock();
+  // 寻找页面中是否存在这么一个slot
   auto iter2 = pg_ver_info->prev_link_.find(rid.GetSlotNum());
+  // 如果有写写冲突，赶紧结束
   if (iter2 == pg_ver_info->prev_link_.end()) {
     if (check != nullptr && !check(std::nullopt)) {
       return false;
@@ -65,6 +68,8 @@ auto TransactionManager::UpdateUndoLink(
       return false;
     }
   }
+  // 存在link就老老实实更新，不存在就直接把他从umap删除
+  // 没错通过version的umap找到了page，page里🈶又有一个umap，映射slot和outlink的关系
   if (prev_link.has_value()) {
     pg_ver_info->prev_link_[rid.GetSlotNum()] = *prev_link;
   } else {

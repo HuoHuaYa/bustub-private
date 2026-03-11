@@ -1,0 +1,175 @@
+--- src/execution/execution_common.cpp
++++ src/execution/execution_common.cpp (after clang format)
+@@ -17,8 +17,8 @@
+ #include "concurrency/transaction_manager.h"
+ #include "fmt/core.h"
+ #include "storage/table/table_heap.h"
++#include "storage/table/tuple.h"
+ #include "type/value.h"
+-#include "storage/table/tuple.h"
+ 
+ namespace bustub {
+ 
+@@ -113,15 +113,15 @@
+     if (log.is_deleted_) {
+       // 标记deleted表示不存在
+       current_is_deleted = true;
+-      continue; 
+-    } 
++      continue;
++    }
+     // 过去的状态是活的
+     else {
+       // 如果现在被delete就直接搬tuple过来
+       if (current_is_deleted) {
+         current_tuple = log.tuple_;
+-        current_is_deleted = false; 
+-      } 
++        current_is_deleted = false;
++      }
+       // 手里是活的，过去也是活的，修改部分tuple
+       else {
+         const std::vector<bool> &modified_fields = log.modified_fields_;
+@@ -129,20 +129,20 @@
+         std::vector<Column> partial_columns;
+         for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
+           if (modified_fields[i]) {
+-              partial_columns.push_back(schema->GetColumn(i));
++            partial_columns.push_back(schema->GetColumn(i));
+           }
+         }
+         Schema partial_schema(partial_columns);
+         std::vector<Value> reconstructed_values;
+-        uint32_t log_tuple_idx = 0; 
++        uint32_t log_tuple_idx = 0;
+         for (uint32_t col_idx = 0; col_idx < schema->GetColumnCount(); col_idx++) {
+           if (modified_fields[col_idx]) {
+-             Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
+-             reconstructed_values.push_back(old_value);
+-             log_tuple_idx++;
++            Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
++            reconstructed_values.push_back(old_value);
++            log_tuple_idx++;
+           } else {
+-             Value current_value = current_tuple.GetValue(schema, col_idx);
+-             reconstructed_values.push_back(current_value);
++            Value current_value = current_tuple.GetValue(schema, col_idx);
++            reconstructed_values.push_back(current_value);
+           }
+         }
+         current_tuple = Tuple(reconstructed_values, schema);
+@@ -178,7 +178,7 @@
+   // 这就是终点判断，如果满足说明当前的日志已经够用了
+   if (current_ts == txn->GetTransactionTempTs() || current_ts <= txn->GetReadTs()) {
+     // 既然直接可见，就不需要时光倒流了，直接返回一个空的日志数组！
+-    return res; 
++    return res;
+   }
+   if (!undo_link.has_value()) {
+     return std::nullopt;
+@@ -207,7 +207,7 @@
+     // 没有到达终点继续跑link指针
+     current_link = log.prev_version_;
+   }
+-  return std::nullopt;                
++  return std::nullopt;
+ }
+ 
+ /**
+@@ -290,7 +290,8 @@
+     // 重构最古老的tuple，事务开始之前
+     auto original_tuple = ReconstructTuple(schema, *base_tuple, TupleMeta{0, false}, {log});
+     // 返回一条modified_fields全为true日志
+-    return UndoLog{false, std::vector<bool>(schema->GetColumnCount(), true), original_tuple.value(), log.ts_, log.prev_version_};
++    return UndoLog{false, std::vector<bool>(schema->GetColumnCount(), true), original_tuple.value(), log.ts_,
++                   log.prev_version_};
+   }
+   std::vector<bool> new_modified_fields = log.modified_fields_;
+   std::vector<Value> merged_values;
+@@ -307,7 +308,6 @@
+   uint32_t old_log_idx = 0;
+   // 逐列对比
+   for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
+-    
+     if (log.modified_fields_[i]) {
+       // 这个字段/ 列被改过
+       // 保留老tuple，因为我们是还原成事务前的样子，老tuple就是事务执行前的value
+@@ -319,7 +319,7 @@
+       // 之前没有被改，比较一下，有没有被update到
+       Value base_val = base_tuple->GetValue(schema, i);
+       Value target_val = target_tuple->GetValue(schema, i);
+-      
++
+       if (!base_val.CompareExactlyEquals(target_val)) {
+         // 发现被修改了
+         // basetuple这次才被搞到，所以装的就是事务执行前的数据，记得更新fileds
+@@ -363,9 +363,9 @@
+   // RID=0/3 ts=txn6 <del marker> tuple=(<NULL>, <NULL>, <NULL>)
+   //   txn6@0 (6, <NULL>, <NULL>) ts=2
+   //   txn3@1 (7, _, _) ts=1
+-  // 
++  //
+   auto it = table_heap->MakeIterator();
+-  
++
+   while (!it.IsEnd()) {
+     RID rid = it.GetRID();
+     // 拿到基线数据的元信息和本体
+@@ -375,16 +375,16 @@
+     // 打印基线数据 (Base Tuple)
+     // 格式: RID=页号/槽号 ts=时间戳 tuple=(字段1, 字段2...)
+     if (meta.is_deleted_) {
+-      fmt::println(stderr, "RID={}/{} ts={} <del marker> tuple={}", 
+-                   rid.GetPageId(), rid.GetSlotNum(), meta.ts_, tuple.ToString(&table_info->schema_));
++      fmt::println(stderr, "RID={}/{} ts={} <del marker> tuple={}", rid.GetPageId(), rid.GetSlotNum(), meta.ts_,
++                   tuple.ToString(&table_info->schema_));
+     } else {
+-      fmt::println(stderr, "RID={}/{} ts={} tuple={}", 
+-                   rid.GetPageId(), rid.GetSlotNum(), meta.ts_, tuple.ToString(&table_info->schema_));
++      fmt::println(stderr, "RID={}/{} ts={} tuple={}", rid.GetPageId(), rid.GetSlotNum(), meta.ts_,
++                   tuple.ToString(&table_info->schema_));
+     }
+ 
+     // 打印这条数据的 UndoLog 版本链
+     auto opt_current_link = txn_mgr->GetUndoLink(rid);
+-    if(!opt_current_link.has_value()){
++    if (!opt_current_link.has_value()) {
+       ++it;
+       continue;
+     }
+@@ -394,14 +394,13 @@
+       auto log_opt = txn_mgr->GetUndoLogOptional(current_link);
+       // 日志丢失或已被垃圾回收，直接截断
+       if (!log_opt.has_value()) {
+-        break; 
++        break;
+       }
+       UndoLog log = log_opt.value();
+       // 打印这一条历史日志的信息
+       if (log.is_deleted_) {
+         // Delete日志，说明历史状态不存在
+-        fmt::println(stderr, "  txn{}@{} <del> ts={}", 
+-                     current_link.prev_txn_, current_link.prev_log_idx_, log.ts_);
++        fmt::println(stderr, "  txn{}@{} <del> ts={}", current_link.prev_txn_, current_link.prev_log_idx_, log.ts_);
+       } else {
+         // Update日志搓一个partial_schema，同时打印他
+         std::vector<Column> partial_columns;
+@@ -411,15 +410,14 @@
+           }
+         }
+         Schema partial_schema(partial_columns);
+-        fmt::println(stderr, "  txn{}@{} {} ts={}", 
+-                     current_link.prev_txn_, current_link.prev_log_idx_, 
++        fmt::println(stderr, "  txn{}@{} {} ts={}", current_link.prev_txn_, current_link.prev_log_idx_,
+                      log.tuple_.ToString(&partial_schema), log.ts_);
+       }
+-      
++
+       // 指针后移，继续看更古老的历史
+       current_link = log.prev_version_;
+     }
+-    
++
+     // 看下一行物理数据
+     ++it;
+   }

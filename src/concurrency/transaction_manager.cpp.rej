@@ -1,0 +1,301 @@
+--- src/concurrency/transaction_manager.cpp
++++ src/concurrency/transaction_manager.cpp (after clang format)
+@@ -13,7 +13,7 @@
+ #include "concurrency/transaction_manager.h"
+ 
+ #include <memory>
+-#include <mutex> // NOLINT
++#include <mutex>  // NOLINT
+ #include <optional>
+ #include <shared_mutex>
+ #include <unordered_map>
+@@ -40,8 +40,7 @@
+  * @param isolation_level an optional isolation level of the transaction.
+  * @return an initialized transaction
+  */
+-auto TransactionManager::Begin(IsolationLevel isolation_level)
+-    -> Transaction * {
++auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * {
+   // txn_map 的锁
+   std::unique_lock<std::shared_mutex> l(txn_map_mutex_);
+   // 新事务id
+@@ -62,39 +61,37 @@
+ auto TransactionManager::VerifyTxn(Transaction *txn) -> bool {
+   // 纯读不用管
+   if (txn->GetWriteSets().empty()) {
+-    return true; 
++    return true;
+   }
+   auto my_predicates = txn->GetScanPredicates();
+   if (my_predicates.empty()) {
+     return true;
+   }
+-  
++
+   // 遍历系统中所有的事务，注意加 txn_map_mutex_ 读锁
+   std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
+-  
++
+   for (const auto &[other_txn_id, other_txn] : txn_map_) {
+     // 在我提交之前提交的事务
+-    if (other_txn->GetTransactionState() == TransactionState::COMMITTED && 
+-    other_txn->GetCommitTs() > txn->GetReadTs()) {
+-      
++    if (other_txn->GetTransactionState() == TransactionState::COMMITTED &&
++        other_txn->GetCommitTs() > txn->GetReadTs()) {
+       // 查所有表
+       for (const auto &[table_oid, rids] : other_txn->GetWriteSets()) {
+-        
+         // 如果他改的表，刚好是我扫描过的表
+         if (my_predicates.find(table_oid) != my_predicates.end()) {
+           auto table_info = catalog_->GetTable(table_oid);
+           auto predicates_for_table = my_predicates[table_oid];
+-          
++
+           // 遍历他改过的每一行数据(RID)
+           for (auto rid : rids) {
+             auto [meta, current_tuple] = table_info->table_->GetTuple(rid);
+-            
++
+             // 用我的扫描条件，去判断一下这行数据
+             for (const auto &predicate : predicates_for_table) {
+               if (predicate == nullptr) {
+-                return false; // 全表扫描的祖宗，别人只要写了表，立刻冲突
++                return false;  // 全表扫描的祖宗，别人只要写了表，立刻冲突
+               }
+-              
++
+               // ==========================================
+               // ⚔️ 绝杀 1：检查“新数据” (防移入幻读)
+               // 别人把不符合条件的数据，改成了符合我条件的
+@@ -103,7 +100,7 @@
+               if (!res_new.IsNull() && res_new.GetAs<bool>()) {
+                 return false;
+               }
+-              
++
+               // ==========================================
+               // ⚔️ 绝杀 2：检查“老数据” (防移出幻读)
+               // 别人把我原本能查到的数据，给改没了或者删了
+@@ -126,50 +123,50 @@
+       }
+     }
+   }
+-  
++
+   return true;
+   // 纯读不用管
+   // if (txn->GetWriteSets().empty()) {
+-  //   return true; 
++  //   return true;
+   // }
+   // auto my_predicates = txn->GetScanPredicates();
+   // if (my_predicates.empty()) {
+   //   return true;
+   // }
+-  
++
+   // // 遍历系统中所有的事务注意加 txn_map_mutex_ 读锁
+   // std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
+-  
++
+   // for (const auto &[other_txn_id, other_txn] : txn_map_) {
+   //   // 在我提交之前提交的事务
+-  //   if (other_txn->GetTransactionState() == TransactionState::COMMITTED && 
++  //   if (other_txn->GetTransactionState() == TransactionState::COMMITTED &&
+   //       other_txn->GetCommitTs() > txn->GetReadTs()) {
+-        
++
+   //     // 查所有表
+   //     for (const auto &[table_oid, rids] : other_txn->GetWriteSets()) {
+-        
++
+   //       // 如果他改的表，刚好是我扫描过的表
+   //       if (my_predicates.find(table_oid) != my_predicates.end()) {
+   //         auto table_info = catalog_->GetTable(table_oid);
+   //         auto predicates_for_table = my_predicates[table_oid];
+-  
++
+   //         // 遍历他改过的每一行数据(RID)
+   //         for (auto rid : rids) {
+   //           // auto tuple_meta = table_info->table_->GetTupleMeta(rid);
+   //           auto tuple = table_info->table_->GetTuple(rid).second;
+-  
++
+   //           // 用我的扫描条件，去判断一下他改过的数据
+   //           for (const auto &predicate : predicates_for_table) {
+   //             // 如果没有条件就是全表扫描，只要他改了这个表，立刻冲突
+   //             if (predicate == nullptr) {
+-  //               return false; 
++  //               return false;
+   //             }
+-  
++
+   //             // 拿着他修改后的实体数据，跑一下我的过滤条件
+   //             auto result = predicate->Evaluate(&tuple, table_info->schema_);
+   //             if (!result.IsNull() && result.GetAs<bool>()) {
+   //               // 成功了就说明他会改变我也要改变的数据
+-  //               return false; 
++  //               return false;
+   //             }
+   //           }
+   //         }
+@@ -177,16 +174,16 @@
+   //     }
+   //   }
+   // }
+-  
++
+   // // 没有任何冲突
+   // return true;
+ }
+ 
+ /**
+-* Commits a transaction.
+-* @param txn the transaction to commit, the txn will be managed by the txn
+-* manager so no need to delete it by yourself
+-*/
++ * Commits a transaction.
++ * @param txn the transaction to commit, the txn will be managed by the txn
++ * manager so no need to delete it by yourself
++ */
+ auto TransactionManager::Commit(Transaction *txn) -> bool {
+   std::unique_lock<std::mutex> commit_lck(commit_mutex_);
+ 
+@@ -237,8 +234,7 @@
+  * manager so no need to delete it by yourself
+  */
+ void TransactionManager::Abort(Transaction *txn) {
+-  if (txn->state_ != TransactionState::RUNNING &&
+-      txn->state_ != TransactionState::TAINTED) {
++  if (txn->state_ != TransactionState::RUNNING && txn->state_ != TransactionState::TAINTED) {
+     throw Exception("txn not in running / tainted state");
+   }
+ 
+@@ -251,7 +247,6 @@
+ 
+       // 如果这行数据不是我改的就不回滚它 (虽然正常情况下WriteSet里肯定是改的)，这是保险起见
+       if (meta.ts_ == txn->GetTransactionTempTs()) {
+-        
+         if (undo_link.has_value() && undo_link->IsValid()) {
+           // 回滚Update/Delete操作
+           auto undo_log = GetUndoLog(*undo_link);
+@@ -264,35 +259,26 @@
+           if (restored_tuple.has_value()) {
+             // 过去是有数据的，连同数据一起砸回物理页
+             is_inserted = UpdateTupleAndUndoLink(
+-                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, 
+-                old_meta, restored_tuple.value(), 
+-                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
+-        return check_meta.ts_ == txn->GetTransactionTempTs();
+-    }
+-            );
++                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, old_meta, restored_tuple.value(),
++                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
++                      std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
+           } else {
+             // 过去是墓碑
+             is_inserted = UpdateTupleAndUndoLink(
+-                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, 
+-                old_meta, base_tuple,
+-                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
+-        return check_meta.ts_ == txn->GetTransactionTempTs();
+-    }
+-            );
++                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, old_meta, base_tuple,
++                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
++                      std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
+           }
+-          if(!is_inserted){
++          if (!is_inserted) {
+             throw Exception("Abort failed: Tuple was modified by another transaction unexpectedly!");
+           }
+         } else {
+           // 没有link说明是Insert操作
+           TupleMeta tombstone_meta{0, true};
+           UpdateTupleAndUndoLink(
+-              this, rid, std::nullopt, table_info->table_.get(), txn, 
+-              tombstone_meta, base_tuple,
+-              [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
+-        return check_meta.ts_ == txn->GetTransactionTempTs();
+-    }
+-          );
++              this, rid, std::nullopt, table_info->table_.get(), txn, tombstone_meta, base_tuple,
++              [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
++                    std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
+         }
+       }
+     }
+@@ -311,37 +297,38 @@
+ 
+   // 获得水印（即最远ts）
+   // 如果当前没有任何人在运行，水位线就是全世界最新的提交时间
+-  timestamp_t watermark = last_commit_ts_; 
++  timestamp_t watermark = last_commit_ts_;
+   // 正在运行的事务不能被删除，所以和水位线取min
+   for (const auto &[txn_id, txn] : txn_map_) {
+-    if (txn->GetTransactionState() != TransactionState::COMMITTED && 
+-      txn->GetTransactionState() != TransactionState::ABORTED) {
++    if (txn->GetTransactionState() != TransactionState::COMMITTED &&
++        txn->GetTransactionState() != TransactionState::ABORTED) {
+       watermark = std::min(watermark, txn->GetReadTs());
+     }
+   }
+ 
+   // 清洗txn_map
+-  for (auto it = txn_map_.begin(); it != txn_map_.end(); ) {
++  for (auto it = txn_map_.begin(); it != txn_map_.end();) {
+     auto *txn = it->second.get();
+     bool is_garbage = false;
+     // 没有undolog的人没必要留着
+-    if (txn->GetTransactionState() == TransactionState::COMMITTED || 
+-    txn->GetTransactionState() == TransactionState::ABORTED)
+-    {if(txn->GetUndoLogNum() == 0){
+-      is_garbage = true;
+-    }
+-    // 已经commit的事务，且它的提交时间在最低水位线之前，就算垃圾了
+-    else if (txn->GetTransactionState() == TransactionState::COMMITTED) {
+-      if (txn->GetCommitTs() < watermark) {
++    if (txn->GetTransactionState() == TransactionState::COMMITTED ||
++        txn->GetTransactionState() == TransactionState::ABORTED) {
++      if (txn->GetUndoLogNum() == 0) {
+         is_garbage = true;
+       }
+-    }
+-    // abort也一样
+-    else if (txn->GetTransactionState() == TransactionState::ABORTED) {
+-      if (txn->GetReadTs() < watermark) {
+-        is_garbage = true;
+-      }
+-    }}
++      // 已经commit的事务，且它的提交时间在最低水位线之前，就算垃圾了
++      else if (txn->GetTransactionState() == TransactionState::COMMITTED) {
++        if (txn->GetCommitTs() < watermark) {
++          is_garbage = true;
++        }
++      }
++      // abort也一样
++      else if (txn->GetTransactionState() == TransactionState::ABORTED) {
++        if (txn->GetReadTs() < watermark) {
++          is_garbage = true;
++        }
++      }
++    }
+ 
+     // 执行物理超度
+     if (is_garbage) {
+@@ -350,7 +337,7 @@
+       // 只要把它从 Map 中 erase 掉，shared_ptr 的引用计数归零，
+       // C++的智能指针会自动析构整个Transaction对象，顺带炸毁它肚子里的所有 UndoLog！
+       // erase 会返回下一个合法元素的迭代器
+-      it = txn_map_.erase(it); 
++      it = txn_map_.erase(it);
+     } else {
+       // 如果不是垃圾，检查下一个
+       ++it;
+@@ -358,4 +345,4 @@
+   }
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub

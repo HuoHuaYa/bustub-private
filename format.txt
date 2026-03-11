@@ -316,6 +316,336 @@
  
  // auto BufferPoolManager::GetFrameid(page_id_t page_id) -> frame_id_t {
  //   std::scoped_lock latch(*bpm_latch_);
+--- /autograder/source/bustub/src/concurrency/transaction_manager.cpp
++++ /autograder/source/bustub/src/concurrency/transaction_manager.cpp (after clang format)
+@@ -13,7 +13,7 @@
+ #include "concurrency/transaction_manager.h"
+ 
+ #include <memory>
+-#include <mutex> // NOLINT
++#include <mutex>  // NOLINT
+ #include <optional>
+ #include <shared_mutex>
+ #include <unordered_map>
+@@ -40,8 +40,7 @@
+  * @param isolation_level an optional isolation level of the transaction.
+  * @return an initialized transaction
+  */
+-auto TransactionManager::Begin(IsolationLevel isolation_level)
+-    -> Transaction * {
++auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * {
+   // txn_map 的锁
+   std::unique_lock<std::shared_mutex> l(txn_map_mutex_);
+   // 新事务id
+@@ -62,39 +61,37 @@
+ auto TransactionManager::VerifyTxn(Transaction *txn) -> bool {
+   // 纯读不用管
+   if (txn->GetWriteSets().empty()) {
+-    return true; 
++    return true;
+   }
+   auto my_predicates = txn->GetScanPredicates();
+   if (my_predicates.empty()) {
+     return true;
+   }
+-  
++
+   // 遍历系统中所有的事务，注意加 txn_map_mutex_ 读锁
+   std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
+-  
++
+   for (const auto &[other_txn_id, other_txn] : txn_map_) {
+     // 在我提交之前提交的事务
+-    if (other_txn->GetTransactionState() == TransactionState::COMMITTED && 
+-    other_txn->GetCommitTs() > txn->GetReadTs()) {
+-      
++    if (other_txn->GetTransactionState() == TransactionState::COMMITTED &&
++        other_txn->GetCommitTs() > txn->GetReadTs()) {
+       // 查所有表
+       for (const auto &[table_oid, rids] : other_txn->GetWriteSets()) {
+-        
+         // 如果他改的表，刚好是我扫描过的表
+         if (my_predicates.find(table_oid) != my_predicates.end()) {
+           auto table_info = catalog_->GetTable(table_oid);
+           auto predicates_for_table = my_predicates[table_oid];
+-          
++
+           // 遍历他改过的每一行数据(RID)
+           for (auto rid : rids) {
+             auto [meta, current_tuple] = table_info->table_->GetTuple(rid);
+-            
++
+             // 用我的扫描条件，去判断一下这行数据
+             for (const auto &predicate : predicates_for_table) {
+               if (predicate == nullptr) {
+-                return false; // 全表扫描的祖宗，别人只要写了表，立刻冲突
++                return false;  // 全表扫描的祖宗，别人只要写了表，立刻冲突
+               }
+-              
++
+               // ==========================================
+               // ⚔️ 绝杀 1：检查“新数据” (防移入幻读)
+               // 别人把不符合条件的数据，改成了符合我条件的
+@@ -103,7 +100,7 @@
+               if (!res_new.IsNull() && res_new.GetAs<bool>()) {
+                 return false;
+               }
+-              
++
+               // ==========================================
+               // ⚔️ 绝杀 2：检查“老数据” (防移出幻读)
+               // 别人把我原本能查到的数据，给改没了或者删了
+@@ -126,50 +123,50 @@
+       }
+     }
+   }
+-  
++
+   return true;
+   // 纯读不用管
+   // if (txn->GetWriteSets().empty()) {
+-  //   return true; 
++  //   return true;
+   // }
+   // auto my_predicates = txn->GetScanPredicates();
+   // if (my_predicates.empty()) {
+   //   return true;
+   // }
+-  
++
+   // // 遍历系统中所有的事务注意加 txn_map_mutex_ 读锁
+   // std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
+-  
++
+   // for (const auto &[other_txn_id, other_txn] : txn_map_) {
+   //   // 在我提交之前提交的事务
+-  //   if (other_txn->GetTransactionState() == TransactionState::COMMITTED && 
++  //   if (other_txn->GetTransactionState() == TransactionState::COMMITTED &&
+   //       other_txn->GetCommitTs() > txn->GetReadTs()) {
+-        
++
+   //     // 查所有表
+   //     for (const auto &[table_oid, rids] : other_txn->GetWriteSets()) {
+-        
++
+   //       // 如果他改的表，刚好是我扫描过的表
+   //       if (my_predicates.find(table_oid) != my_predicates.end()) {
+   //         auto table_info = catalog_->GetTable(table_oid);
+   //         auto predicates_for_table = my_predicates[table_oid];
+-  
++
+   //         // 遍历他改过的每一行数据(RID)
+   //         for (auto rid : rids) {
+   //           // auto tuple_meta = table_info->table_->GetTupleMeta(rid);
+   //           auto tuple = table_info->table_->GetTuple(rid).second;
+-  
++
+   //           // 用我的扫描条件，去判断一下他改过的数据
+   //           for (const auto &predicate : predicates_for_table) {
+   //             // 如果没有条件就是全表扫描，只要他改了这个表，立刻冲突
+   //             if (predicate == nullptr) {
+-  //               return false; 
++  //               return false;
+   //             }
+-  
++
+   //             // 拿着他修改后的实体数据，跑一下我的过滤条件
+   //             auto result = predicate->Evaluate(&tuple, table_info->schema_);
+   //             if (!result.IsNull() && result.GetAs<bool>()) {
+   //               // 成功了就说明他会改变我也要改变的数据
+-  //               return false; 
++  //               return false;
+   //             }
+   //           }
+   //         }
+@@ -177,16 +174,16 @@
+   //     }
+   //   }
+   // }
+-  
++
+   // // 没有任何冲突
+   // return true;
+ }
+ 
+ /**
+-* Commits a transaction.
+-* @param txn the transaction to commit, the txn will be managed by the txn
+-* manager so no need to delete it by yourself
+-*/
++ * Commits a transaction.
++ * @param txn the transaction to commit, the txn will be managed by the txn
++ * manager so no need to delete it by yourself
++ */
+ auto TransactionManager::Commit(Transaction *txn) -> bool {
+   std::unique_lock<std::mutex> commit_lck(commit_mutex_);
+ 
+@@ -237,8 +234,7 @@
+  * manager so no need to delete it by yourself
+  */
+ void TransactionManager::Abort(Transaction *txn) {
+-  if (txn->state_ != TransactionState::RUNNING &&
+-      txn->state_ != TransactionState::TAINTED) {
++  if (txn->state_ != TransactionState::RUNNING && txn->state_ != TransactionState::TAINTED) {
+     throw Exception("txn not in running / tainted state");
+   }
+ 
+@@ -251,7 +247,6 @@
+ 
+       // 如果这行数据不是我改的就不回滚它 (虽然正常情况下WriteSet里肯定是改的)，这是保险起见
+       if (meta.ts_ == txn->GetTransactionTempTs()) {
+-        
+         if (undo_link.has_value() && undo_link->IsValid()) {
+           // 回滚Update/Delete操作
+           auto undo_log = GetUndoLog(*undo_link);
+@@ -264,35 +259,26 @@
+           if (restored_tuple.has_value()) {
+             // 过去是有数据的，连同数据一起砸回物理页
+             is_inserted = UpdateTupleAndUndoLink(
+-                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, 
+-                old_meta, restored_tuple.value(), 
+-                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
+-        return check_meta.ts_ == txn->GetTransactionTempTs();
+-    }
+-            );
++                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, old_meta, restored_tuple.value(),
++                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
++                      std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
+           } else {
+             // 过去是墓碑
+             is_inserted = UpdateTupleAndUndoLink(
+-                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, 
+-                old_meta, base_tuple,
+-                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
+-        return check_meta.ts_ == txn->GetTransactionTempTs();
+-    }
+-            );
++                this, rid, undo_log.prev_version_, table_info->table_.get(), txn, old_meta, base_tuple,
++                [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
++                      std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
+           }
+-          if(!is_inserted){
++          if (!is_inserted) {
+             throw Exception("Abort failed: Tuple was modified by another transaction unexpectedly!");
+           }
+         } else {
+           // 没有link说明是Insert操作
+           TupleMeta tombstone_meta{0, true};
+           UpdateTupleAndUndoLink(
+-              this, rid, std::nullopt, table_info->table_.get(), txn, 
+-              tombstone_meta, base_tuple,
+-              [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid, std::optional<UndoLink> check_link) {
+-        return check_meta.ts_ == txn->GetTransactionTempTs();
+-    }
+-          );
++              this, rid, std::nullopt, table_info->table_.get(), txn, tombstone_meta, base_tuple,
++              [txn](const TupleMeta &check_meta, const Tuple &check_tuple, RID check_rid,
++                    std::optional<UndoLink> check_link) { return check_meta.ts_ == txn->GetTransactionTempTs(); });
+         }
+       }
+     }
+@@ -311,37 +297,38 @@
+ 
+   // 获得水印（即最远ts）
+   // 如果当前没有任何人在运行，水位线就是全世界最新的提交时间
+-  timestamp_t watermark = last_commit_ts_; 
++  timestamp_t watermark = last_commit_ts_;
+   // 正在运行的事务不能被删除，所以和水位线取min
+   for (const auto &[txn_id, txn] : txn_map_) {
+-    if (txn->GetTransactionState() != TransactionState::COMMITTED && 
+-      txn->GetTransactionState() != TransactionState::ABORTED) {
++    if (txn->GetTransactionState() != TransactionState::COMMITTED &&
++        txn->GetTransactionState() != TransactionState::ABORTED) {
+       watermark = std::min(watermark, txn->GetReadTs());
+     }
+   }
+ 
+   // 清洗txn_map
+-  for (auto it = txn_map_.begin(); it != txn_map_.end(); ) {
++  for (auto it = txn_map_.begin(); it != txn_map_.end();) {
+     auto *txn = it->second.get();
+     bool is_garbage = false;
+     // 没有undolog的人没必要留着
+-    if (txn->GetTransactionState() == TransactionState::COMMITTED || 
+-    txn->GetTransactionState() == TransactionState::ABORTED)
+-    {if(txn->GetUndoLogNum() == 0){
+-      is_garbage = true;
+-    }
+-    // 已经commit的事务，且它的提交时间在最低水位线之前，就算垃圾了
+-    else if (txn->GetTransactionState() == TransactionState::COMMITTED) {
+-      if (txn->GetCommitTs() < watermark) {
++    if (txn->GetTransactionState() == TransactionState::COMMITTED ||
++        txn->GetTransactionState() == TransactionState::ABORTED) {
++      if (txn->GetUndoLogNum() == 0) {
+         is_garbage = true;
+       }
+-    }
+-    // abort也一样
+-    else if (txn->GetTransactionState() == TransactionState::ABORTED) {
+-      if (txn->GetReadTs() < watermark) {
+-        is_garbage = true;
+-      }
+-    }}
++      // 已经commit的事务，且它的提交时间在最低水位线之前，就算垃圾了
++      else if (txn->GetTransactionState() == TransactionState::COMMITTED) {
++        if (txn->GetCommitTs() < watermark) {
++          is_garbage = true;
++        }
++      }
++      // abort也一样
++      else if (txn->GetTransactionState() == TransactionState::ABORTED) {
++        if (txn->GetReadTs() < watermark) {
++          is_garbage = true;
++        }
++      }
++    }
+ 
+     // 执行物理超度
+     if (is_garbage) {
+@@ -350,7 +337,7 @@
+       // 只要把它从 Map 中 erase 掉，shared_ptr 的引用计数归零，
+       // C++的智能指针会自动析构整个Transaction对象，顺带炸毁它肚子里的所有 UndoLog！
+       // erase 会返回下一个合法元素的迭代器
+-      it = txn_map_.erase(it); 
++      it = txn_map_.erase(it);
+     } else {
+       // 如果不是垃圾，检查下一个
+       ++it;
+@@ -358,4 +345,4 @@
+   }
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub
+--- /autograder/source/bustub/src/concurrency/watermark.cpp
++++ /autograder/source/bustub/src/concurrency/watermark.cpp (after clang format)
+@@ -11,9 +11,9 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "concurrency/watermark.h"
+-#include "common/exception.h"
+ #include <algorithm>
+ #include <exception>
++#include "common/exception.h"
+ namespace bustub {
+ 
+ auto Watermark::AddTxn(timestamp_t read_ts) -> void {
+@@ -42,8 +42,7 @@
+   }
+   // 只要堆顶的元素在哈希表里找不到（说明它已经被 erase 掉了，是个死人）
+   // 千万不要用 current_reads_[top] == 0 判断，会重新插入一个值为 0 的废键
+-  while (!min_heap_.empty() &&
+-         current_reads_.find(min_heap_.top()) == current_reads_.end()) {
++  while (!min_heap_.empty() && current_reads_.find(min_heap_.top()) == current_reads_.end()) {
+     min_heap_.pop();
+   }
+   if (min_heap_.empty()) {
+@@ -55,4 +54,4 @@
+   }
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub
 --- /autograder/source/bustub/src/execution/aggregation_executor.cpp
 +++ /autograder/source/bustub/src/execution/aggregation_executor.cpp (after clang format)
 @@ -10,8 +10,8 @@
@@ -343,7 +673,7 @@
        child_executor_(std::move(child_executor)),
        aht_(plan_->GetAggregates(), plan_->GetAggregateTypes()),
        aht_iterator_(aht_.Begin()) {
-@@ -91,10 +91,8 @@
+@@ -91,8 +91,7 @@
   * tuples
   */
  
@@ -351,11 +681,9 @@
 -                               std::vector<bustub::RID> *rid_batch,
 +auto AggregationExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
                                 size_t batch_size) -> bool {
--
    tuple_batch->clear();
    rid_batch->clear();
- 
-@@ -108,10 +106,8 @@
+@@ -107,10 +106,8 @@
      // AggregationPlanNode 的输出列格式永远是固定的,所有的 GroupBy + 所有的
      // Aggregate 所以我们必须按照这个死顺序，把内存里的 Key 和 Value
      // 拼接成一个大数组。
@@ -367,8 +695,8 @@
 +    values.insert(values.end(), aht_iterator_.Val().aggregates_.begin(), aht_iterator_.Val().aggregates_.end());
  
      // 用拼好的数组，生成外界认识的 Tuple，塞进输出批次里。
-     Tuple tuple_{values, &GetOutputSchema()};
-@@ -132,8 +128,6 @@
+     Tuple tuple{values, &GetOutputSchema()};
+@@ -131,8 +128,6 @@
  }
  
  /** Do not use or remove this function; otherwise, you will get zero points. */
@@ -381,7 +709,7 @@
 +}  // namespace bustub
 --- /autograder/source/bustub/src/execution/delete_executor.cpp
 +++ /autograder/source/bustub/src/execution/delete_executor.cpp (after clang format)
-@@ -10,8 +10,8 @@
+@@ -10,11 +10,11 @@
  //
  //===----------------------------------------------------------------------===//
  
@@ -389,9 +717,13 @@
  #include "common/macros.h"
 -#include <memory>
  
++#include "concurrency/transaction_manager.h"
+ #include "execution/execution_common.h"
+-#include "concurrency/transaction_manager.h"
  #include "execution/executors/delete_executor.h"
  
-@@ -23,11 +23,9 @@
+ namespace bustub {
+@@ -25,11 +25,9 @@
   * @param plan The delete plan to be executed
   * @param child_executor The child executor that feeds the delete
   */
@@ -406,7 +738,7 @@
  
  /** Initialize the delete */
  void DeleteExecutor::Init() {
-@@ -56,8 +54,7 @@
+@@ -58,8 +56,7 @@
   * NOTE: DeleteExecutor::Next() returns true with the number of deleted rows
   * produced only once.
   */
@@ -416,17 +748,63 @@
                            size_t batch_size) -> bool {
    tuple_batch->clear();
    rid_batch->clear();
-@@ -85,8 +82,7 @@
-         // 如果用一句大白话来解释：它就是一张“精确到列的采摘清单”，告诉系统到底该从完整的表中，把哪几列抽出来作为
-         // B+ 树的 Key。
-         Tuple key =
--            tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
--                               index_info->index_->GetKeyAttrs());
-+            tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
-         // 物理删除
-         index_info->index_->DeleteEntry(key, rid, exec_ctx_->GetTransaction());
+@@ -100,8 +97,7 @@
+     bool is_self = (meta.ts_ == txn->GetTransactionTempTs());
+ 
+     if (!is_self) {
+-      if (meta.ts_ > txn->GetReadTs() || 
+-         (meta.ts_ > TXN_START_ID && meta.ts_ != txn->GetTransactionTempTs())) {
++      if (meta.ts_ > txn->GetReadTs() || (meta.ts_ > TXN_START_ID && meta.ts_ != txn->GetTransactionTempTs())) {
+         txn->SetTainted();
+         throw ExecutionException("Write-Write Conflict in Delete!");
        }
-@@ -105,4 +101,4 @@
+@@ -129,13 +125,14 @@
+       }
+       // 追加到事务内存，拿到新指针
+       link_to_update = txn->AppendUndoLog(new_log);
+-      
++
+     } else {
+       if (old_link.has_value()) {
+         UndoLog old_log = txn->GetUndoLog(old_link->prev_log_idx_);
+         // 说明之前不是insert，而是update
+         if (!old_log.is_deleted_) {
+-          std::optional<Tuple> original_tuple = ReconstructTuple(&child_executor_->GetOutputSchema(), base_tuple, meta, {old_log});
++          std::optional<Tuple> original_tuple =
++              ReconstructTuple(&child_executor_->GetOutputSchema(), base_tuple, meta, {old_log});
+           // 成功构造出了事务之前的tuple，把他刷到物理层
+           if (original_tuple.has_value()) {
+             old_log.tuple_ = original_tuple.value();
+@@ -149,9 +146,8 @@
+         txn_mgr, rid, link_to_update, table_info_->table_.get(), txn, new_meta, base_tuple,
+         // 双重检查锁定
+         [meta = meta](const TupleMeta &fresh_meta, const Tuple &, RID, std::optional<UndoLink>) -> bool {
+-            return fresh_meta.ts_ == meta.ts_ && fresh_meta.is_deleted_ == meta.is_deleted_;
+-        }
+-    );
++          return fresh_meta.ts_ == meta.ts_ && fresh_meta.is_deleted_ == meta.is_deleted_;
++        });
+     // 如果update失败，就是被写写冲突阻拦了
+     if (!is_updated) {
+       txn->SetTainted();
+@@ -164,8 +160,8 @@
+     // 只有当这条数据之前还活着的时候，我们才去删它的索引（防止重复删除索引，出现错误）
+     // if (!meta.is_deleted_) {
+     //   for (const auto &index_info : table_indexes_) {
+-    //     Tuple key = base_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
+-    //     index_info->index_->DeleteEntry(key, rid, txn);
++    //     Tuple key = base_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
++    //     index_info->index_->GetKeyAttrs()); index_info->index_->DeleteEntry(key, rid, txn);
+     //   }
+     // }
+ 
+@@ -174,9 +170,9 @@
+   std::vector<Value> result_values{};
+   result_values.emplace_back(TypeId::INTEGER, delete_count);
+   Tuple result_tuple{result_values, &GetOutputSchema()};
+-  
++
+   tuple_batch->push_back(result_tuple);
    return true;
  }
  
@@ -434,101 +812,179 @@
 +}  // namespace bustub
 --- /autograder/source/bustub/src/execution/execution_common.cpp
 +++ /autograder/source/bustub/src/execution/execution_common.cpp (after clang format)
-@@ -20,12 +20,10 @@
+@@ -17,8 +17,8 @@
+ #include "concurrency/transaction_manager.h"
+ #include "fmt/core.h"
+ #include "storage/table/table_heap.h"
++#include "storage/table/tuple.h"
+ #include "type/value.h"
+-#include "storage/table/tuple.h"
  
  namespace bustub {
  
--TupleComparator::TupleComparator(std::vector<OrderBy> order_bys)
--    : order_bys_(std::move(order_bys)) {}
-+TupleComparator::TupleComparator(std::vector<OrderBy> order_bys) : order_bys_(std::move(order_bys)) {}
+@@ -113,15 +113,15 @@
+     if (log.is_deleted_) {
+       // 标记deleted表示不存在
+       current_is_deleted = true;
+-      continue; 
+-    } 
++      continue;
++    }
+     // 过去的状态是活的
+     else {
+       // 如果现在被delete就直接搬tuple过来
+       if (current_is_deleted) {
+         current_tuple = log.tuple_;
+-        current_is_deleted = false; 
+-      } 
++        current_is_deleted = false;
++      }
+       // 手里是活的，过去也是活的，修改部分tuple
+       else {
+         const std::vector<bool> &modified_fields = log.modified_fields_;
+@@ -129,20 +129,20 @@
+         std::vector<Column> partial_columns;
+         for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
+           if (modified_fields[i]) {
+-              partial_columns.push_back(schema->GetColumn(i));
++            partial_columns.push_back(schema->GetColumn(i));
+           }
+         }
+         Schema partial_schema(partial_columns);
+         std::vector<Value> reconstructed_values;
+-        uint32_t log_tuple_idx = 0; 
++        uint32_t log_tuple_idx = 0;
+         for (uint32_t col_idx = 0; col_idx < schema->GetColumnCount(); col_idx++) {
+           if (modified_fields[col_idx]) {
+-             Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
+-             reconstructed_values.push_back(old_value);
+-             log_tuple_idx++;
++            Value old_value = log.tuple_.GetValue(&partial_schema, log_tuple_idx);
++            reconstructed_values.push_back(old_value);
++            log_tuple_idx++;
+           } else {
+-             Value current_value = current_tuple.GetValue(schema, col_idx);
+-             reconstructed_values.push_back(current_value);
++            Value current_value = current_tuple.GetValue(schema, col_idx);
++            reconstructed_values.push_back(current_value);
+           }
+         }
+         current_tuple = Tuple(reconstructed_values, schema);
+@@ -178,7 +178,7 @@
+   // 这就是终点判断，如果满足说明当前的日志已经够用了
+   if (current_ts == txn->GetTransactionTempTs() || current_ts <= txn->GetReadTs()) {
+     // 既然直接可见，就不需要时光倒流了，直接返回一个空的日志数组！
+-    return res; 
++    return res;
+   }
+   if (!undo_link.has_value()) {
+     return std::nullopt;
+@@ -207,7 +207,7 @@
+     // 没有到达终点继续跑link指针
+     current_link = log.prev_version_;
+   }
+-  return std::nullopt;                
++  return std::nullopt;
+ }
  
- /** TODO(P3): Implement the comparison method */
--auto TupleComparator::operator()(const SortEntry &entry_a,
--                                 const SortEntry &entry_b) const -> bool {
-+auto TupleComparator::operator()(const SortEntry &entry_a, const SortEntry &entry_b) const -> bool {
-   // 遍历所有的orderby，和window差不多的判断
-   for (size_t i = 0; i < order_bys_.size(); i++) {
-     const auto &order_by = order_bys_[i];
-@@ -41,7 +39,7 @@
+ /**
+@@ -290,7 +290,8 @@
+     // 重构最古老的tuple，事务开始之前
+     auto original_tuple = ReconstructTuple(schema, *base_tuple, TupleMeta{0, false}, {log});
+     // 返回一条modified_fields全为true日志
+-    return UndoLog{false, std::vector<bool>(schema->GetColumnCount(), true), original_tuple.value(), log.ts_, log.prev_version_};
++    return UndoLog{false, std::vector<bool>(schema->GetColumnCount(), true), original_tuple.value(), log.ts_,
++                   log.prev_version_};
+   }
+   std::vector<bool> new_modified_fields = log.modified_fields_;
+   std::vector<Value> merged_values;
+@@ -307,7 +308,6 @@
+   uint32_t old_log_idx = 0;
+   // 逐列对比
+   for (uint32_t i = 0; i < schema->GetColumnCount(); i++) {
+-    
+     if (log.modified_fields_[i]) {
+       // 这个字段/ 列被改过
+       // 保留老tuple，因为我们是还原成事务前的样子，老tuple就是事务执行前的value
+@@ -319,7 +319,7 @@
+       // 之前没有被改，比较一下，有没有被update到
+       Value base_val = base_tuple->GetValue(schema, i);
+       Value target_val = target_tuple->GetValue(schema, i);
+-      
++
+       if (!base_val.CompareExactlyEquals(target_val)) {
+         // 发现被修改了
+         // basetuple这次才被搞到，所以装的就是事务执行前的数据，记得更新fileds
+@@ -363,9 +363,9 @@
+   // RID=0/3 ts=txn6 <del marker> tuple=(<NULL>, <NULL>, <NULL>)
+   //   txn6@0 (6, <NULL>, <NULL>) ts=2
+   //   txn3@1 (7, _, _) ts=1
+-  // 
++  //
+   auto it = table_heap->MakeIterator();
+-  
++
+   while (!it.IsEnd()) {
+     RID rid = it.GetRID();
+     // 拿到基线数据的元信息和本体
+@@ -375,16 +375,16 @@
+     // 打印基线数据 (Base Tuple)
+     // 格式: RID=页号/槽号 ts=时间戳 tuple=(字段1, 字段2...)
+     if (meta.is_deleted_) {
+-      fmt::println(stderr, "RID={}/{} ts={} <del marker> tuple={}", 
+-                   rid.GetPageId(), rid.GetSlotNum(), meta.ts_, tuple.ToString(&table_info->schema_));
++      fmt::println(stderr, "RID={}/{} ts={} <del marker> tuple={}", rid.GetPageId(), rid.GetSlotNum(), meta.ts_,
++                   tuple.ToString(&table_info->schema_));
+     } else {
+-      fmt::println(stderr, "RID={}/{} ts={} tuple={}", 
+-                   rid.GetPageId(), rid.GetSlotNum(), meta.ts_, tuple.ToString(&table_info->schema_));
++      fmt::println(stderr, "RID={}/{} ts={} tuple={}", rid.GetPageId(), rid.GetSlotNum(), meta.ts_,
++                   tuple.ToString(&table_info->schema_));
+     }
+ 
+     // 打印这条数据的 UndoLog 版本链
+     auto opt_current_link = txn_mgr->GetUndoLink(rid);
+-    if(!opt_current_link.has_value()){
++    if (!opt_current_link.has_value()) {
+       ++it;
        continue;
      }
-     if (val_a.CompareEquals(val_b) == CmpBool::CmpTrue) {
--      continue; // 平局，继续比下一列
-+      continue;  // 平局，继续比下一列
+@@ -394,14 +394,13 @@
+       auto log_opt = txn_mgr->GetUndoLogOptional(current_link);
+       // 日志丢失或已被垃圾回收，直接截断
+       if (!log_opt.has_value()) {
+-        break; 
++        break;
+       }
+       UndoLog log = log_opt.value();
+       // 打印这一条历史日志的信息
+       if (log.is_deleted_) {
+         // Delete日志，说明历史状态不存在
+-        fmt::println(stderr, "  txn{}@{} <del> ts={}", 
+-                     current_link.prev_txn_, current_link.prev_log_idx_, log.ts_);
++        fmt::println(stderr, "  txn{}@{} <del> ts={}", current_link.prev_txn_, current_link.prev_log_idx_, log.ts_);
+       } else {
+         // Update日志搓一个partial_schema，同时打印他
+         std::vector<Column> partial_columns;
+@@ -411,15 +410,14 @@
+           }
+         }
+         Schema partial_schema(partial_columns);
+-        fmt::println(stderr, "  txn{}@{} {} ts={}", 
+-                     current_link.prev_txn_, current_link.prev_log_idx_, 
++        fmt::println(stderr, "  txn{}@{} {} ts={}", current_link.prev_txn_, current_link.prev_log_idx_,
+                      log.tuple_.ToString(&partial_schema), log.ts_);
+       }
+-      
++
+       // 指针后移，继续看更古老的历史
+       current_link = log.prev_version_;
      }
-     if (a_null || b_null) {
-       bool a_comes_first;
-@@ -76,8 +74,7 @@
-  *
-  * TODO(P3): Implement this method.
-  */
--auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys,
--                     const Schema &schema) -> SortKey {
-+auto GenerateSortKey(const Tuple &tuple, const std::vector<OrderBy> &order_bys, const Schema &schema) -> SortKey {
-   SortKey sort_key;
-   sort_key.reserve(order_bys.size());
-   for (const auto &ob : order_bys) {
-@@ -106,10 +103,8 @@
-  * @return An optional tuple that represents the reconstructed tuple. If the
-  * tuple is deleted as the result, returns std::nullopt.
-  */
--auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple,
--                      const TupleMeta &base_meta,
--                      const std::vector<UndoLog> &undo_logs)
--    -> std::optional<Tuple> {
-+auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const TupleMeta &base_meta,
-+                      const std::vector<UndoLog> &undo_logs) -> std::optional<Tuple> {
-   UNIMPLEMENTED("not implemented");
- }
- 
-@@ -126,10 +121,8 @@
-  * @return An optional vector of undo logs to pass to ReconstructTuple().
-  * std::nullopt if the tuple did not exist at the time.
-  */
--auto CollectUndoLogs(RID rid, const TupleMeta &base_meta,
--                     const Tuple &base_tuple, std::optional<UndoLink> undo_link,
--                     Transaction *txn, TransactionManager *txn_mgr)
--    -> std::optional<std::vector<UndoLog>> {
-+auto CollectUndoLogs(RID rid, const TupleMeta &base_meta, const Tuple &base_tuple, std::optional<UndoLink> undo_link,
-+                     Transaction *txn, TransactionManager *txn_mgr) -> std::optional<std::vector<UndoLog>> {
-   UNIMPLEMENTED("not implemented");
- }
- 
-@@ -146,8 +139,7 @@
-  * @param prev_version The undo link to the latest undo log of this tuple.
-  * @return The generated undo log.
-  */
--auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple,
--                        const Tuple *target_tuple, timestamp_t ts,
-+auto GenerateNewUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple, timestamp_t ts,
-                         UndoLink prev_version) -> UndoLog {
-   UNIMPLEMENTED("not implemented");
- }
-@@ -164,14 +156,13 @@
-  * @param log The original undo log.
-  * @return The updated undo log.
-  */
--auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple,
--                            const Tuple *target_tuple, const UndoLog &log)
--    -> UndoLog {
-+auto GenerateUpdatedUndoLog(const Schema *schema, const Tuple *base_tuple, const Tuple *target_tuple,
-+                            const UndoLog &log) -> UndoLog {
-   UNIMPLEMENTED("not implemented");
- }
- 
--void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr,
--               const TableInfo *table_info, TableHeap *table_heap) {
-+void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr, const TableInfo *table_info,
-+               TableHeap *table_heap) {
-   // always use stderr for printing logs...
-   fmt::println(stderr, "debug_hook: {}", info);
- 
-@@ -197,4 +188,4 @@
-   //   txn3@1 (7, _, _) ts=1
- }
- 
--} // namespace bustub
-+}  // namespace bustub
+-    
++
+     // 看下一行物理数据
+     ++it;
+   }
 --- /autograder/source/bustub/src/execution/external_merge_sort_executor.cpp
 +++ /autograder/source/bustub/src/execution/external_merge_sort_executor.cpp (after clang format)
 @@ -21,29 +21,29 @@
@@ -569,17 +1025,7 @@
    child_executor_->Init();
    runs_.clear();
    final_iter_ = std::nullopt;
-@@ -67,8 +67,7 @@
-   const size_t MAX_CHUNK_BYTES = BUSTUB_PAGE_SIZE * 4;
- 
-   auto flush_chunk_to_disk = [&]() {
--    if (chunk.empty())
--      return;
-+    if (chunk.empty()) return;
-     // 在内存里快排
-     std::sort(chunk.begin(), chunk.end(), cmp_);
- 
-@@ -100,7 +99,7 @@
+@@ -101,7 +101,7 @@
      }
      // 删除guard
      guard.Drop();
@@ -588,7 +1034,7 @@
      chunk.clear();
      current_chunk_bytes = 0;
    };
-@@ -154,9 +153,7 @@
+@@ -155,9 +155,7 @@
  
  // merge过程
  template <size_t K>
@@ -599,7 +1045,7 @@
    auto it1 = run1.Begin();
    auto it2 = run2.Begin();
    const auto &schema = child_executor_->GetOutputSchema();
-@@ -210,7 +207,7 @@
+@@ -211,7 +209,7 @@
    }
    it1 = run1.End();
    it2 = run2.End();
@@ -608,7 +1054,7 @@
    // 旧的全部放转转回收了
    for (auto page_id : run1.GetPages()) {
      bpm->DeletePage(page_id);
-@@ -232,8 +229,7 @@
+@@ -233,8 +231,7 @@
   * @return `true` if a tuple was produced, `false` if there are no more tuples
   */
  template <size_t K>
@@ -618,7 +1064,7 @@
                                          size_t batch_size) -> bool {
    tuple_batch->clear();
    rid_batch->clear();
-@@ -248,10 +244,10 @@
+@@ -249,10 +246,10 @@
    while (tuple_batch->size() < batch_size && it != end) {
      tuple_batch->push_back(*it);
      rid_batch->push_back(RID{});
@@ -631,7 +1077,7 @@
      auto bpm = exec_ctx_->GetBufferPoolManager();
      for (auto &run : runs_) {
        for (auto page_id : run.GetPages()) {
-@@ -265,4 +261,4 @@
+@@ -266,4 +263,4 @@
  
  template class ExternalMergeSortExecutor<2>;
  
@@ -753,18 +1199,17 @@
                              size_t batch_size) -> bool {
    tuple_batch->clear();
    rid_batch->clear();
-@@ -100,9 +97,7 @@
+@@ -100,8 +97,7 @@
    const auto &right_schema = right_child_->GetOutputSchema();
  
    // 只要没装满，且左表还没扫完，就继续循环
 -  while (tuple_batch->size() < batch_size &&
 -         (!is_left_done_ || right_match_idx_ < current_right_matches_.size())) {
--
 +  while (tuple_batch->size() < batch_size && (!is_left_done_ || right_match_idx_ < current_right_matches_.size())) {
      // 情况1：我们手里刚好还有上一轮没吐完的匹配项！
      // 比如左表一条数据匹配了10条右表数据，上一轮只吐了5条就被 batch_size 截断了
      if (right_match_idx_ < current_right_matches_.size()) {
-@@ -123,13 +118,12 @@
+@@ -122,13 +118,12 @@
  
        right_match_idx_++;
        is_current_left_matched_ = true;
@@ -780,7 +1225,7 @@
        // 但如果是第一轮，还没拉取过，left_tuple_batch_ 是空的，特殊处理一下
        if (!left_tuple_batch_.empty()) {
          left_tuple_batch_.clear();
-@@ -145,13 +139,13 @@
+@@ -144,13 +139,13 @@
        }
  
        if (!has_data) {
@@ -798,7 +1243,7 @@
      }
      // 还没有匹配上时
      is_current_left_matched_ = false;
-@@ -183,8 +177,7 @@
+@@ -182,8 +177,7 @@
        }
  
        for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
@@ -808,7 +1253,7 @@
        }
        tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
        rid_batch->emplace_back(RID{});
-@@ -194,4 +187,4 @@
+@@ -193,4 +187,4 @@
    return !tuple_batch->empty();
  }
  
@@ -816,414 +1261,24 @@
 +}  // namespace bustub
 --- /autograder/source/bustub/src/execution/index_scan_executor.cpp
 +++ /autograder/source/bustub/src/execution/index_scan_executor.cpp (after clang format)
-@@ -21,8 +21,7 @@
+@@ -12,9 +12,9 @@
+ 
+ #include "execution/executors/index_scan_executor.h"
+ #include "common/macros.h"
++#include "concurrency/transaction_manager.h"
++#include "execution/execution_common.h"
+ #include "storage/index/b_plus_tree_index.h"
+-#include "execution/execution_common.h"
+-#include "concurrency/transaction_manager.h"
+ 
+ namespace bustub {
+ 
+@@ -23,8 +23,7 @@
   * @param exec_ctx the executor context
   * @param plan the index scan plan to be executed
   */
 -IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx,
--                                     const IndexScanPlanNode *plan)
-+IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx, const IndexScanPlanNode *plan)
-     : AbstractExecutor(exec_ctx), plan_(plan) {
-   // UNIMPLEMENTED("TODO(P3): Add implementation.");
- }
-@@ -62,14 +61,12 @@
-     Tuple lookup_key{values, &index_info_->key_schema_};
- 
-     // 去 B+ 树里发起精准打击，把匹配的门牌号全都装进 rids_ 数组里
--    index_info_->index_->ScanKey(lookup_key, &rids_,
--                                 exec_ctx_->GetTransaction());
-+    index_info_->index_->ScanKey(lookup_key, &rids_, exec_ctx_->GetTransaction());
-   } else {
-     // ORDER BY v1
-     // 强制转换为底层的单列整数 B+ 树对象 (BusTub
-     // 官方默认测试用例都是单列整数索引)
--    auto *tree = dynamic_cast<BPlusTreeIndexForTwoIntegerColumn *>(
--        index_info_->index_.get());
-+    auto *tree = dynamic_cast<BPlusTreeIndexForTwoIntegerColumn *>(index_info_->index_.get());
-     BUSTUB_ASSERT(tree != nullptr, "not a BPlusTreeIndexForTwoIntegerColumn");
- 
-     // 获取迭代器，从最左边的叶子节点开始，顺着链表把所有门牌号全收集起来！
-@@ -80,8 +77,7 @@
-   }
- }
- 
--auto IndexScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                             std::vector<bustub::RID> *rid_batch,
-+auto IndexScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                              size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -95,8 +91,7 @@
-       auto tuple_pair = table_info_->table_->GetTuple(rid);
-       // 判断还有没有额外的where子句
-       if (plan_->filter_predicate_ != nullptr) {
--        auto result = plan_->filter_predicate_->Evaluate(&tuple_pair.second,
--                                                         table_info_->schema_);
-+        auto result = plan_->filter_predicate_->Evaluate(&tuple_pair.second, table_info_->schema_);
-         if (result.IsNull() || !result.GetAs<bool>()) {
-           // 如果不满足，就舍弃这段
-           continue;
-@@ -113,4 +108,4 @@
-   return !tuple_batch->empty();
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/insert_executor.cpp
-+++ /autograder/source/bustub/src/execution/insert_executor.cpp (after clang format)
-@@ -10,8 +10,8 @@
- //
- //===----------------------------------------------------------------------===//
- 
-+#include <memory>
- #include "common/macros.h"
--#include <memory>
- 
- #include "execution/executors/insert_executor.h"
- 
-@@ -24,11 +24,9 @@
-  * @param child_executor The child executor from which inserted tuples are
-  * pulled
-  */
--InsertExecutor::InsertExecutor(
--    ExecutorContext *exec_ctx, const InsertPlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&child_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan),
--      child_executor_(std::move(child_executor)) {
-+InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *plan,
-+                               std::unique_ptr<AbstractExecutor> &&child_executor)
-+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
-   // UNIMPLEMENTED("TODO(P3): Add implementation.");
- }
- 
-@@ -83,8 +81,7 @@
-   return !tuple_batch->empty();
- }
- */
--auto InsertExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                          std::vector<bustub::RID> *rid_batch,
-+auto InsertExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                           size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -119,11 +116,9 @@
-           //   return {values, &key_schema};
-           // }
-           Tuple key_tuple =
--              tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
--                                 index_info->index_->GetKeyAttrs());
-+              tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
-           // 将我们提取出来的key与rid真正的插入b+tree
--          index_info->index_->InsertEntry(key_tuple, rid,
--                                          exec_ctx_->GetTransaction());
-+          index_info->index_->InsertEntry(key_tuple, rid, exec_ctx_->GetTransaction());
-         }
-         insert_count++;
-       }
-@@ -144,4 +139,4 @@
-   return true;
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/limit_executor.cpp
-+++ /autograder/source/bustub/src/execution/limit_executor.cpp (after clang format)
-@@ -21,11 +21,9 @@
-  * @param plan The limit plan to be executed
-  * @param child_executor The child executor from which limited tuples are pulled
-  */
--LimitExecutor::LimitExecutor(ExecutorContext *exec_ctx,
--                             const LimitPlanNode *plan,
-+LimitExecutor::LimitExecutor(ExecutorContext *exec_ctx, const LimitPlanNode *plan,
-                              std::unique_ptr<AbstractExecutor> &&child_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan),
--      child_executor_(std::move(child_executor)) {
-+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
-   // UNIMPLEMENTED("TODO(P3): Add implementation.");
- }
- 
-@@ -43,10 +41,8 @@
-  * BUSTUB_BATCH_SIZE)
-  * @return `true` if a tuple was produced, `false` if there are no more tuples
-  */
--auto LimitExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                         std::vector<bustub::RID> *rid_batch, size_t batch_size)
--    -> bool {
--
-+auto LimitExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-+                         size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
- 
-@@ -81,4 +77,4 @@
-   return true;
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/nested_index_join_executor.cpp
-+++ /autograder/source/bustub/src/execution/nested_index_join_executor.cpp (after clang format)
-@@ -22,17 +22,13 @@
-  * @param plan the nested index join plan to be executed
-  * @param child_executor the outer table
-  */
--NestedIndexJoinExecutor::NestedIndexJoinExecutor(
--    ExecutorContext *exec_ctx, const NestedIndexJoinPlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&child_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan),
--      child_executor_(std::move(child_executor)) {
--  if (plan->GetJoinType() != JoinType::LEFT &&
--      plan->GetJoinType() != JoinType::INNER) {
-+NestedIndexJoinExecutor::NestedIndexJoinExecutor(ExecutorContext *exec_ctx, const NestedIndexJoinPlanNode *plan,
-+                                                 std::unique_ptr<AbstractExecutor> &&child_executor)
-+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
-+  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
-     // Note for Spring 2025: You ONLY need to implement left join and inner
-     // join.
--    throw bustub::NotImplementedException(
--        fmt::format("join type {} not supported", plan->GetJoinType()));
-+    throw bustub::NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
-   }
-   // UNIMPLEMENTED("TODO(P3): Add implementation.");
- }
-@@ -58,8 +54,7 @@
- }
- // 判断有没有处理好的rid没有装走，然后判断rid全没有，left 就要输出null的情况
- // 最后就是正常的lefttuple里寻找配对的rid
--auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                                   std::vector<bustub::RID> *rid_batch,
-+auto NestedIndexJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                                    size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -70,7 +65,6 @@
-   // std::cout<<"next\nnext\nnext\n";
-   // assert(static_cast<int>(emit_cnt) < 0);
-   while (tuple_batch->size() < batch_size && !is_left_done_) {
--
-     // 阶段一：处理当前左表元组查出来的一堆 RID
-     // 为什么我不直接while把数组所有的处理完呢
-     // 因为一次元组数量有限，不一定卸的完
-@@ -94,10 +88,10 @@
-       rid_batch->emplace_back(RID{});
-       emitted = true;
-       // emit_cnt++;
--      is_current_left_matched_ = true; // 匹配成功！
-+      is_current_left_matched_ = true;  // 匹配成功！
- 
-       match_idx_++;
--      continue; // 优先把这一批 RID 处理完
-+      continue;  // 优先把这一批 RID 处理完
-     }
- 
-     // 阶段二：当前的 RID 全处理完了（或者本来就是空的），判断是否需要补 NULL
-@@ -113,8 +107,7 @@
-           values.push_back(current_left_tuple.GetValue(&left_schema, i));
-         }
-         for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
--          values.push_back(ValueFactory::GetNullValueByType(
--              right_schema.GetColumn(i).GetType()));
-+          values.push_back(ValueFactory::GetNullValueByType(right_schema.GetColumn(i).GetType()));
-         }
- 
-         tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
-@@ -140,7 +133,7 @@
-       }
-       if (left_tuple_batch_.empty()) {
-         is_left_done_ = true;
--        break; // 彻底结束
-+        break;  // 彻底结束
-       }
-       left_idx_ = 0;
-     }
-@@ -153,8 +146,7 @@
-     //       << " | BatchSize: " << left_tuple_batch_.size() << std::endl;
-     // B+ 树搜寻核心逻辑
-     // 获取查询条件：比如 ON t1.id = t2.id，这行代码会提取出 t1.id 的值
--    Value probe_value =
--        plan_->KeyPredicate()->Evaluate(&current_left_tuple, left_schema);
-+    Value probe_value = plan_->KeyPredicate()->Evaluate(&current_left_tuple, left_schema);
- 
-     // 构造用来查询的 Tuple：BusTub 的索引要求你传进去的 Key 也是一个 Tuple 格式
-     std::vector<Value> probe_values{probe_value};
-@@ -162,8 +154,7 @@
- 
-     // 去 B+ 树里查出来的所有 RID 会被填充进 match_rids_
-     match_rids_.clear();
--    index_info_->index_->ScanKey(probe_tuple, &match_rids_,
--                                 exec_ctx_->GetTransaction());
-+    index_info_->index_->ScanKey(probe_tuple, &match_rids_, exec_ctx_->GetTransaction());
- 
-     match_idx_ = 0;
-   }
-@@ -171,4 +162,4 @@
-   return emitted;
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/nested_loop_join_executor.cpp
-+++ /autograder/source/bustub/src/execution/nested_loop_join_executor.cpp (after clang format)
-@@ -27,19 +27,17 @@
-  * @param right_executor The child executor that produces tuple for the right
-  * side of join
-  */
--NestedLoopJoinExecutor::NestedLoopJoinExecutor(
--    ExecutorContext *exec_ctx, const NestedLoopJoinPlanNode *plan,
--    std::unique_ptr<AbstractExecutor> &&left_executor,
--    std::unique_ptr<AbstractExecutor> &&right_executor)
--    : AbstractExecutor(exec_ctx), plan_(plan),
-+NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const NestedLoopJoinPlanNode *plan,
-+                                               std::unique_ptr<AbstractExecutor> &&left_executor,
-+                                               std::unique_ptr<AbstractExecutor> &&right_executor)
-+    : AbstractExecutor(exec_ctx),
-+      plan_(plan),
-       left_executor_(std::move(left_executor)),
-       right_executor_(std::move(right_executor)) {
--  if (plan->GetJoinType() != JoinType::LEFT &&
--      plan->GetJoinType() != JoinType::INNER) {
-+  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
-     // Note for Spring 2025: You ONLY need to implement left join and inner
-     // join.
--    throw bustub::NotImplementedException(
--        fmt::format("join type {} not supported", plan->GetJoinType()));
-+    throw bustub::NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
-   }
-   // UNIMPLEMENTED("TODO(P3): Add implementation.");
- }
-@@ -71,8 +69,7 @@
-  * BUSTUB_BATCH_SIZE)
-  * @return `true` if a tuple was produced, `false` if there are no more tuples
-  */
--auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                                  std::vector<bustub::RID> *rid_batch,
-+auto NestedLoopJoinExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                                   size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-@@ -84,7 +81,6 @@
-   // uint32_t emit_cnt = 0;
-   // 只要上层要的数据没装满batch_size，且左表还没扫完，就死循环执行
-   while (tuple_batch->size() < batch_size && !is_left_done_) {
--
-     // 维护左表的状态（确保手里拿着一条外表数据）
-     if (left_idx_ >= left_tuple_batch_.size()) {
-       // 当前左表缓存用光了，去拉取下一批左表数据
-@@ -101,7 +97,7 @@
-         is_left_done_ = true;
-         break;
-       }
--      left_idx_ = 0; // 重置左表游标
-+      left_idx_ = 0;  // 重置左表游标
- 
-       // 左表换了新的一行，之前右表的匹配状态全部作废，必须重置！
-       is_current_left_matched_ = false;
-@@ -133,8 +129,7 @@
-       if (!has_right_data || right_tuple_batch_.empty()) {
-         // !:内表转完了一整圈拉不到数据了，此时该怎么办？
-         // 如果是 LEFT JOIN，且左表这行数据在整个右表里一个都没匹配上
--        if (plan_->GetJoinType() == JoinType::LEFT &&
--            !is_current_left_matched_) {
-+        if (plan_->GetJoinType() == JoinType::LEFT && !is_current_left_matched_) {
-           // 如果是左连接，但是没有匹配上，右表就是null
-           std::vector<Value> values;
- 
-@@ -144,8 +139,7 @@
-           }
-           // 右表全部填 NULL（必须用对应列的正确类型去生成 NULL！）
-           for (uint32_t i = 0; i < right_schema.GetColumnCount(); ++i) {
--            values.push_back(ValueFactory::GetNullValueByType(
--                right_schema.GetColumn(i).GetType()));
-+            values.push_back(ValueFactory::GetNullValueByType(right_schema.GetColumn(i).GetType()));
-           }
- 
-           tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
-@@ -183,8 +177,7 @@
-     if (predicate != nullptr) {
-       // 必须用抽象表达树函数：EvaluateJoin，因为它知道怎么从左、右两个独立的
-       // Tuple 和 Schema 里提取字段
--      Value match_val = predicate->EvaluateJoin(
--          &current_left_tuple, left_schema, &current_right_tuple, right_schema);
-+      Value match_val = predicate->EvaluateJoin(&current_left_tuple, left_schema, &current_right_tuple, right_schema);
-       // SQL 里的 NULL 逻辑：如果有任何 NULL 导致结果不是 true，就不算匹配
-       is_match = (!match_val.IsNull() && match_val.GetAs<bool>());
-     }
-@@ -205,7 +198,7 @@
-       }
- 
-       tuple_batch->emplace_back(Tuple{values, &GetOutputSchema()});
--      rid_batch->emplace_back(RID{}); // Join 操作是虚拟表，无需返回真实 RID
-+      rid_batch->emplace_back(RID{});  // Join 操作是虚拟表，无需返回真实 RID
-       emitted = true;
-       // emit_cnt++;
-     }
-@@ -219,4 +212,4 @@
-   return emitted;
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/seq_scan_executor.cpp
-+++ /autograder/source/bustub/src/execution/seq_scan_executor.cpp (after clang format)
-@@ -20,8 +20,7 @@
-  * @param exec_ctx The executor context
-  * @param plan The sequential scan plan to be executed
-  */
--SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx,
--                                 const SeqScanPlanNode *plan)
-+SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
-     : AbstractExecutor(exec_ctx), plan_(plan) {}
- 
- /** Initialize the sequential scan */
-@@ -44,13 +43,11 @@
-  * BUSTUB_BATCH_SIZE)
-  * @return `true` if a tuple was produced, `false` if there are no more tuples
-  */
--auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch,
--                           std::vector<bustub::RID> *rid_batch,
-+auto SeqScanExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch,
-                            size_t batch_size) -> bool {
-   tuple_batch->clear();
-   rid_batch->clear();
-   while (tuple_batch->size() < batch_size && !iter_->IsEnd()) {
--
-     // debug
-     // std::cout << "[DEBUG-SeqScan] Trying to read RID -> Page: " <<
-     // iter_->GetRID().GetPageId()
-@@ -59,13 +56,11 @@
-     auto [meta, tuple] = iter_->GetTuple();
-     auto rid = iter_->GetRID();
-     if (!meta.is_deleted_) {
--
-       bool is_match = true;
-       // 判断有没有过滤条件
-       if (plan_->filter_predicate_ != nullptr) {
-         // 传入当前元组和表的 schema 进行求值
--        auto value =
--            plan_->filter_predicate_->Evaluate(&tuple, table_info_->schema_);
-+        auto value = plan_->filter_predicate_->Evaluate(&tuple, table_info_->schema_);
-         // 有 NULL 值处理逻辑，需要当心，但常规情况下 GetAs<bool> 足够
-         is_match = value.GetAs<bool>();
-       }
-@@ -85,4 +80,4 @@
-   return !tuple_batch->empty();
- }
- 
--} // namespace bustub
-+}  // namespace bustub
---- /autograder/source/bustub/src/execution/update_executor.cpp
-+++ /autograder/source/bustub/src/execution/update_execut[...(truncated)...]  *
-@@ -64,7 +64,8 @@
-   auto operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard &;
-   auto GetPageId() const -> page_id_t;
-   auto GetData() const -> const char *;
--  template <class T> auto As() const -> const T * {
-+  template <class T>
-+  auto As() const -> const T * {
-     return reinterpret_cast<const T *>(GetData());
-   }
-   auto IsDirty() const -> bool;
-@@ -75,13 +76,11 @@
+-                                     const[...(truncated)...]-75,13 +76,11 @@
    // void Getlock();
    // void Releaselock();
  
@@ -1413,7 +1468,7 @@
      }
    }
    return std::nullopt;
-@@ -39,31 +39,24 @@
+@@ -39,30 +39,24 @@
  
  // 辅助函数：只对最简单的 "单点等值查询" 提取常量狙击子弹
  // xxx or xxx 会被认为复杂类型，所以无法通过单点等值查询
@@ -1446,12 +1501,11 @@
  }
 -auto Optimizer::OptimizeSeqScanAsIndexScan(
 -    const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
--
 +auto Optimizer::OptimizeSeqScanAsIndexScan(const bustub::AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef {
    // TODO(P3): implement seq scan with predicate -> index scan optimizer rule
    // The Filter Predicate Pushdown has been enabled for you in optimizer.cpp
    // when forcing starter rule 谓词下推
-@@ -76,8 +69,7 @@
+@@ -75,8 +69,7 @@
    // 开始判断能不能转换了
    // 判断类型
    if (optimized_plan->GetType() == PlanType::SeqScan) {
@@ -1461,7 +1515,7 @@
      // 判断是否存在where子句
      if (seq_scan.filter_predicate_ != nullptr) {
        // !如果遇到了 xx or xx，会被漏掉
-@@ -143,16 +135,14 @@
+@@ -142,16 +135,14 @@
            // 保证是单列，并且是表中的这一列
            if (attrs.size() == 1 && attrs[0] == col_index) {
              std::vector<AbstractExpressionRef> pred_keys;
@@ -1481,7 +1535,7 @@
            }
          }
        }
-@@ -161,4 +151,4 @@
+@@ -160,4 +151,4 @@
    return optimized_plan;
  }
  
@@ -2259,6 +2313,8 @@
 +}  // namespace bustub
 /autograder/source/bustub/src/buffer/arc_replacer.cpp had clang-format style issues
 /autograder/source/bustub/src/buffer/buffer_pool_manager.cpp had clang-format style issues
+/autograder/source/bustub/src/concurrency/transaction_manager.cpp had clang-format style issues
+/autograder/source/bustub/src/concurrency/watermark.cpp had clang-format style issues
 /autograder/source/bustub/src/execution/aggregation_executor.cpp had clang-format style issues
 /autograder/source/bustub/src/execution/delete_executor.cpp had clang-format style issues
 /autograder/source/bustub/src/execution/execution_common.cpp had clang-format style issues
@@ -2275,6 +2331,8 @@
 /autograder/source/bustub/src/execution/window_function_executor.cpp had clang-format style issues
 /autograder/source/bustub/src/include/buffer/arc_replacer.h had clang-format style issues
 /autograder/source/bustub/src/include/buffer/buffer_pool_manager.h had clang-format style issues
+/autograder/source/bustub/src/include/concurrency/transaction_manager.h had clang-format style issues
+/autograder/source/bustub/src/include/concurrency/watermark.h had clang-format style issues
 /autograder/source/bustub/src/include/execution/execution_common.h had clang-format style issues
 /autograder/source/bustub/src/include/execution/executors/aggregation_executor.h had clang-format style issues
 /autograder/source/bustub/src/include/execution/executors/delete_executor.h had clang-format style issues
@@ -2317,7 +2375,7 @@ make[2]: *** [CMakeFiles/Makefile2:1034: CMakeFiles/check-format.dir/all] Error 
 make[1]: *** [CMakeFiles/Makefile2:1041: CMakeFiles/check-format.dir/rule] Error 2
 make: *** [Makefile:212: check-format] Error 2
 
-Program exited with 2 in 6.446s
+Program exited with 2 in 6.487s
 
 
 This step fails, and you'll get zero score for all steps even if you pass.

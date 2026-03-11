@@ -15,24 +15,27 @@
  * For range scan of b+ tree
  */
 #pragma once
-#include <utility>
 #include "buffer/traced_buffer_pool_manager.h"
 #include "common/config.h"
 #include "common/macros.h"
 #include "storage/page/b_plus_tree_leaf_page.h"
+#include <utility>
 
 namespace bustub {
 
-#define INDEXITERATOR_TYPE IndexIterator<KeyType, ValueType, KeyComparator, NumTombs>
-#define SHORT_INDEXITERATOR_TYPE IndexIterator<KeyType, ValueType, KeyComparator>
+#define INDEXITERATOR_TYPE                                                     \
+  IndexIterator<KeyType, ValueType, KeyComparator, NumTombs>
+#define SHORT_INDEXITERATOR_TYPE                                               \
+  IndexIterator<KeyType, ValueType, KeyComparator>
 
 FULL_INDEX_TEMPLATE_ARGUMENTS_DEFN
 class IndexIterator {
- public:
+public:
   // you may define your own constructor based on your member variables
-  IndexIterator(TracedBufferPoolManager *buffer_pool_manager, page_id_t page_id, int index, ReadPageGuard &&guard);
+  IndexIterator(TracedBufferPoolManager *buffer_pool_manager, page_id_t page_id,
+                int index, ReadPageGuard &&guard);
   IndexIterator() = default;
-  ~IndexIterator();  // NOLINT
+  ~IndexIterator(); // NOLINT
 
   auto IsEnd() -> bool;
 
@@ -41,16 +44,20 @@ class IndexIterator {
   auto operator++() -> IndexIterator &;
 
   auto operator==(const IndexIterator &itr) const -> bool {
-    if (current_page_id_ == INVALID_PAGE_ID && itr.current_page_id_ == INVALID_PAGE_ID) {
+    if (current_page_id_ == INVALID_PAGE_ID &&
+        itr.current_page_id_ == INVALID_PAGE_ID) {
       return true;
     }
-    return current_page_id_ == itr.current_page_id_ && current_index_ == itr.current_index_;
+    return current_page_id_ == itr.current_page_id_ &&
+           current_index_ == itr.current_index_;
   }
 
-  auto operator!=(const IndexIterator &itr) const -> bool { return !(*this == itr); }
+  auto operator!=(const IndexIterator &itr) const -> bool {
+    return !(*this == itr);
+  }
   void Page();
 
- private:
+private:
   // add your own private member variables here
   TracedBufferPoolManager *bpm_{nullptr};
   page_id_t current_page_id_{INVALID_PAGE_ID};
@@ -58,4 +65,4 @@ class IndexIterator {
   ReadPageGuard guard_;
 };
 
-}  // namespace bustub
+} // namespace bustub

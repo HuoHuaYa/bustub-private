@@ -85,18 +85,21 @@ index_names_; std::atomic<index_oid_t> next_index_oid_{0};
 
  */
 class SeqScanExecutor : public AbstractExecutor {
- public:
+public:
   SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan);
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+            std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
   /** @return The output schema for the sequential scan */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  }
 
- private:
+private:
   /** The sequential scan plan node to be executed */
   const SeqScanPlanNode *plan_;
   // executorcontext含有catalog，catalog中含有table
@@ -107,4 +110,4 @@ class SeqScanExecutor : public AbstractExecutor {
   // 因为tableiterator没有默认构造函数，所以构造seqscanexecutor时，为了避免他调用不存在的默认构造，我们用optional装
   std::optional<TableIterator> iter_;
 };
-}  // namespace bustub
+} // namespace bustub

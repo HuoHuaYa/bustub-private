@@ -40,7 +40,7 @@ class ReadPageGuard {
    * `ReadPageGuard.` */
   friend class BufferPoolManager;
   // 友元类，让BufferPoolManager能调用私有/保护成员
- public:
+public:
   /**
    * @brief The default constructor for a `ReadPageGuard`.
    *
@@ -64,8 +64,7 @@ class ReadPageGuard {
   auto operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard &;
   auto GetPageId() const -> page_id_t;
   auto GetData() const -> const char *;
-  template <class T>
-  auto As() const -> const T * {
+  template <class T> auto As() const -> const T * {
     return reinterpret_cast<const T *>(GetData());
   }
   auto IsDirty() const -> bool;
@@ -76,11 +75,13 @@ class ReadPageGuard {
   // void Getlock();
   // void Releaselock();
 
- private:
+private:
   /** @brief Only the buffer pool manager is allowed to construct a valid
    * `ReadPageGuard.` */
-  explicit ReadPageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame, std::shared_ptr<ArcReplacer> replacer,
-                         std::shared_ptr<std::mutex> bpm_latch, std::shared_ptr<DiskScheduler> disk_scheduler);
+  explicit ReadPageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
+                         std::shared_ptr<ArcReplacer> replacer,
+                         std::shared_ptr<std::mutex> bpm_latch,
+                         std::shared_ptr<DiskScheduler> disk_scheduler);
 
   /** @brief The page ID of the page we are guarding. */
   page_id_t page_id_;
@@ -160,7 +161,7 @@ class WritePageGuard {
    * `WritePageGuard.` */
   friend class BufferPoolManager;
 
- public:
+public:
   /**
    * @brief The default constructor for a `WritePageGuard`.
    *
@@ -184,13 +185,11 @@ class WritePageGuard {
   auto GetData() const -> const char *;
   // void Getlock();
   // void Releaselock();
-  template <class T>
-  auto As() const -> const T * {
+  template <class T> auto As() const -> const T * {
     return reinterpret_cast<const T *>(GetData());
   }
   auto GetDataMut() -> char *;
-  template <class T>
-  auto AsMut() -> T * {
+  template <class T> auto AsMut() -> T * {
     return reinterpret_cast<T *>(GetDataMut());
   }
   auto IsDirty() const -> bool;
@@ -198,11 +197,13 @@ class WritePageGuard {
   void Drop();
   ~WritePageGuard();
 
- private:
+private:
   /** @brief Only the buffer pool manager is allowed to construct a valid
    * `WritePageGuard.` */
-  explicit WritePageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame, std::shared_ptr<ArcReplacer> replacer,
-                          std::shared_ptr<std::mutex> bpm_latch, std::shared_ptr<DiskScheduler> disk_scheduler);
+  explicit WritePageGuard(page_id_t page_id, std::shared_ptr<FrameHeader> frame,
+                          std::shared_ptr<ArcReplacer> replacer,
+                          std::shared_ptr<std::mutex> bpm_latch,
+                          std::shared_ptr<DiskScheduler> disk_scheduler);
 
   /** @brief The page ID of the page we are guarding. */
   page_id_t page_id_;
@@ -263,4 +264,4 @@ class WritePageGuard {
    */
 };
 
-}  // namespace bustub
+} // namespace bustub

@@ -13,6 +13,8 @@
 #include <memory>
 #include "common/macros.h"
 
+#include "concurrency/transaction_manager.h"
+#include "execution/execution_common.h"
 #include "execution/executors/delete_executor.h"
 
 namespace bustub {
@@ -59,44 +61,116 @@ auto DeleteExecutor::Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<b
   tuple_batch->clear();
   rid_batch->clear();
 
+  // 保证算子只执行一次
   if (has_deleted_) {
     return false;
   }
   has_deleted_ = true;
 
+  auto *txn = exec_ctx_->GetTransaction();
+  auto *txn_mgr = exec_ctx_->GetTransactionManager();
   int32_t delete_count = 0;
-  std::vector<bustub::Tuple> child_tuples;
-  std::vector<bustub::RID> child_rids;
+  // 流水线中断器
+  std::vector<Tuple> child_tuples;
+  std::vector<RID> child_rids;
+  std::vector<Tuple> buffered_tuples;
+  std::vector<RID> buffered_rids;
 
   while (child_executor_->Next(&child_tuples, &child_rids, batch_size)) {
     for (size_t i = 0; i < child_tuples.size(); i++) {
-      const auto &tuple = child_tuples[i];
-      const auto &rid = child_rids[i];
-
-      TupleMeta meta = table_info_->table_->GetTupleMeta(rid);
-      meta.is_deleted_ = true;
-      table_info_->table_->UpdateTupleMeta(meta, rid);
-      for (const auto &index_info : table_indexes_) {
-        // AI:GetKeyAttrs() 的全称是 Get Key Attributes（获取键属性 /
-        // 获取索引列坐标）
-        // 如果用一句大白话来解释：它就是一张“精确到列的采摘清单”，告诉系统到底该从完整的表中，把哪几列抽出来作为
-        // B+ 树的 Key。
-        Tuple key =
-            tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_, index_info->index_->GetKeyAttrs());
-        // 物理删除
-        index_info->index_->DeleteEntry(key, rid, exec_ctx_->GetTransaction());
-      }
-
-      delete_count++;
+      buffered_tuples.push_back(child_tuples[i]);
+      buffered_rids.push_back(child_rids[i]);
     }
     child_tuples.clear();
     child_rids.clear();
   }
 
+  // 遍历缓冲区，物理层面删除
+
+  for (size_t i = 0; i < buffered_tuples.size(); i++) {
+    RID rid = buffered_rids[i];
+    // 给新的log准备成员
+    // tuple可能在之前有改变，获取新鲜的
+    auto [meta, base_tuple] = table_info_->table_->GetTuple(rid);
+    std::optional<UndoLink> old_link = txn_mgr->GetUndoLink(rid);
+    // 宏观写写冲突检测
+    bool is_self = (meta.ts_ == txn->GetTransactionTempTs());
+
+    if (!is_self) {
+      if (meta.ts_ > txn->GetReadTs() || (meta.ts_ > TXN_START_ID && meta.ts_ != txn->GetTransactionTempTs())) {
+        txn->SetTainted();
+        throw ExecutionException("Write-Write Conflict in Delete!");
+      }
+    }
+
+    // 构造meta
+    TupleMeta new_meta = meta;
+    new_meta.is_deleted_ = true;
+    new_meta.ts_ = txn->GetTransactionTempTs();
+
+    std::optional<UndoLink> link_to_update = old_link;
+    // 不是写写冲突，并且不是当前事务改的，就是第一次改，要更新meta，ts
+    if (!is_self) {
+      UndoLog new_log;
+      // 之前是死是活
+      new_log.is_deleted_ = meta.is_deleted_;
+      // 删除操作必须全量保存旧数据，位图全设为true
+      new_log.modified_fields_ = std::vector<bool>(child_executor_->GetOutputSchema().GetColumnCount(), true);
+      // 必须保存完整的tuple（内含rid）
+      new_log.tuple_ = base_tuple;
+      new_log.ts_ = meta.ts_;
+      // 有老版本，就记得带上
+      if (old_link.has_value()) {
+        new_log.prev_version_ = *old_link;
+      }
+      // 追加到事务内存，拿到新指针
+      link_to_update = txn->AppendUndoLog(new_log);
+
+    } else {
+      if (old_link.has_value()) {
+        UndoLog old_log = txn->GetUndoLog(old_link->prev_log_idx_);
+        // 说明之前不是insert，而是update
+        if (!old_log.is_deleted_) {
+          std::optional<Tuple> original_tuple =
+              ReconstructTuple(&child_executor_->GetOutputSchema(), base_tuple, meta, {old_log});
+          // 成功构造出了事务之前的tuple，把他刷到物理层
+          if (original_tuple.has_value()) {
+            old_log.tuple_ = original_tuple.value();
+            old_log.modified_fields_ = std::vector<bool>(child_executor_->GetOutputSchema().GetColumnCount(), true);
+            txn->ModifyUndoLog(old_link->prev_log_idx_, old_log);
+          }
+        }
+      }
+    }
+    bool is_updated = UpdateTupleAndUndoLink(
+        txn_mgr, rid, link_to_update, table_info_->table_.get(), txn, new_meta, base_tuple,
+        // 双重检查锁定
+        [meta = meta](const TupleMeta &fresh_meta, const Tuple &, RID, std::optional<UndoLink>) -> bool {
+          return fresh_meta.ts_ == meta.ts_ && fresh_meta.is_deleted_ == meta.is_deleted_;
+        });
+    // 如果update失败，就是被写写冲突阻拦了
+    if (!is_updated) {
+      txn->SetTainted();
+      throw ExecutionException("Write-Write Conflict detected during atomic delete!");
+    }
+
+    // 记录作案现场
+    txn->AppendWriteSet(table_info_->oid_, rid);
+    // ！！！！索引不能删，因为他可能要给其他版本用，不要直接从物理层面完全删除
+    // 只有当这条数据之前还活着的时候，我们才去删它的索引（防止重复删除索引，出现错误）
+    // if (!meta.is_deleted_) {
+    //   for (const auto &index_info : table_indexes_) {
+    //     Tuple key = base_tuple.KeyFromTuple(table_info_->schema_, index_info->key_schema_,
+    //     index_info->index_->GetKeyAttrs()); index_info->index_->DeleteEntry(key, rid, txn);
+    //   }
+    // }
+
+    delete_count++;
+  }
   std::vector<Value> result_values{};
   result_values.emplace_back(TypeId::INTEGER, delete_count);
-
   Tuple result_tuple{result_values, &GetOutputSchema()};
+
   tuple_batch->push_back(result_tuple);
   return true;
 }

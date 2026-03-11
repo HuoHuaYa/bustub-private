@@ -19,7 +19,7 @@ namespace bustub {
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
 
-TEST(TxnSerializableTest, DISABLED_SerializableTest) { // NOLINT
+TEST(TxnSerializableTest, SerializableTest) { // NOLINT
   fmt::println(stderr, "--- SerializableTest2: Serializable ---");
   {
     auto bustub = std::make_unique<BusTubInstance>();
@@ -50,7 +50,7 @@ TEST(TxnSerializableTest, DISABLED_SerializableTest) { // NOLINT
   }
 }
 
-TEST(TxnSerializableTest, DISABLED_ConcurrentSerializableTest) { // NOLINT
+TEST(TxnSerializableTest, ConcurrentSerializableTest) { // NOLINT
   fmt::println(stderr, "--- SerializableTest2: Concurrent Serializable ---");
   {
     for (int i = 0; i < 10; i++) {
@@ -109,7 +109,7 @@ TEST(TxnSerializableTest, DISABLED_ConcurrentSerializableTest) { // NOLINT
   }
 }
 
-TEST(TxnAbortTest, DISABLED_SimpleAbortTest) { // NOLINT
+TEST(TxnAbortTest, SimpleAbortTest) { // NOLINT
   fmt::println(stderr, "--- SimpleAbortTest: Setup without primary key ---");
   auto bustub = std::make_unique<BusTubInstance>();
   Execute(*bustub, "CREATE TABLE maintable(a int, b int)");
@@ -215,7 +215,7 @@ TEST(TxnAbortTest, DISABLED_SimpleAbortTest) { // NOLINT
   }
 }
 
-TEST(TxnAbortTest, DISABLED_AbortIndexTest) { // NOLINT
+TEST(TxnAbortTest, AbortIndexTest) { // NOLINT
   fmt::println(stderr, "--- AbortIndexTest1: Simple Abort ---");
   {
     auto bustub = std::make_unique<BusTubInstance>();

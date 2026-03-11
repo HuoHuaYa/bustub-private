@@ -26,19 +26,23 @@ namespace bustub {
  * NestedIndexJoinExecutor executes index join operations.
  */
 class NestedIndexJoinExecutor : public AbstractExecutor {
- public:
-  NestedIndexJoinExecutor(ExecutorContext *exec_ctx, const NestedIndexJoinPlanNode *plan,
+public:
+  NestedIndexJoinExecutor(ExecutorContext *exec_ctx,
+                          const NestedIndexJoinPlanNode *plan,
                           std::unique_ptr<AbstractExecutor> &&child_executor);
 
   /** @return The output schema for the nested index join */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  auto GetOutputSchema() const -> const Schema & override {
+    return plan_->OutputSchema();
+  }
 
   void Init() override;
 
-  auto Next(std::vector<bustub::Tuple> *tuple_batch, std::vector<bustub::RID> *rid_batch, size_t batch_size)
+  auto Next(std::vector<bustub::Tuple> *tuple_batch,
+            std::vector<bustub::RID> *rid_batch, size_t batch_size)
       -> bool override;
 
- private:
+private:
   /** The nested index join plan node. */
   const NestedIndexJoinPlanNode *plan_;
 
@@ -64,4 +68,4 @@ class NestedIndexJoinExecutor : public AbstractExecutor {
   size_t match_idx_{0};
   bool is_current_left_matched_{false};
 };
-}  // namespace bustub
+} // namespace bustub

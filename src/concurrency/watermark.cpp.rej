@@ -1,0 +1,29 @@
+--- src/concurrency/watermark.cpp
++++ src/concurrency/watermark.cpp (after clang format)
+@@ -11,9 +11,9 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "concurrency/watermark.h"
+-#include "common/exception.h"
+ #include <algorithm>
+ #include <exception>
++#include "common/exception.h"
+ namespace bustub {
+ 
+ auto Watermark::AddTxn(timestamp_t read_ts) -> void {
+@@ -42,8 +42,7 @@
+   }
+   // 只要堆顶的元素在哈希表里找不到（说明它已经被 erase 掉了，是个死人）
+   // 千万不要用 current_reads_[top] == 0 判断，会重新插入一个值为 0 的废键
+-  while (!min_heap_.empty() &&
+-         current_reads_.find(min_heap_.top()) == current_reads_.end()) {
++  while (!min_heap_.empty() && current_reads_.find(min_heap_.top()) == current_reads_.end()) {
+     min_heap_.pop();
+   }
+   if (min_heap_.empty()) {
+@@ -55,4 +54,4 @@
+   }
+ }
+ 
+-} // namespace bustub
++}  // namespace bustub
